@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <h2>Welcome, {{ user.username }}</h2>
+    <p>You are logged in as an administrator.</p>
+
+    <!-- Example admin tools -->
+    <ul>
+        <li><a href="#">User Management (coming soon)</a></li>
+        <li><a href="#">Order Review (coming soon)</a></li>
+    </ul>
+
+    <p><a href="{% url 'logout' %}">Logout</a></p>
+</body>
+</html>
