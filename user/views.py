@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
 def home_view(request):
-    return render(request, 'home.html')
+    return render(request, 'user/home.html')
 
 # The view of register
 def register_view(request):
@@ -27,7 +27,7 @@ def register_view(request):
         messages.success(request, "Registration is successful, please log in.")
         return redirect('login')
 
-    return render(request, 'register.html')
+    return render(request, 'user/register.html')
 
 
 #  The view of login
@@ -44,7 +44,7 @@ def login_view(request):
             messages.error(request, "Wrong username or password.")
             return redirect('login')
 
-    return render(request, 'login.html')
+    return render(request, 'user/login.html')
 
 
 # the view of log out
@@ -57,7 +57,7 @@ def logout_view(request):
 def dashboard_view(request):
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'dashboard.html', {'user': request.user})
+    return render(request, 'user/dashboard.html', {'user': request.user})
 
 
 
