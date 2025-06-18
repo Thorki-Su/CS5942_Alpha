@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 
 #用于自定义CustomUser（不使用username而是email）
 class CustomUserManager(BaseUserManager):
-    def creater_user(self, email, password=None, **extra_fields):
+    def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('Users must have an email address')
         email = self.normalize_email(email)
@@ -12,7 +12,7 @@ class CustomUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_supperuser(self, email, password=None, **extra_fields):
+    def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_supperuser', True)
         return self.create_user(email, password, **extra_fields)
@@ -44,8 +44,7 @@ class UserProfile(models.Model):
     age = models.IntegerField(null=True, blank=True)
     gender = models.CharField(max_length=20, null=True, blank=True)                       #性别，需要考虑做成选择框还是填写
     phone_number = models.CharField(max_length=20)
-    preferred_contact_method = models.CharField(max_length=20, choices=[('phone', 'Phone'),('email', 'Email')])
-    location = models.CharField(max_length=20, null=True, blank=True)                     #地理位置，或邮编
+    location = models.CharField(max_length=255)                                           #地理位置，或邮编
     profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True) #个人照片，用作头像和匹配时的展示
     emergency_contact = models.CharField(max_length=255, null=True, blank=True)           #紧急联系人（姓名+联系方式）
     consent_safeguard = models.BooleanField(default=False)                                #是否同意数据使用和安全协议（不确定是否有必要）
@@ -63,10 +62,11 @@ class ClientProfile(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)             #和UserProfile一对一
     certifications = models.ManyToManyField(CertificationType)                             #是否有PIP、ADP、LWC等认证(多对多)
     pip_certificate = models.FileField(upload_to='certificates/pip/',null=True,blank=True) #如果有认证，客户需将之上传
-    adp_certificate = models.FileField(upload_to='certificates/pip/',null=True,blank=True)
-    lwc_certificate = models.FileField(upload_to='certificates/pip/',null=True,blank=True)
+    adp_certificate = models.FileField(upload_to='certificates/adp/',null=True,blank=True)
+    lwc_certificate = models.FileField(upload_to='certificates/lwc/',null=True,blank=True)
     eligibility_confirmed = models.BooleanField(default=False)                             #审核通过后改为True
-    condition = models.ManyToManyField(ConditionType, blank=True)                          #患病类型，多对多
+    preferred_contact_method = models.CharField(max_length=20, choices=[('phone', 'Phone'),('email', 'Email')])
+    conditions = models.ManyToManyField(ConditionType, blank=True)                          #患病类型，多对多
     support_areas = models.CharField(max_length=255, null=True, blank=True)                #需要支持的领域（不确定要不要也做成多对多）
     preferred_times = models.JSONField(default=dict, blank=True)                           #需要帮助的时间
     allergies = models.TextField(null=True, blank=True)                                    #过敏源

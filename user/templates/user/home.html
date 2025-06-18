@@ -41,8 +41,8 @@
     <h1>Welcome to our volunteer's service system</h1>
     <p>Please log in or register to continue.</p>
 
-    <a href="{% url 'login' %}" class="btn">Login</a>
-    <a href="{% url 'register' %}" class="btn">Register</a>
-    <a href="{% url 'admin_login' %}" class="btn">Admin Login</a> 
+    <a href="{% url 'user:login' %}" class="btn">Login</a>
+    <a href="{% url 'user:choose_role' %}" class="btn">Register</a>
+    {% comment %} <a href="{% url 'admin_login' %}" class="btn">Admin Login</a>  {% endcomment %}
 </body>
 </html>
