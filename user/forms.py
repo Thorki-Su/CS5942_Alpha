@@ -1,8 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser, UserProfile, ClientProfile, CertificationType, ConditionType
+from .models import CustomUser, UserProfile, ClientProfile, CertificationType, ConditionType, VolunteerProfile
 
-#注册表
+#Client注册表
 class ClientRegisterForm(UserCreationForm):
     first_name = forms.CharField(max_length=100, label='First Name')
     last_name = forms.CharField(max_length=100, label='Last Name')
@@ -25,7 +25,7 @@ class ClientRegisterForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'password1', 'password2', 'role')
+        fields = ('email', 'password1', 'password2') #可以加别的属性来控制顺序（不知道行不行）
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -49,6 +49,7 @@ class ClientRegisterForm(UserCreationForm):
             client_profile.certifications.set(self.cleaned_data['certifications'])
         return user
 
+#Client在个人信息页面用于补充信息的表
 class ClientProfileForm(forms.ModelForm):
     # support_areas = forms.ModelMultipleChoiceField(
     #     queryset=SupportArea.objects.all(),
@@ -110,12 +111,71 @@ class ClientProfileForm(forms.ModelForm):
             'allergies',
             'has_pets',
             'pets_type',
-            # 动态加证书 upload
-            # 'pip_certificate', 'adp_certificate', 'lwc_certificate'
             'dietary_needs'
         ]
         widgets = {
             'preferred_times': forms.Textarea(attrs={'rows': 4, 'placeholder': 'e.g. {"Monday": ["09:00-11:00"], "Friday": ["14:00-16:00"]}'}),
             'allergies': forms.Textarea(attrs={'rows': 2}),
             'dietary_needs': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+#Volunteer注册表
+class VolunteerRegisterForm(UserCreationForm):
+    first_name = forms.CharField(max_length=100, label='First Name')
+    last_name = forms.CharField(max_length=100, label='Last Name')
+    phone_number = forms.CharField(max_length=20, label='Phone Number')
+    location = forms.CharField(max_length=255, label='Location/Postcode')
+    university_course = forms.CharField(max_length=255, label='University and Course')
+    profession = forms.CharField(max_length=255, label='Profession')
+    is_for_credit = forms.BooleanField(label='Are you volunteering for credit?', required=True)
+    consent_safeguard = forms.BooleanField(
+        label='I agree with the agreement',
+        required=True,
+        error_messages={'required':'You must agree with the agreement to continue.'}
+    )
+
+    class Meta:
+        model = CustomUser
+        fields = ('email', 'password1', 'password2', 'role')
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.role = 'volunteer'
+        user.username = self.cleaned_data['email']
+        if commit:
+            user.save()
+
+            user_profile = UserProfile.objects.create(
+                user=user,
+                first_name=self.cleaned_data['first_name'],
+                last_name=self.cleaned_data['last_name'],
+                phone_number=self.cleaned_data['phone_number'],
+                location=self.cleaned_data['location'],
+                consent_safeguard=True
+            )
+            volunteer_profile = VolunteerProfile.objects.create(
+                user_profile=user_profile,
+                university_course=self.cleaned_data['university_course'],
+                profession=self.cleaned_data['profession'],
+                is_for_credit = self.cleaned_data['is_for_credit']
+            )
+        return user
+    
+class VolunteerProfileForm(forms.ModelForm):
+    class Meta:
+        model = VolunteerProfile
+        fields = [
+            'skills',
+            'interests',
+            'pvg_level',
+            'availability',
+            'motivation'
+        ]
+        widgets = {
+            'availability': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'e.g. {"Monday": ["09:00-11:00"], "Friday": ["14:00-16:00"]}'
+            }),
+            'motivation': forms.Textarea(attrs={'rows': 3}),
         }

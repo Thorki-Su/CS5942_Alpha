@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 # from django.contrib import messages
 from .models import CustomUser, UserProfile, ClientProfile, VolunteerProfile
-from .forms import ClientRegisterForm, ClientProfileForm #, VolunteerRegisterForm, VolunteerProfileForm
+from .forms import ClientRegisterForm, ClientProfileForm, VolunteerRegisterForm, VolunteerProfileForm
 from django.contrib.auth.forms import AuthenticationForm
 
 def home_view(request):
@@ -53,7 +53,7 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             #return redirect('client_profile_detail')
-            return redirect('home')
+            return redirect('user:home')
     else:
         form = AuthenticationForm()
     return render(request, 'user/login.html', {'form':form})
@@ -62,7 +62,7 @@ def login_view(request):
 # the view of log out
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('user:login')
 
 
 # the view of page
@@ -80,27 +80,60 @@ def client_register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('client_profile_edit')
+            return redirect('user:client_profile_edit')
+        else:
+            print(form.errors)
     else:
         form = ClientRegisterForm()
     return render(request, 'user/client_register.html', {'form':form})
+
+def volunteer_register(request):
+    if request.method == 'POST':
+        form = VolunteerRegisterForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('user:volunteer_profile_edit')
+    else:
+        form = VolunteerRegisterForm()
+    return render(request, 'user/volunteer_register.html', {'form':form})
 
 @login_required
 def client_profile_edit(request):
     try:
         client_profile = request.user.userprofile.clientprofile
     except ClientProfile.DoesNotExist:
-        return redirect('client_profile_edit')
+        return redirect('user:client_profile_edit')
     if request.method == 'POST':
         form = ClientProfileForm(request.POST, request.FILES, instance=client_profile)
         if form.is_valid():
             form.save()
-            return redirect('client_profile_detail')
+            return redirect('user:client_profile_detail')
     else:
         form = ClientProfileForm(instance=client_profile)
     return render(request, 'user/client_profile_edit.html', {'form':form})
 
 @login_required
+def volunteer_profile_edit(request):
+    try:
+        volunteer_profile = request.user.userprofile.volunteerprofile
+    except VolunteerProfile.DoesNotExist:
+        return redirect('user:volunteer_profile_edit')
+    if request.method == 'POST':
+        form = VolunteerProfileForm(request.POST, request.FILES, instance=volunteer_profile)
+        if form.is_valid():
+            form.save()
+            return redirect('user:volunteer_profile_detail')
+    else:
+        form = VolunteerProfileForm(instance=volunteer_profile)
+    return render(request, 'user/volunteer_profile_edit.html', {'form':form})
+
+@login_required
 def client_profile_detail(request):
     client_profile = request.user.userprofile.clientprofile
     return render(request, 'user/client_profile_detail.html', {'client_profile':client_profile})
+
+@login_required
+def volunteer_profile_detail(request):
+    volunteer_profile = request.user.userprofile.volunteerprofile
+    return render(request, 'user/volunteer_profile_detail.html', {'client_profile':volunteer_profile})

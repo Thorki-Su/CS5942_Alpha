@@ -14,10 +14,10 @@ class CustomUserManager(BaseUserManager):
 
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_supperuser', True)
+        extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
 
-#自定义用户表
+#自定义用户
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)        #储存邮箱，唯一
     role = models.CharField(max_length=20, choices=[
@@ -52,10 +52,14 @@ class UserProfile(models.Model):
 #储存福利认证的东西
 class CertificationType(models.Model):
     name = models.CharField(max_length=100) #存有例如PIP、ADP等名字
+    def __str__(self):
+        return self.name
 
 #患病情况
 class ConditionType(models.Model):
     name = models.CharField(max_length=100) #各种病（问Sarah）
+    def __str__(self):
+        return self.name
 
 #储存Client独有的信息
 class ClientProfile(models.Model):
@@ -66,7 +70,7 @@ class ClientProfile(models.Model):
     lwc_certificate = models.FileField(upload_to='certificates/lwc/',null=True,blank=True)
     eligibility_confirmed = models.BooleanField(default=False)                             #审核通过后改为True
     preferred_contact_method = models.CharField(max_length=20, choices=[('phone', 'Phone'),('email', 'Email')])
-    conditions = models.ManyToManyField(ConditionType, blank=True)                          #患病类型，多对多
+    conditions = models.ManyToManyField(ConditionType, blank=True)                         #患病类型，多对多
     support_areas = models.CharField(max_length=255, null=True, blank=True)                #需要支持的领域（不确定要不要也做成多对多）
     preferred_times = models.JSONField(default=dict, blank=True)                           #需要帮助的时间
     allergies = models.TextField(null=True, blank=True)                                    #过敏源
@@ -77,8 +81,8 @@ class ClientProfile(models.Model):
 #Volunteer独有的信息
 class VolunteerProfile(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    university = models.CharField(max_length=255, null=True, blank=True) #就读（曾就读）于哪所大学
-    course = models.CharField(max_length=255, null=True, blank=True)     #大学专业
+    university_course = models.CharField(max_length=255, null=True, blank=True) #就读（曾就读）于哪所大学、专业
+    #course = models.CharField(max_length=255, null=True, blank=True)     #大学专业
     profession = models.CharField(max_length=255, null=True, blank=True) #职业
     is_for_credit = models.BooleanField(default=False)                   #是否为了学分而做志愿（为什么？）
     skills = models.TextField(null=True, blank=True)                     #技能
