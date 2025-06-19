@@ -1,48 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Welcome</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding-top: 100px;
-            background-color: #f5f5f5;
-        }
+{% extends "base.html" %}
 
-        h1 {
-            font-size: 2.5em;
-        }
+{% block title %}Homepage{% endblock %}
 
-        p {
-            font-size: 1.2em;
-            color: #666;
-        }
-
-        .btn {
-            display: inline-block;
-            margin: 15px;
-            padding: 12px 24px;
-            font-size: 1em;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .btn:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
-
+{% block content %}
+    <div style='margin:50px;'>
     <h1>Welcome to our volunteer's service system</h1>
     <p>Please log in or register to continue.</p>
 
-    <a href="{% url 'user:login' %}" class="btn">Login</a>
-    <a href="{% url 'user:choose_role' %}" class="btn">Register</a>
-    {% comment %} <a href="{% url 'admin_login' %}" class="btn">Admin Login</a>  {% endcomment %}
-</body>
-</html>
+    <a href="{% url 'user:login' %}">Login</a>
+    <a href="{% url 'user:choose_role' %}">Register</a>
+    {% comment %} <a href="{% url 'admin_login' %}">Admin Login</a>  {% endcomment %}
+    </div>
+{% endblock %}
