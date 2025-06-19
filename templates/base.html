@@ -1,9 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>{% block title %}Site{% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Site{% endblock %}</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .navbar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 15px;
+        }
+        .navbar a, .navbar button {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+        .navbar a:hover, .navbar button:hover {
+            color: #007bff;
+        }
+        .sidebar {
+            position: fixed;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            background-color: #f8f9fa;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-    {% block content %}{% endblock %}
+    <div class="header">Shallion</div>
+    <div class="navbar">
+        <a href="{% url 'home' %}">Home</a>
+        <button>Log In</button>
+    </div>
+
+    <div class="sidebar">
+        Youtube<br>Instagram<br>Facebook
+    </div>
+
+    {% block content %}
+    {% endblock %}
+
+    <div class="footer">
+        © 2025 Shallion
+    </div>
 </body>
 </html>
