@@ -59,6 +59,7 @@
 <body>
     <div class="header">Shallion</div>
     <div class="navbar">
+
         <a href="{% url 'user:home' %}">Home</a>
         {% if user.is_authenticated %}
         <a href="{% url 'user:profile_detail' %}">Profile</a>
@@ -70,7 +71,7 @@
     {% comment %} <div class="sidebar">
         Youtube<br>Instagram<br>Facebook
     </div> {% endcomment %}
-    
+
     {% block content %}
     {% endblock %}
 
