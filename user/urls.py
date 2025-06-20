@@ -12,7 +12,6 @@ urlpatterns = [
     path('register/volunteer/', views.volunteer_register, name='volunteer_register'),
     path('client/profile/edit', views.client_profile_edit, name='client_profile_edit'),
     path('volunteer/profile/edit', views.volunteer_profile_edit, name='volunteer_profile_edit'),
-    path('client/profile/view', views.client_profile_detail, name='client_profile_detail'),
-    path('volunteer/profile/view', views.volunteer_profile_detail, name='volunteer_profile_detail'),
+    path('profile/', views.profile_detail, name='profile_detail'),
 ]
 

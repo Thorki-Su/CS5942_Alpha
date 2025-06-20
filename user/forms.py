@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser, UserProfile, ClientProfile, CertificationType, ConditionType, VolunteerProfile
+from .models import CustomUser, UserProfile, ClientProfile, CertificationType, ConditionType, VolunteerProfile, SupportType
 
 #Client注册表
 class ClientRegisterForm(UserCreationForm):
@@ -51,11 +51,15 @@ class ClientRegisterForm(UserCreationForm):
 
 #Client在个人信息页面用于补充信息的表
 class ClientProfileForm(forms.ModelForm):
-    # support_areas = forms.ModelMultipleChoiceField(
-    #     queryset=SupportArea.objects.all(),
-    #     widget=forms.CheckboxSelectMultiple,
-    #     label='Support Areas'
-    # )
+    profile_photo = forms.FileField(
+        required=False,
+        label='Please upload your photo',
+    )
+    support_areas = forms.ModelMultipleChoiceField(
+        queryset=SupportType.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        label='Support Areas'
+    )
     conditions = forms.ModelMultipleChoiceField(
         queryset=ConditionType.objects.all(),
         widget=forms.CheckboxSelectMultiple,
