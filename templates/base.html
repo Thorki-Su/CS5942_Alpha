@@ -59,13 +59,18 @@
 <body>
     <div class="header">Shallion</div>
     <div class="navbar">
-        <a href="{% url 'home' %}">Home</a>
-        <button>Log In</button>
+
+        <a href="{% url 'user:home' %}">Home</a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'user:profile_detail' %}">Profile</a>
+        {% else %}
+        <a href="{% url 'user:login' %}">Login</a>
+        {% endif %}
     </div>
 
-    <div class="sidebar">
+    {% comment %} <div class="sidebar">
         Youtube<br>Instagram<br>Facebook
-    </div>
+    </div> {% endcomment %}
 
     {% block content %}
     {% endblock %}
