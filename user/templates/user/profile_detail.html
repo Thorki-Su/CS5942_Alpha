@@ -4,17 +4,22 @@
 
 {% block content %}
     <div style='margin:50px;'>
-        <p>Hello {{ user_profile.first_name }}</p>
+        <h1>Hello {{ user_profile.first_name }}</h1>
         <p>Thanks for using Shallion as a {{ user.role }}!</p>
         <p><a href="{% url 'user:logout' %}">Log Out</a></p>
     </div>
     <div style='margin:50px;'>
         <h3>Your Personal Information:</h3>
-        <p><a href="{% url 'user:client_profile_edit' %}">Edit Your Information</a></p>
+        {% if user.role == 'client' %}
+            <p><a href="{% url 'user:client_profile_edit' %}">Edit Your Information</a></p>
+        {% elif user.role == 'volunteer' %}
+            <p><a href="{% url 'user:volunteer_profile_edit' %}">Edit Your Information</a></p>
+        {% endif %}
         {% for key, value in user_fields.items %}
             {% if key == 'profile_photo' %}
                 {% if user_profile.profile_photo %}
-                    <img src="{{ user_profile.profile_photo.url }}" alt="Your Profile Photo" width="450">
+                    <p><strong>profile_photo:</strong></p>
+                    <p><img src="{{ user_profile.profile_photo.url }}" alt="Your Profile Photo" width="450"></p>
                 {% else %}
                     <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
                 {% endif %}
