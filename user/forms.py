@@ -141,7 +141,7 @@ class VolunteerRegisterForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'password1', 'password2', 'role')
+        fields = ('email', 'password1', 'password2')
     
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -167,6 +167,10 @@ class VolunteerRegisterForm(UserCreationForm):
         return user
     
 class VolunteerProfileForm(forms.ModelForm):
+    profile_photo = forms.FileField(
+        required=False,
+        label='Please upload your photo',
+    )
     class Meta:
         model = VolunteerProfile
         fields = [

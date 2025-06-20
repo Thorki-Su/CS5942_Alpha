@@ -72,7 +72,7 @@ def client_register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('user:profile_detail')
+            return redirect('user:home')
         else: #展示错误，之后没问题了可以去掉
             print(form.errors)
     else:
@@ -85,7 +85,7 @@ def volunteer_register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('user:profile_detail')
+            return redirect('user:home')
         else: #同理
             print(form.errors)
     else:
@@ -124,6 +124,11 @@ def volunteer_profile_edit(request):
         form = VolunteerProfileForm(request.POST, request.FILES, instance=volunteer_profile)
         if form.is_valid():
             form.save()
+            profile_photo_file = form.cleaned_data.get('profile_photo') #同理
+            if profile_photo_file:
+                user_profile = request.user.userprofile
+                user_profile.profile_photo = profile_photo_file
+                user_profile.save()
             return redirect('user:profile_detail')
     else:
         form = VolunteerProfileForm(instance=volunteer_profile)

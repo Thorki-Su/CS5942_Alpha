@@ -92,7 +92,13 @@ class VolunteerProfile(models.Model):
     is_for_credit = models.BooleanField(default=False)                   #是否为了学分而做志愿（为什么？）
     skills = models.TextField(null=True, blank=True)                     #技能
     interests = models.TextField(null=True, blank=True)                  #兴趣
-    pvg_level = models.CharField(max_length=50, null=True, blank=True)   #PVG等级
+    pvg_level = models.CharField(max_length=50, null=True, blank=True, choices=[
+        ('verified', 'Verified'),
+        ('processing', 'Processing'),
+        ('pending', 'Pending'),
+        ('do_not_have', 'I do not have a PVG yet'),
+    ])   #PVG等级
+    pvg_file = models.FileField(upload_to='pvg/',null=True,blank=True)
     availability = models.JSONField(default=dict, blank=True)            #可以做志愿的时间
     motivation = models.TextField(null=True, blank=True)                 #加入的动机
 

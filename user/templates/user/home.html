@@ -4,11 +4,14 @@
 
 {% block content %}
     <div style='margin:50px;'>
-    <h1>Welcome to our volunteer's service system</h1>
-    <p>Please log in or register to continue.</p>
+        <h1>Welcome to our volunteer's service system!</h1>
 
-    <a href="{% url 'user:login' %}">Login</a>
-    <a href="{% url 'user:choose_role' %}">Register</a>
-    {% comment %} <a href="{% url 'admin_login' %}">Admin Login</a>  {% endcomment %}
+        {% comment %} 
+        <p>Please log in or register to continue.</p>
+
+        <a href="{% url 'user:login' %}">Login</a>
+        <a href="{% url 'user:choose_role' %}">Register</a>
+        <a href="{% url 'admin_login' %}">Admin Login</a>
+        {% endcomment %}
     </div>
 {% endblock %}
