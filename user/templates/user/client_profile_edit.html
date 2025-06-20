@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Information Edit{% endblock %}
+
+{% block content %}
+    <div style='margin:50px;'>
+        <h2>Edit Your Information</h2>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Register">
+        </form>
+
+    </div>
+
+{% endblock %}

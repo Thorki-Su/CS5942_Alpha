@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Detail{% endblock %}
+
+{% block content %}
+    <div style='margin:50px;'>
+        <h1>Hello {{ user_profile.first_name }}</h1>
+        <p>Thanks for using Shallion as a {{ user.role }}!</p>
+        <p><a href="{% url 'user:logout' %}">Log Out</a></p>
+    </div>
+    <div style='margin:50px;'>
+        <h3>Your Personal Information:</h3>
+        {% if user.role == 'client' %}
+            <p><a href="{% url 'user:client_profile_edit' %}">Edit Your Information</a></p>
+        {% elif user.role == 'volunteer' %}
+            <p><a href="{% url 'user:volunteer_profile_edit' %}">Edit Your Information</a></p>
+        {% endif %}
+        {% for key, value in user_fields.items %}
+            {% if key == 'profile_photo' %}
+                {% if user_profile.profile_photo %}
+                    <p><strong>profile_photo:</strong></p>
+                    <p><img src="{{ user_profile.profile_photo.url }}" alt="Your Profile Photo" width="450"></p>
+                {% else %}
+                    <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                {% endif %}
+            {% elif key != 'id' and key != 'user' %}
+                <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+            {% endif %}
+        {% endfor %}
+        {% if user.role == 'client' %}
+            {% with has_pets=client_fields.has_pets %}
+            {% for key, value in client_fields.items %}
+                {% if key == 'pets_type' %}
+                    {% if has_pets %}
+                        <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                    {% endif %}
+                {% elif key == 'pip_certificate' %}
+                    {% if has_pip_cert %}
+                        <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                    {% endif %}
+                {% elif key == 'adp_certificate' %}
+                    {% if has_adp_cert %}
+                        <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                    {% endif %}
+                {% elif key == 'lwc_certificate' %}
+                    {% if has_lwc_cert %}
+                        <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                    {% endif %}
+                {% elif key != 'id' and key != 'user_profile' %}
+                    <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                {% endif %}
+            {% endfor %}
+            {% endwith %}
+        {% elif user.role == 'volunteer' %}
+            {% for key, value in volunteer_fields.items %}
+                {% if key != 'id' and key != 'user_profile' %}
+                    <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+{% endblock %}
