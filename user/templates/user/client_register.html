@@ -3,45 +3,67 @@
 {% block title %}Client Registeration{% endblock %}
 
 {% block content %}
-    <div style='margin:50px;'>
+    <div style='margin:50px;margin-left:200px;'>
         <h2>Register as a Client</h2>
+        <p><a href="{% url 'user:choose_role' %}">Go Back</a></p>
 
-        {% comment %} <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
-            <label for="id_first_name">First Name:</label><br>
-            {{ form.first_name }}<br><br>
+            <label for="id_email"><strong>1. Please enter your email:</strong></label><br>
+            {{ form.email }}<br>
+            {{ form.email.errors }}<br><br>
 
-            <label for="id_last_name">Last Name:</label><br>
-            {{ form.last_name }}<br><br>
+            <label for="id_first_name"><strong>2. Please enter your first name:</strong></label><br>
+            {{ form.first_name }}<br>
+            {{ form.first_name.errors }}<br><br>
 
-            <label for="id_email">Email:</label><br>
-            {{ form.email }}<br><br>
+            <label for="id_last_name"><strong>3. Please enter your last name:</strong></label><br>
+            {{ form.last_name }}<br>
+            {{ form.last_name.errors }}<br><br>
 
-            <label for="id_phone_number">Phone Number:</label><br>
-            {{ form.phone_number }}<br><br>
-
-            <label for="id_contact_method">Preferred Contact Method:</label><br>
-            {{ form.contact_method }}<br><br>
-
-            <label for="id_password1">Password:</label><br>
+            <label for="id_password1"><strong>4. Please set your password:</strong></label><br>
             {{ form.password1 }}<br><br>
+            <span>Please note that passwords should follow the rules below:</span><br>
+            <ul>
+                <li>The password should be at least eight digits.</li>
+                <li>The password should not be too similar to your other information.</li>
+                <li>The password should not be all numbers.</li>
+                <li>The password should not be too simple.</li>
+            </ul>
+            {{ form.password1.errors }}<br>
 
-            <label for="id_password2">Confirm Password:</label><br>
-            {{ form.password2 }}<br><br>
+            <label for="id_password2"><strong>5. Please confirm your password:</strong></label><br>
+            {{ form.password2 }}<br>
+            <span>Please make sure you enter the same password twice.</span><br>
+            {{ form.password2.errors }}<br><br>
 
-            <label for="id_certifications">Certifications you have:</label><br>
-            <input type="checkbox" name="certifications" value="pip"> PIP <br>
-            <input type="checkbox" name="certifications" value="adp"> ADP <br>
-            <input type="checkbox" name="certifications" value="lwc"> LWC <br><br>
+            <label for="id_phone_number"><strong>6. Please enter your phone number:</strong></label><br>
+            {{ form.phone_number }}<br>
+            {{ form.phone_number.errors }}<br><br>
+
+            <label for="id_contact_method"><strong>7. Which contact method do you prefer:</strong></label><br>
+            {{ form.contact_method }}<br>
+            {{ form.contact_method.errors }}<br><br>
+
+            <label for="id_location"><strong>8. Please enter your address:</strong></label><br>
+            {{ form.location }}<br>
+            {{ form.location.errors }}<br><br>
+
+            <label for="id_certifications"><strong>9. Please choose the certifications you have:</strong></label><br>
+            {{ form.certifications }}<br>
+            {{ form.certifications.errors }}<br><br>
+
+            <strong>{{form.consent_safeguard.label_tag}}</strong>{{ form.consent_safeguard }}<br><br>
 
             <input type="submit" value="Register">
-        </form> {% endcomment %}
-        <form method="post" enctype="multipart/form-data">
+        </form>
+        
+        {% comment %} <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.as_p }}
             <input type="submit" value="Register">
-        </form>
+        </form> {% endcomment %}
 
     </div>
 

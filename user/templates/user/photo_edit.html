@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Photo Edit{% endblock %}
+
+{% block content %}
+    <div style='margin:50px;margin-left:200px;'>
+        <h2>Edit Your Photo</h2>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% comment %}
+            {{ form.as_p }}
+            <input type="submit" value="Register">
+            {% endcomment %}
+
+            {{ form.profile_photo.label_tag }}
+            <input type="file" id="id_profile_photo" name="profile_photo" accept="image/*">
+
+            <div>
+                <img id="cropper_image" style="max-width:100%; margin-top:20px;">
+            </div>
+
+            <input type="hidden" id="cropped_image_data" name="cropped_image_data">
+
+            <br>
+            <button type="button" id="crop_button">Crop & Preview</button>
+            <input type="submit" value="Save" id="save_button" disabled>
+
+        </form>
+    </div>
+
+    <link  href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <script>
+        let cropper;
+        const input = document.getElementById('id_profile_photo');
+        const image = document.getElementById('cropper_image');
+        const cropButton = document.getElementById('crop_button');
+        const croppedImageData = document.getElementById('cropped_image_data');
+
+        cropButton.addEventListener('click', () => {
+            if (cropper) {
+                const canvas = cropper.getCroppedCanvas({
+                    width: 300,
+                    height: 300
+                });
+                // 把裁剪后的图像转成 base64，存在隐藏 input 里
+                croppedImageData.value = canvas.toDataURL('image/jpeg');
+                // 显示预览
+                image.src = croppedImageData.value;
+                // 解锁 Save 按钮
+                document.getElementById('save_button').disabled = false;
+            }
+        });
+
+        input.addEventListener('change', (e) => {
+            const files = e.target.files;
+            const done = (url) => {
+                image.src = url;
+                if (cropper) {
+                    cropper.destroy();
+                }
+                cropper = new Cropper(image, {
+                    aspectRatio: 1, // 1:1 正方形头像
+                    viewMode: 1,
+                    movable: true,
+                    zoomable: true,
+                    rotatable: false,
+                    scalable: false,
+                    responsive: true
+                });
+            };
+            
+            if (files && files.length > 0) {
+                const file = files[0];
+                const url = URL.createObjectURL(file);
+                done(url);
+            }
+        });
+
+        cropButton.addEventListener('click', () => {
+            if (cropper) {
+                const canvas = cropper.getCroppedCanvas({
+                    width: 300,
+                    height: 300
+                });
+                // 把裁剪后的图像转成 base64，存在隐藏 input 里
+                croppedImageData.value = canvas.toDataURL('image/jpeg');
+                // 显示预览
+                image.src = croppedImageData.value;
+            }
+        });
+    </script>
+{% endblock %}
