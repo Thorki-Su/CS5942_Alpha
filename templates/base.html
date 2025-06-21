@@ -15,6 +15,7 @@
             left: 10px;
             font-size: 24px;
             font-weight: bold;
+            font-family: "Times New Roman", Times, serif;
         }
         .navbar {
             position: absolute;
@@ -46,7 +47,7 @@
             text-align: center;
         }
         .footer {
-            position: fixed;
+            /* position: fixed; */
             bottom: 0;
             width: 100%;
             text-align: center;
@@ -55,11 +56,18 @@
             font-size: 14px;
         }
     </style>
+
+    {% block style %}
+    {% endblock %}
+
 </head>
 <body>
-    <div class="header">Shallion</div>
-    <div class="navbar">
+    {% load static %}
+    <div class="header">
+        <img src="{% static 'images/ShallionLogoTransparent.png' %}" alt="Shallion Logo" style="height: 40px; vertical-align: middle;">
+    </div>
 
+    <div class="navbar">
         <a href="{% url 'user:home' %}">Home</a>
         {% if user.is_authenticated %}
         <a href="{% url 'user:profile_detail' %}">Profile</a>
@@ -67,10 +75,6 @@
         <a href="{% url 'user:login' %}">Login</a>
         {% endif %}
     </div>
-
-    {% comment %} <div class="sidebar">
-        Youtube<br>Instagram<br>Facebook
-    </div> {% endcomment %}
 
     {% block content %}
     {% endblock %}
