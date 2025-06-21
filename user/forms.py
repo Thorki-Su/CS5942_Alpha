@@ -56,10 +56,11 @@ class ClientRegisterForm(UserCreationForm):
 
 #Client在个人信息页面用于补充信息的表
 class ClientProfileForm(forms.ModelForm):
-    profile_photo = forms.FileField(
-        required=False,
-        label='Please upload your photo',
-    )
+    # profile_photo = forms.FileField(
+    #     required=False,
+    #     label='Please upload your photo',
+    # )
+    #尝试把图片摘出去
     support_areas = forms.ModelMultipleChoiceField(
         queryset=SupportType.objects.all(),
         widget=forms.CheckboxSelectMultiple,
@@ -70,6 +71,8 @@ class ClientProfileForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         label='Conditions you live with'
     )
+    age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
+    gender = forms.ChoiceField(choices=[('male', 'Male'), ('Female', 'female')], label='Gender')
     has_pets = forms.BooleanField(required=False, label='Do you have pets?')
     pets_type = forms.CharField(max_length=255, required=False, label='Pets Type')
 
@@ -178,10 +181,12 @@ class VolunteerRegisterForm(UserCreationForm):
         return user
     
 class VolunteerProfileForm(forms.ModelForm):
-    profile_photo = forms.FileField(
-        required=False,
-        label='Please upload your photo',
-    )
+    # profile_photo = forms.FileField(
+    #     required=False,
+    #     label='Please upload your photo',
+    # )
+    age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
+    gender = forms.ChoiceField(choices=[('male', 'Male'), ('Female', 'female')], label='Gender')
     class Meta:
         model = VolunteerProfile
         fields = [
@@ -198,3 +203,12 @@ class VolunteerProfileForm(forms.ModelForm):
             }),
             'motivation': forms.Textarea(attrs={'rows': 3}),
         }
+
+class ProfilePhotoForm(forms.ModelForm):
+    profile_photo = forms.FileField(
+        required=False,
+        label='Please upload your photo',
+    )
+    class Meta:
+        model = UserProfile
+        fields = ['profile_photo']

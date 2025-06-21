@@ -13,5 +13,6 @@ urlpatterns = [
     path('client/profile/edit', views.client_profile_edit, name='client_profile_edit'),
     path('volunteer/profile/edit', views.volunteer_profile_edit, name='volunteer_profile_edit'),
     path('profile/', views.profile_detail, name='profile_detail'),
+    path('profile/photoedit/', views.photo_edit, name='photo_edit'),
 ]
 
