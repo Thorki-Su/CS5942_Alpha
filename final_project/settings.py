@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-i!o^^a8m_sz=(_5e_c07nyutwzr(fdu+uihy5=gpr^lwvwpotb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1','mangoairport-artistbanana-8000.codio-box.uk','.render.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','mangoairport-artistbanana-8000.codio-box.uk','cs5942-alpha.onrender.com']
 
 
 # Application definition
