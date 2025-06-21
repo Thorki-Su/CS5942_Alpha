@@ -36,6 +36,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+def user_directory_path(instance, filename):
+    return f'profile_photos/{instance.user.email}/{filename}'
+
 #用来储存不同用户之间都有的信息
 class UserProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)                     #和CustomUser一对一
@@ -45,7 +48,7 @@ class UserProfile(models.Model):
     gender = models.CharField(max_length=20, null=True, blank=True)                       #性别，需要考虑做成选择框还是填写
     phone_number = models.CharField(max_length=20)
     location = models.CharField(max_length=255)                                           #地理位置，或邮编
-    profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True) #个人照片，用作头像和匹配时的展示
+    profile_photo = models.ImageField(upload_to=user_directory_path, null=True, blank=True) #个人照片，用作头像和匹配时的展示
     emergency_contact = models.CharField(max_length=255, null=True, blank=True)           #紧急联系人（姓名+联系方式）
     consent_safeguard = models.BooleanField(default=False)                                #是否同意数据使用和安全协议（不确定是否有必要）
 
@@ -77,7 +80,9 @@ class ClientProfile(models.Model):
     eligibility_confirmed = models.BooleanField(default=False)                             #审核通过后改为True
     preferred_contact_method = models.CharField(max_length=20, choices=[('phone', 'Phone'),('email', 'Email')])
     conditions = models.ManyToManyField(ConditionType, blank=True)                         #患病类型，多对多
+    other_conditions = models.CharField(max_length=255, null=True, blank=True)
     support_areas = models.ManyToManyField(SupportType, blank=True)                #需要支持的领域（不确定要不要也做成多对多）
+    other_support = models.CharField(max_length=255, null=True, blank=True)
     preferred_times = models.JSONField(default=dict, blank=True)                           #需要帮助的时间
     allergies = models.TextField(null=True, blank=True)                                    #过敏源
     dietary_needs = models.TextField(null=True, blank=True)                                #饮食需求（素食之类的？）
@@ -101,6 +106,7 @@ class VolunteerProfile(models.Model):
     pvg_file = models.FileField(upload_to='pvg/',null=True,blank=True)
     availability = models.JSONField(default=dict, blank=True)            #可以做志愿的时间
     motivation = models.TextField(null=True, blank=True)                 #加入的动机
+    preferred_tasks = models.ManyToManyField(SupportType, blank=True)
 
 #Admin独有的信息
 class AdminProfile(models.Model):

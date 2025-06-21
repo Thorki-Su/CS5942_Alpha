@@ -2,6 +2,11 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser, UserProfile, ClientProfile, CertificationType, ConditionType, VolunteerProfile, SupportType
 
+true_and_false = [
+    (True, 'Yes'),
+    (False, 'No'),
+]
+
 #Client注册表
 class ClientRegisterForm(UserCreationForm):
     first_name = forms.CharField(max_length=100, label='First Name')
@@ -132,7 +137,13 @@ class VolunteerRegisterForm(UserCreationForm):
     location = forms.CharField(max_length=255, label='Location/Postcode')
     university_course = forms.CharField(max_length=255, label='University and Course')
     profession = forms.CharField(max_length=255, label='Profession')
-    is_for_credit = forms.BooleanField(label='Are you volunteering for credit?', required=True)
+    #is_for_credit = forms.BooleanField(label='Are you volunteering for credit?', required=True)
+    is_for_credit = forms.ChoiceField(
+        label='Are you volunteering for credit?',
+        choices=true_and_false,
+        widget=forms.RadioSelect,
+        required=True,
+    )
     consent_safeguard = forms.BooleanField(
         label='I agree with the agreement',
         required=True,
