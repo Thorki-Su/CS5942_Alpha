@@ -2,6 +2,11 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser, UserProfile, ClientProfile, CertificationType, ConditionType, VolunteerProfile, SupportType
 
+true_and_false = [
+    (True, 'Yes'),
+    (False, 'No'),
+]
+
 #Client注册表
 class ClientRegisterForm(UserCreationForm):
     first_name = forms.CharField(max_length=100, label='First Name')
@@ -51,10 +56,11 @@ class ClientRegisterForm(UserCreationForm):
 
 #Client在个人信息页面用于补充信息的表
 class ClientProfileForm(forms.ModelForm):
-    profile_photo = forms.FileField(
-        required=False,
-        label='Please upload your photo',
-    )
+    # profile_photo = forms.FileField(
+    #     required=False,
+    #     label='Please upload your photo',
+    # )
+    #尝试把图片摘出去
     support_areas = forms.ModelMultipleChoiceField(
         queryset=SupportType.objects.all(),
         widget=forms.CheckboxSelectMultiple,
@@ -65,6 +71,8 @@ class ClientProfileForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         label='Conditions you live with'
     )
+    age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
+    gender = forms.ChoiceField(choices=[('male', 'Male'), ('Female', 'female')], label='Gender')
     has_pets = forms.BooleanField(required=False, label='Do you have pets?')
     pets_type = forms.CharField(max_length=255, required=False, label='Pets Type')
 
@@ -132,7 +140,13 @@ class VolunteerRegisterForm(UserCreationForm):
     location = forms.CharField(max_length=255, label='Location/Postcode')
     university_course = forms.CharField(max_length=255, label='University and Course')
     profession = forms.CharField(max_length=255, label='Profession')
-    is_for_credit = forms.BooleanField(label='Are you volunteering for credit?', required=True)
+    #is_for_credit = forms.BooleanField(label='Are you volunteering for credit?', required=True)
+    is_for_credit = forms.ChoiceField(
+        label='Are you volunteering for credit?',
+        choices=true_and_false,
+        widget=forms.RadioSelect,
+        required=True,
+    )
     consent_safeguard = forms.BooleanField(
         label='I agree with the agreement',
         required=True,
@@ -167,10 +181,12 @@ class VolunteerRegisterForm(UserCreationForm):
         return user
     
 class VolunteerProfileForm(forms.ModelForm):
-    profile_photo = forms.FileField(
-        required=False,
-        label='Please upload your photo',
-    )
+    # profile_photo = forms.FileField(
+    #     required=False,
+    #     label='Please upload your photo',
+    # )
+    age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
+    gender = forms.ChoiceField(choices=[('male', 'Male'), ('Female', 'female')], label='Gender')
     class Meta:
         model = VolunteerProfile
         fields = [
@@ -187,3 +203,12 @@ class VolunteerProfileForm(forms.ModelForm):
             }),
             'motivation': forms.Textarea(attrs={'rows': 3}),
         }
+
+class ProfilePhotoForm(forms.ModelForm):
+    profile_photo = forms.FileField(
+        required=False,
+        label='Please upload your photo',
+    )
+    class Meta:
+        model = UserProfile
+        fields = ['profile_photo']

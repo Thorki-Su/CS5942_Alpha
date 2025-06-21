@@ -4,9 +4,12 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import CustomUser, UserProfile, ClientProfile, VolunteerProfile
-from .forms import ClientRegisterForm, ClientProfileForm, VolunteerRegisterForm, VolunteerProfileForm
+from .forms import ClientRegisterForm, ClientProfileForm, VolunteerRegisterForm, VolunteerProfileForm, ProfilePhotoForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.forms.models import model_to_dict
+from django.core.files.base import ContentFile
+import base64
+import re
 
 def home_view(request):
     return render(request, 'user/home.html')
@@ -97,16 +100,27 @@ def client_profile_edit(request):
     try:
         client_profile = request.user.userprofile.clientprofile
     except ClientProfile.DoesNotExist:
-        return redirect('user:client_profile_edit')
+        return redirect('user:choose_role')
     if request.method == 'POST':
         form = ClientProfileForm(request.POST, request.FILES, instance=client_profile)
         if form.is_valid():
             form.save()
-            profile_photo_file = form.cleaned_data.get('profile_photo') #手动保存图片
-            if profile_photo_file:
-                user_profile = request.user.userprofile
-                user_profile.profile_photo = profile_photo_file
+            user_profile = request.user.userprofile
+            # profile_photo_file = form.cleaned_data.get('profile_photo') 
+            user_age = form.cleaned_data.get('age')#手动保存年龄和性别
+            user_gender = form.cleaned_data.get('gender')
+            # if profile_photo_file:
+            #     user_profile.profile_photo = profile_photo_file
+            #     user_profile.save()
+            
+            if user_age:
+                user_profile.age = user_age
                 user_profile.save()
+
+            if user_gender:
+                user_profile.gender = user_gender
+                user_profile.save()
+
             return redirect('user:profile_detail')
         else: #同理
             print(form.errors)
@@ -119,17 +133,29 @@ def volunteer_profile_edit(request):
     try:
         volunteer_profile = request.user.userprofile.volunteerprofile
     except VolunteerProfile.DoesNotExist:
-        return redirect('user:volunteer_profile_edit')
+        return redirect('user:choose_role')
     if request.method == 'POST':
         form = VolunteerProfileForm(request.POST, request.FILES, instance=volunteer_profile)
         if form.is_valid():
             form.save()
-            profile_photo_file = form.cleaned_data.get('profile_photo') #同理
-            if profile_photo_file:
-                user_profile = request.user.userprofile
-                user_profile.profile_photo = profile_photo_file
+            user_profile = request.user.userprofile
+            # profile_photo_file = form.cleaned_data.get('profile_photo') 
+            user_age = form.cleaned_data.get('age') #同理
+            user_gender = form.cleaned_data.get('gender')
+            # if profile_photo_file:
+            #     user_profile.profile_photo = profile_photo_file
+            #     user_profile.save()
+            
+            if user_age:
+                user_profile.age = user_age
+                user_profile.save()
+
+            if user_gender:
+                user_profile.gender = user_gender
                 user_profile.save()
             return redirect('user:profile_detail')
+        else: #同理
+            print(form.errors)
     else:
         form = VolunteerProfileForm(instance=volunteer_profile)
     return render(request, 'user/volunteer_profile_edit.html', {'form':form})
@@ -167,3 +193,30 @@ def profile_detail(request):
             'volunteer_fields':volunteer_fields,
         }
     return render(request, 'user/profile_detail.html', context=context)
+
+@login_required
+def photo_edit(request):
+    try:
+        user_profile = request.user.userprofile
+    except UserProfile.DoesNotExist:
+        return redirect('user:choose_role')
+    if request.method == 'POST':
+        form = ProfilePhotoForm(request.POST, request.FILES, instance=user_profile)
+
+        cropped_data = request.POST.get('cropped_image_data')
+        if cropped_data:
+            # 裁剪后的 base64 数据，转成图片
+            format, imgstr = cropped_data.split(';base64,')
+            ext = format.split('/')[-1]
+            img_data = ContentFile(base64.b64decode(imgstr), name=f'user_{request.user.id}_cropped.{ext}')
+            user_profile.profile_photo = img_data
+            user_profile.save()
+            return redirect('user:profile_detail')
+        elif form.is_valid():
+            form.save()
+            return redirect('user:profile_detail')
+        else:
+            print(form.errors)
+    else:
+        form = ProfilePhotoForm(instance=user_profile)
+    return render(request, 'user/photo_edit.html', {'form':form})

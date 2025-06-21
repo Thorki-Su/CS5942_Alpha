@@ -3,30 +3,39 @@
 {% block title %}Profile Detail{% endblock %}
 
 {% block content %}
-    <div style='margin:50px;'>
+    <div style='margin:50px;margin-left:200px;'>
         <h1>Hello {{ user_profile.first_name }}</h1>
         <p>Thanks for using Shallion as a {{ user.role }}!</p>
         <p><a href="{% url 'user:logout' %}">Log Out</a></p>
     </div>
-    <div style='margin:50px;'>
-        <h3>Your Personal Information:</h3>
+    <div style='margin:50px;margin-left:200px;'>
+        {% if user_profile.profile_photo %}
+            <p><strong>profile_photo:</strong></p>
+            <p><img src="{{ user_profile.profile_photo.url }}" alt="Your Profile Photo" width="200"></p>
+            <p><a href="{% url 'user:photo_edit' %}">Change Your Photo</a></p>
+        {% else %}
+            <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+            <p><a href="{% url 'user:photo_edit' %}">Uplode Your Photo</a></p>
+        {% endif %}
+    </div>
+    <div style='margin:50px;margin-left:200px;'>
+        <h3>Your Basis Personal Information:</h3>
+        <p><strong>email:</strong> {{ user.email }}</p>
+        {% for key, value in user_fields.items %}
+            {% if key != 'id' and key != 'user' and key != 'profile_photo' and key != 'consent_safeguard'%}
+                <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div style='margin:50px;margin-left:200px;'>
         {% if user.role == 'client' %}
             <p><a href="{% url 'user:client_profile_edit' %}">Edit Your Information</a></p>
         {% elif user.role == 'volunteer' %}
             <p><a href="{% url 'user:volunteer_profile_edit' %}">Edit Your Information</a></p>
         {% endif %}
-        {% for key, value in user_fields.items %}
-            {% if key == 'profile_photo' %}
-                {% if user_profile.profile_photo %}
-                    <p><strong>profile_photo:</strong></p>
-                    <p><img src="{{ user_profile.profile_photo.url }}" alt="Your Profile Photo" width="450"></p>
-                {% else %}
-                    <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
-                {% endif %}
-            {% elif key != 'id' and key != 'user' %}
-                <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
-            {% endif %}
-        {% endfor %}
+    </div>
+    <div style='margin:50px;margin-left:200px;'>
+        <h3>Your Other Personal Information:</h3>
         {% if user.role == 'client' %}
             {% with has_pets=client_fields.has_pets %}
             {% for key, value in client_fields.items %}
