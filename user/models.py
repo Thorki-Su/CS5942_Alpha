@@ -44,7 +44,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)                     #和CustomUser一对一
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    age = models.IntegerField(null=True, blank=True)
+    age = models.CharField(max_length=20, null=True, blank=True)
     gender = models.CharField(max_length=20, null=True, blank=True)                       #性别，需要考虑做成选择框还是填写
     phone_number = models.CharField(max_length=20)
     location = models.CharField(max_length=255)                                           #地理位置，或邮编
