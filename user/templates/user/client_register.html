@@ -46,9 +46,12 @@
             {{ form.contact_method }}<br>
             {{ form.contact_method.errors }}<br><br>
 
-            <label for="id_location"><strong>8. Please enter your address:</strong></label><br>
+            {% comment %} <label for="id_location"><strong>8. Please enter your address:</strong></label><br>
             {{ form.location }}<br>
-            {{ form.location.errors }}<br><br>
+            {{ form.location.errors }}<br><br> {% endcomment %}
+            <label for="id_location"><strong>8. Please enter your address:</strong></label><br>
+            <input id="id_location" name="location" type="text" class="form-control" placeholder="Start typing address or postcode" autocomplete="off" style='width: 200px;'>
+            <ul id="address-suggestions" class="list-group" style='z-index: 1000;width: 100%;'></ul>
 
             <label for="id_certifications"><strong>9. Please choose the certifications you have:</strong></label><br>
             {{ form.certifications }}<br>
@@ -66,5 +69,68 @@
         </form> {% endcomment %}
 
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var input = document.getElementById('id_location');
+            var suggestions = document.getElementById('address-suggestions');
+
+            input.addEventListener('input', function() {
+                var query = this.value.trim();
+                if (query.length < 3) {
+                    suggestions.innerHTML = '';
+                    return;
+                }
+
+                // 检查是否是 UK postcode 格式
+                var postcodeRegex = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}$/i;
+                if (postcodeRegex.test(query)) {
+                    // 查询 Postcodes.io
+                    fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            suggestions.innerHTML = '';
+                            if (data.status === 200) {
+                                var address = `${data.result.postcode}, ${data.result.admin_ward}, ${data.result.admin_district}, ${data.result.region}`;
+                                var li = document.createElement('li');
+                                li.textContent = address;
+                                li.classList.add('list-group-item', 'list-group-item-action');
+                                li.style.cursor = 'pointer';
+                                li.addEventListener('click', function() {
+                                    input.value = address;
+                                    suggestions.innerHTML = '';
+                                });
+                                suggestions.appendChild(li);
+                            }
+                        });
+                } else {
+                    // 否则走 Nominatim 查询地址
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&countrycodes=gb&limit=5&viewbox=-2.1800,57.2000,-2.0500,57.1200&bounded=1`)
+                        .then(response => response.json())
+                        .then(data => {
+                            suggestions.innerHTML = '';
+                            data.forEach(function(item) {
+                                var li = document.createElement('li');
+                                li.textContent = item.display_name;
+                                li.classList.add('list-group-item', 'list-group-item-action');
+                                li.style.cursor = 'pointer';
+                                li.addEventListener('click', function() {
+                                    input.value = item.display_name;
+                                    suggestions.innerHTML = '';
+                                });
+                                suggestions.appendChild(li);
+                            });
+                        });
+                }
+            });
+
+            // 点击其他地方隐藏 suggestions
+            document.addEventListener('click', function(e) {
+                if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+                    suggestions.innerHTML = '';
+                }
+            });
+        });
+    </script>
 
 {% endblock %}
