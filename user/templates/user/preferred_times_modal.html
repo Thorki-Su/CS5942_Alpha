@@ -1,0 +1,128 @@
+<div class="modal fade" id="preferredTimesModal" tabindex="-1" aria-labelledby="preferredTimesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="preferredTimesModalLabel">Edit Preferred Times</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered text-center">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Monday</th>
+                            <th>Tuesday</th>
+                            <th>Wednesday</th>
+                            <th>Thursday</th>
+                            <th>Friday</th>
+                            <th>Saturday</th>
+                            <th>Sunday</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for time in time_slots %}
+                            <tr>
+                                <td>{{ time }}</td>
+                                {% for day in days %}
+                                    <td class="time-slot" data-day="{{ day }}" data-time="{{ time }}">
+                                        <input type="checkbox" name="times" value="{{ day }}-{{ time }}" class="d-none">
+                                        <span class="checkmark">✓</span>
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="savePreferredTimes">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const preferredTimes = JSON.parse(document.getElementById("preferred-times").textContent);
+    if (preferredTimes) {
+        Object.keys(preferredTimes).forEach(day => {
+            preferredTimes[day].forEach(time => {
+                const slot = document.querySelector(`.time-slot[data-day='${day}'][data-time='${time}']`);
+                if (slot) {
+                    slot.classList.add('selected');
+                    slot.querySelector('input').checked = true;
+                }
+            });
+        });
+    }
+
+    document.querySelectorAll('.time-slot').forEach(slot => {
+        slot.addEventListener('click', function() {
+            this.classList.toggle('selected');
+            const checkbox = this.querySelector('input');
+            checkbox.checked = !checkbox.checked;
+        });
+    });
+
+    document.getElementById('savePreferredTimes').addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('input[name=\"times\"]:checked');
+        const selectedTimes = {};
+        checkboxes.forEach(checkbox => {
+            const [day, ...rest] = checkbox.value.split('-');
+            const time = rest.join('-');
+            if (!selectedTimes[day]) selectedTimes[day] = [];
+            selectedTimes[day].push(time);
+        });
+
+        fetch("{% url 'user:save_preferred_times' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(selectedTimes)
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to save preferred times');
+            }
+        });
+    });
+});
+</script>
+
+<style>
+    .time-slot {
+        cursor: pointer;
+        background-color: white;
+        position: relative;
+        height: 50px;
+        vertical-align: middle;
+    }
+
+    .time-slot.selected {
+        background-color: #d0f0c0 !important;
+    }
+
+    .checkmark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: bold;
+        font-size: 18px;
+        color: green;
+        display: none;
+    }
+
+    .time-slot.selected .checkmark {
+        display: inline;
+    }
+</style>
+
+
+{% if preferred_times %}
+    <script id="preferred-times" type="application/json">{{ preferred_times|safe }}</script>
+{% endif %}

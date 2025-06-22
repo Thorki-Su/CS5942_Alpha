@@ -15,7 +15,7 @@
             <p><a href="{% url 'user:photo_edit' %}">Change Your Photo</a></p>
         {% else %}
             <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
-            <p><a href="{% url 'user:photo_edit' %}">Uplode Your Photo</a></p>
+            <p><a href="{% url 'user:photo_edit' %}">Upload Your Photo</a></p>
         {% endif %}
     </div>
     <div style='margin:50px;margin-left:200px;'>
@@ -39,6 +39,11 @@
         {% if user.role == 'client' %}
             {% with has_pets=client_fields.has_pets %}
             {% for key, value in client_fields.items %}
+                {% if key == 'preferred_times' %}
+                    <p>{{ key }}: {{ value|default:'(Unfilled)' }} 
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#preferredTimesModal">Edit</button>
+                    </p>
+                {% endif %}
                 {% if key == 'pets_type' %}
                     {% if has_pets %}
                         <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
@@ -62,10 +67,17 @@
             {% endwith %}
         {% elif user.role == 'volunteer' %}
             {% for key, value in volunteer_fields.items %}
-                {% if key != 'id' and key != 'user_profile' %}
+                {% if key == 'preferred_times' %}
+                    <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }} 
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#preferredTimesModal">Edit</button>
+                    </p>
+                {% elif key != 'id' and key != 'user_profile' %}
                     <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
                 {% endif %}
             {% endfor %}
         {% endif %}
+    </div>
+
+    {% include "user/preferred_times_modal.html" %}
 
 {% endblock %}
