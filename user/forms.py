@@ -75,6 +75,7 @@ class ClientProfileForm(forms.ModelForm):
     gender = forms.ChoiceField(choices=[('male', 'Male'), ('Female', 'female')], label='Gender')
     has_pets = forms.BooleanField(required=False, label='Do you have pets?')
     pets_type = forms.CharField(max_length=255, required=False, label='Pets Type')
+    emergency_contact = forms.CharField(max_length=255)
 
     # 动态添加证书上传字段
     def __init__(self, *args, **kwargs):
@@ -123,7 +124,9 @@ class ClientProfileForm(forms.ModelForm):
             'allergies',
             'has_pets',
             'pets_type',
-            'dietary_needs'
+            'dietary_needs',
+            'other_conditions',
+            'other_support',
         ]
         widgets = {
             'preferred_times': forms.Textarea(attrs={'rows': 4, 'placeholder': 'e.g. {"Monday": ["09:00-11:00"], "Friday": ["14:00-16:00"]}'}),
@@ -187,12 +190,15 @@ class VolunteerProfileForm(forms.ModelForm):
     # )
     age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
     gender = forms.ChoiceField(choices=[('male', 'Male'), ('Female', 'female')], label='Gender')
+    emergency_contact = forms.CharField(max_length=255)
     class Meta:
         model = VolunteerProfile
         fields = [
             'skills',
             'interests',
+            'preferred_tasks',
             'pvg_level',
+            'pvg_file',
             'availability',
             'motivation'
         ]

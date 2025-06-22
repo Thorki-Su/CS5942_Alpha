@@ -109,6 +109,7 @@ def client_profile_edit(request):
             # profile_photo_file = form.cleaned_data.get('profile_photo') 
             user_age = form.cleaned_data.get('age')#手动保存年龄和性别
             user_gender = form.cleaned_data.get('gender')
+            user_emergency_contact = form.cleaned_data.get('emergency_contact')
             # if profile_photo_file:
             #     user_profile.profile_photo = profile_photo_file
             #     user_profile.save()
@@ -119,6 +120,10 @@ def client_profile_edit(request):
 
             if user_gender:
                 user_profile.gender = user_gender
+                user_profile.save()
+
+            if user_emergency_contact:
+                user_profile.emergency_contact = user_emergency_contact
                 user_profile.save()
 
             return redirect('user:profile_detail')
@@ -142,6 +147,7 @@ def volunteer_profile_edit(request):
             # profile_photo_file = form.cleaned_data.get('profile_photo') 
             user_age = form.cleaned_data.get('age') #同理
             user_gender = form.cleaned_data.get('gender')
+            user_emergency_contact = form.cleaned_data.get('emergency_contact')
             # if profile_photo_file:
             #     user_profile.profile_photo = profile_photo_file
             #     user_profile.save()
@@ -153,6 +159,11 @@ def volunteer_profile_edit(request):
             if user_gender:
                 user_profile.gender = user_gender
                 user_profile.save()
+
+            if user_emergency_contact:
+                user_profile.emergency_contact = user_emergency_contact
+                user_profile.save()
+            
             return redirect('user:profile_detail')
         else: #同理
             print(form.errors)
