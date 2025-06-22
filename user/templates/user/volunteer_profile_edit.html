@@ -8,9 +8,60 @@
 
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ form.as_p }}
+
+            <label for="id_age"><strong>{{ form.age.label_tag }}</strong></label><br>
+            {{ form.age }}<br>
+            {{ form.age.errors }}<br><br>
+
+            <label for="id_gender"><strong>{{ form.gender.label_tag }}</strong></label><br>
+            {{ form.gender }}<br>
+            {{ form.gender.errors }}<br><br>
+
+            <label for="id_emergency_contact"><strong>Please enter your emergency contact(name and contact method):</strong></label><br>
+            {{ form.emergency_contact }}<br>
+            {{ form.emergency_contact.errors }}<br><br>
+
+            <label for="id_preferred_tasks"><strong>{{ form.preferred_tasks.label_tag }}</strong></label><br>
+            {{ form.preferred_tasks }}<br>
+            {{ form.preferred_tasks.errors }}<br><br>
+
+            <label for="id_skills"><strong>{{ form.skills.label_tag }}</strong></label><br>
+            {{ form.skills }}<br>
+            {{ form.skills.errors }}<br><br>
+
+            <label for="id_interests"><strong>{{ form.interests.label_tag }}</strong></label><br>
+            {{ form.interests }}<br>
+            {{ form.interests.errors }}<br><br>
+
+            <label for="id_pvg_level"><strong>{{ form.pvg_level.label_tag }}</strong></label><br>
+            {{ form.pvg_level }}<br>
+            {{ form.pvg_level.errors }}<br><br>
+
+            <label for="id_pvg_file"><strong>{{ form.pvg_file.label_tag }}</strong></label><br>
+            {{ form.pvg_file }}<br>
+            {{ form.pvg_file.errors }}<br><br>
+
+            <label for="id_motivation"><strong>{{ form.motivation.label_tag }}</strong></label><br>
+            {{ form.motivation }}<br>
+            {{ form.motivation.errors }}<br><br>
+
+            {% comment %} 看这里！这条是时间，在这改！ {% endcomment %}
+            <label for="id_availability"><strong>{{ form.availability.label_tag }}</strong></label><br>
+            {{ form.availability }}<br>
+            {{ form.availability.errors }}<br><br>
+
             <input type="submit" value="Register">
         </form>
+        
+        
+        
+        {% comment %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Register">
+        </form> 
+        {% endcomment %}
 
     </div>
 
