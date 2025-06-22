@@ -130,7 +130,14 @@ def client_profile_edit(request):
         else: #同理
             print(form.errors)
     else:
-        form = ClientProfileForm(instance=client_profile)
+        form = ClientProfileForm(
+            instance=client_profile,
+            initial={
+                'age': request.user.userprofile.age,
+                'gender': request.user.userprofile.gender,
+                'emergency_contact': request.user.userprofile.emergency_contact
+            }
+        )
     return render(request, 'user/client_profile_edit.html', {'form':form})
 
 @login_required
@@ -168,7 +175,14 @@ def volunteer_profile_edit(request):
         else: #同理
             print(form.errors)
     else:
-        form = VolunteerProfileForm(instance=volunteer_profile)
+        form = VolunteerProfileForm(
+            instance=volunteer_profile,
+            initial={
+                'age': request.user.userprofile.age,
+                'gender': request.user.userprofile.gender,
+                'emergency_contact': request.user.userprofile.emergency_contact
+            }
+        )
     return render(request, 'user/volunteer_profile_edit.html', {'form':form})
 
 @login_required
@@ -179,6 +193,15 @@ def profile_detail(request):
     if user.role == 'client':
         client_profile = user_profile.clientprofile
         client_fields = model_to_dict(client_profile)
+        client_fields['certifications'] = ", ".join(
+            [c.name for c in client_profile.certifications.all()]
+        )
+        client_fields['conditions'] = ", ".join(
+            [c.name for c in client_profile.conditions.all()]
+        )
+        client_fields['support_areas'] = ", ".join(
+            [s.name for s in client_profile.support_areas.all()]
+        )
         cert_list = client_profile.certifications.all()
         has_pip_cert = any(c.name == 'PIP' for c in cert_list)
         has_adp_cert = any(c.name == 'ADP' for c in cert_list)
