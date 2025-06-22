@@ -10,6 +10,10 @@ from django.forms.models import model_to_dict
 from django.core.files.base import ContentFile
 import base64
 import re
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.utils.safestring import mark_safe
 
 def home_view(request):
     return render(request, 'user/home.html')
@@ -185,14 +189,18 @@ def volunteer_profile_edit(request):
         )
     return render(request, 'user/volunteer_profile_edit.html', {'form':form})
 
-@login_required
+@login_required 
 def profile_detail(request):
     user = request.user
     user_profile = user.userprofile
     user_fields = model_to_dict(user_profile)
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    time_slots = ['08:00-11:00', '11:00-14:00', '14:00-17:00']
+
     if user.role == 'client':
         client_profile = user_profile.clientprofile
         client_fields = model_to_dict(client_profile)
+
         client_fields['certifications'] = ", ".join(
             [c.name for c in client_profile.certifications.all()]
         )
@@ -206,27 +214,47 @@ def profile_detail(request):
         has_pip_cert = any(c.name == 'PIP' for c in cert_list)
         has_adp_cert = any(c.name == 'ADP' for c in cert_list)
         has_lwc_cert = any(c.name == 'LWC' for c in cert_list)
+        preferred_times = client_fields.get('preferred_times', {})
+        if isinstance(preferred_times, str):
+            try:
+                preferred_times = json.loads(preferred_times)
+            except json.JSONDecodeError:
+                preferred_times = {}
+
         context = {
-            'user':user,
-            'user_profile':user_profile,
-            'client_profile':client_profile,
-            'user_fields':user_fields,
-            'client_fields':client_fields,
-            'has_pip_cert':has_pip_cert,
-            'has_adp_cert':has_adp_cert,
-            'has_lwc_cert':has_lwc_cert,
+            'user': user,
+            'user_profile': user_profile,
+            'client_profile': client_profile,
+            'user_fields': user_fields,
+            'client_fields': client_fields,
+            'has_pip_cert': has_pip_cert,
+            'has_adp_cert': has_adp_cert,
+            'has_lwc_cert': has_lwc_cert,
+            'days': days,
+            'time_slots': time_slots,
+            'preferred_times': preferred_times,
         }
+
     elif user.role == 'volunteer':
         volunteer_profile = user_profile.volunteerprofile
         volunteer_fields = model_to_dict(volunteer_profile)
+        preferred_times = volunteer_fields.get('preferred_times', {})
+        if isinstance(preferred_times, str):
+            try:
+                preferred_times = json.loads(preferred_times)
+            except json.JSONDecodeError:
+                preferred_times = {}
         context = {
-            'user':user,
-            'user_profile':user_profile,
-            'volunteer_profile':volunteer_profile,
-            'user_fields':user_fields,
-            'volunteer_fields':volunteer_fields,
+            'user': user,
+            'user_profile': user_profile,
+            'volunteer_profile': volunteer_profile,
+            'user_fields': user_fields,
+            'volunteer_fields': volunteer_fields,
+            'days': days,
+            'time_slots': time_slots,
+            'preferred_times': preferred_times,
         }
-    return render(request, 'user/profile_detail.html', context=context)
+    return render(request, 'user/profile_detail.html', context)
 
 @login_required
 def photo_edit(request):
@@ -254,3 +282,21 @@ def photo_edit(request):
     else:
         form = ProfilePhotoForm(instance=user_profile)
     return render(request, 'user/photo_edit.html', {'form':form})
+
+
+@login_required
+@csrf_exempt  # 开发用
+def save_preferred_times(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user_profile = request.user.userprofile
+        if request.user.role == 'client':
+            client_profile = user_profile.clientprofile
+            client_profile.preferred_times = data
+            client_profile.save()
+        elif request.user.role == 'volunteer':
+            volunteer_profile = user_profile.volunteerprofile
+            volunteer_profile.availability = data
+            volunteer_profile.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
