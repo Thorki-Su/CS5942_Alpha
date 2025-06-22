@@ -8,9 +8,78 @@
 
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
+
+            <label for="id_age"><strong>{{ form.age.label_tag }}</strong></label><br>
+            {{ form.age }}<br>
+            {{ form.age.errors }}<br><br>
+
+            <label for="id_gender"><strong>{{ form.gender.label_tag }}</strong></label><br>
+            {{ form.gender }}<br>
+            {{ form.gender.errors }}<br><br>
+
+            <label for="id_emergency_contact"><strong>Please enter your emergency contact(name and contact method):</strong></label><br>
+            {{ form.emergency_contact }}<br>
+            {{ form.emergency_contact.errors }}<br><br>
+
+            <label for="id_pip_certificate"><strong>{{ form.pip_certificate.label_tag }}</strong></label><br>
+            {{ form.pip_certificate }}<br>
+            {{ form.pip_certificate.errors }}<br><br>
+
+            <label for="id_adp_certificate"><strong>{{ form.adp_certificate.label_tag }}</strong></label><br>
+            {{ form.adp_certificate }}<br>
+            {{ form.adp_certificate.errors }}<br><br>
+
+            <label for="id_lwc_certificate"><strong>{{ form.lwc_certificate.label_tag }}</strong></label><br>
+            {{ form.lwc_certificate }}<br>
+            {{ form.lwc_certificate.errors }}<br><br>
+
+            <label for="id_conditions"><strong>{{ form.conditions.label_tag }}</strong></label><br>
+            {{ form.conditions }}<br>
+            {{ form.conditions.errors }}<br><br>
+
+            <label for="id_other_conditions"><strong>{{ form.other_conditions.label_tag }}</strong></label><br>
+            {{ form.other_conditions }}<br>
+            {{ form.other_conditions.errors }}<br><br>
+
+            <label for="id_support_areas"><strong>{{ form.support_areas.label_tag }}</strong></label><br>
+            {{ form.support_areas }}<br>
+            {{ form.support_areas.errors }}<br><br>
+
+            <label for="id_other_support"><strong>{{ form.other_support.label_tag }}</strong></label><br>
+            {{ form.other_support }}<br>
+            {{ form.other_support.errors }}<br><br>
+
+            <label for="id_allergies"><strong>{{ form.allergies.label_tag }}</strong></label><br>
+            {{ form.allergies }}<br>
+            {{ form.allergies.errors }}<br><br>
+
+            <label for="id_dietary_needs"><strong>{{ form.dietary_needs.label_tag }}</strong></label><br>
+            {{ form.dietary_needs }}<br>
+            {{ form.dietary_needs.errors }}<br><br>
+
+            <label for="id_has_pets"><strong>{{ form.has_pets.label_tag }}</strong></label><br>
+            {{ form.has_pets }}<br>
+            {{ form.has_pets.errors }}<br><br>
+
+            <label for="id_pets_type"><strong>{{ form.pets_type.label_tag }}</strong></label><br>
+            {{ form.pets_type }}<br>
+            {{ form.pets_type.errors }}<br><br>
+
+            {% comment %} 看这里！这条是时间，在这改！ {% endcomment %}
+            <label for="id_preferred_times"><strong>{{ form.preferred_times.label_tag }}</strong></label><br>
+            {{ form.preferred_times }}<br>
+            {{ form.preferred_times.errors }}<br><br>
+
+            <input type="submit" value="Register">
+        </form> 
+        
+        {% comment %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
             {{ form.as_p }}
             <input type="submit" value="Register">
-        </form>
+        </form> 
+        {% endcomment %}
 
     </div>
 
