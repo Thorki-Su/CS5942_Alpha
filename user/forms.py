@@ -191,6 +191,11 @@ class VolunteerProfileForm(forms.ModelForm):
     age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
     gender = forms.ChoiceField(choices=[('male', 'Male'), ('Female', 'female')], label='Gender')
     emergency_contact = forms.CharField(max_length=255)
+    preferred_tasks = forms.ModelMultipleChoiceField(
+        queryset=SupportType.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        label='Preferred Tasks'
+    )
     class Meta:
         model = VolunteerProfile
         fields = [
