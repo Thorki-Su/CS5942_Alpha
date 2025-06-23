@@ -14,5 +14,6 @@ urlpatterns = [
     path('volunteer/profile/edit', views.volunteer_profile_edit, name='volunteer_profile_edit'),
     path('profile/', views.profile_detail, name='profile_detail'),
     path('profile/photoedit/', views.photo_edit, name='photo_edit'),
+    path('save-preferred-times/', views.save_preferred_times, name='save_preferred_times'),
 ]
 
