@@ -42,56 +42,12 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const preferredTimes = JSON.parse(document.getElementById("preferred-times").textContent);
-    if (preferredTimes) {
-        Object.keys(preferredTimes).forEach(day => {
-            preferredTimes[day].forEach(time => {
-                const slot = document.querySelector(`.time-slot[data-day='${day}'][data-time='${time}']`);
-                if (slot) {
-                    slot.classList.add('selected');
-                    slot.querySelector('input').checked = true;
-                }
-            });
-        });
-    }
-
-    document.querySelectorAll('.time-slot').forEach(slot => {
-        slot.addEventListener('click', function() {
-            this.classList.toggle('selected');
-            const checkbox = this.querySelector('input');
-            checkbox.checked = !checkbox.checked;
-        });
-    });
-
-    document.getElementById('savePreferredTimes').addEventListener('click', function() {
-        const checkboxes = document.querySelectorAll('input[name=\"times\"]:checked');
-        const selectedTimes = {};
-        checkboxes.forEach(checkbox => {
-            const [day, ...rest] = checkbox.value.split('-');
-            const time = rest.join('-');
-            if (!selectedTimes[day]) selectedTimes[day] = [];
-            selectedTimes[day].push(time);
-        });
-
-        fetch("{% url 'user:save_preferred_times' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify(selectedTimes)
-        }).then(response => {
-            if (response.ok) {
-                location.reload();
-            } else {
-                alert('Failed to save preferred times');
-            }
-        });
-    });
-});
-</script>
+<!-- 数据传递 -->
+{% if preferred_times %}
+    <script id="preferred-times" type="application/json">{{ preferred_times|safe }}</script>
+{% else %}
+    <script id="preferred-times" type="application/json">{}</script>
+{% endif %}
 
 <style>
     .time-slot {
@@ -100,10 +56,17 @@ document.addEventListener('DOMContentLoaded', function() {
         position: relative;
         height: 50px;
         vertical-align: middle;
+        transition: background-color 0.2s ease;
+        border: 1px solid #dee2e6;
+    }
+
+    .time-slot:hover {
+        background-color: #f8f9fa;
     }
 
     .time-slot.selected {
         background-color: #d0f0c0 !important;
+        border-color: #28a745 !important;
     }
 
     .checkmark {
@@ -113,16 +76,109 @@ document.addEventListener('DOMContentLoaded', function() {
         transform: translate(-50%, -50%);
         font-weight: bold;
         font-size: 18px;
-        color: green;
+        color: #28a745;
         display: none;
+        pointer-events: none;
     }
 
     .time-slot.selected .checkmark {
         display: inline;
     }
+
+    .table td {
+        padding: 0;
+    }
 </style>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let preferredTimes = {};
+    const dataElement = document.getElementById("preferred-times");
+    if (dataElement) {
+        try {
+            const rawData = dataElement.textContent;
+            preferredTimes = JSON.parse(rawData);
+        } catch (e) {
+            preferredTimes = {};
+        }
+    }
 
-{% if preferred_times %}
-    <script id="preferred-times" type="application/json">{{ preferred_times|safe }}</script>
-{% endif %}
+    function initializeSelectedTimes() {
+        if (preferredTimes && typeof preferredTimes === 'object') {
+            Object.keys(preferredTimes).forEach(day => {
+                if (Array.isArray(preferredTimes[day])) {
+                    preferredTimes[day].forEach(time => {
+                        const slot = document.querySelector(`.time-slot[data-day="${day}"][data-time="${time}"]`);
+                        if (slot) {
+                            slot.classList.add('selected');
+                            const checkbox = slot.querySelector('input[type="checkbox"]');
+                            if (checkbox) {
+                                checkbox.checked = true;
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function bindClickEvents() {
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            slot.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                this.classList.toggle('selected');
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = this.classList.contains('selected');
+                }
+            });
+        });
+    }
+
+    function bindSaveEvent() {
+        const saveButton = document.getElementById('savePreferredTimes');
+        if (saveButton) {
+            saveButton.addEventListener('click', function() {
+                const checkboxes = document.querySelectorAll('input[name="times"]:checked');
+                const selectedTimes = {};
+                
+                checkboxes.forEach(checkbox => {
+                    const [day, ...rest] = checkbox.value.split('-');
+                    const time = rest.join('-');
+                    if (!selectedTimes[day]) selectedTimes[day] = [];
+                    selectedTimes[day].push(time);
+                });
+
+                fetch("{% url 'user:save_preferred_times' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(selectedTimes)
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Failed to save preferred times');
+                    }
+                }).catch(error => {
+                    alert('Network error occurred');
+                });
+            });
+        }
+    }
+
+    const modal = document.getElementById('preferredTimesModal');
+    if (modal) {
+        modal.addEventListener('shown.bs.modal', function () {
+            initializeSelectedTimes();
+        });
+    }
+
+    initializeSelectedTimes();
+    bindClickEvents();
+    bindSaveEvent();
+});
+</script>
