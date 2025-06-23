@@ -1,0 +1,25 @@
+[
+{
+  "model": "user.volunteerprofile",
+  "pk": 1,
+  "fields": {
+    "user_profile": 2,
+    "university_course": "UoA",
+    "profession": "IT",
+    "is_for_credit": false,
+    "skills": "",
+    "interests": "",
+    "pvg_level": "do_not_have",
+    "pvg_file": "",
+    "availability": {
+      "Sunday": [
+        "14:00-17:00"
+      ]
+    },
+    "motivation": "",
+    "preferred_tasks": [
+      1
+    ]
+  }
+}
+]
