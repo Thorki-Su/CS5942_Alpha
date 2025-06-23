@@ -72,17 +72,19 @@
 <body>
     {% load static %}
     <div class="header">
-        <img src="{% static 'images/ShallionLogoTransparent.png' %}" alt="Shallion Logo" style="height: 40px; vertical-align: middle;">
+        <div class="navbar">
+            <img src="{% static 'images/ShallionLogoTransparent.png' %}" alt="Shallion Logo" style="height: 40px; vertical-align: middle;">
+        
+            <a href="{% url 'user:home' %}">Home</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'user:profile_detail' %}">Profile</a>
+            {% else %}
+                <a href="{% url 'user:login' %}">Login</a>
+            {% endif %}
+        </div>
     </div>
 
-    <div class="navbar">
-        <a href="{% url 'user:home' %}">Home</a>
-        {% if user.is_authenticated %}
-            <a href="{% url 'user:profile_detail' %}">Profile</a>
-        {% else %}
-            <a href="{% url 'user:login' %}">Login</a>
-        {% endif %}
-    </div>
+    
 
     <div class="content-wrapper">
         {% block content %}

@@ -10,11 +10,12 @@
     </div>
     <div style='margin:50px;margin-left:200px;'>
         {% if user_profile.profile_photo %}
-            <p><strong>profile_photo:</strong></p>
+            <p><strong>Your Profile Photo:</strong></p>
             <p><img src="{{ user_profile.profile_photo.url }}" alt="Your Profile Photo" width="200"></p>
             <p><a href="{% url 'user:photo_edit' %}">Change Your Photo</a></p>
         {% else %}
-            <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+            <p><strong>Your Profile Photo:</strong></p>
+            <p>You have not uploaded any photos yet!</p>
             <p><a href="{% url 'user:photo_edit' %}">Upload Your Photo</a></p>
         {% endif %}
     </div>
@@ -40,7 +41,7 @@
             {% with has_pets=client_fields.has_pets %}
             {% for key, value in client_fields.items %}
                 {% if key == 'preferred_times' %}
-                    <p>{{ key }}: {{ value|default:'(Unfilled)' }} 
+                    <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }} 
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#preferredTimesModal">Edit</button>
                     </p>
                 {% endif %}
@@ -60,14 +61,14 @@
                     {% if has_lwc_cert %}
                         <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
                     {% endif %}
-                {% elif key != 'id' and key != 'user_profile' %}
+                {% elif key != 'id' and key != 'user_profile' and key != 'preferred_times' %}
                     <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
                 {% endif %}
             {% endfor %}
             {% endwith %}
         {% elif user.role == 'volunteer' %}
             {% for key, value in volunteer_fields.items %}
-                {% if key == 'preferred_times' %}
+                {% if key == 'availability' %}
                     <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }} 
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#preferredTimesModal">Edit</button>
                     </p>

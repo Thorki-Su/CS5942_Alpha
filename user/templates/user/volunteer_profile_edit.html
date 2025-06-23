@@ -46,11 +46,11 @@
             {{ form.motivation.errors }}<br><br>
 
             {% comment %} 看这里！这条是时间，在这改！ {% endcomment %}
-            <label for="id_availability"><strong>{{ form.availability.label_tag }}</strong></label><br>
+            {% comment %} <label for="id_availability"><strong>{{ form.availability.label_tag }}</strong></label><br>
             {{ form.availability }}<br>
-            {{ form.availability.errors }}<br><br>
+            {{ form.availability.errors }}<br><br> {% endcomment %}
 
-            <input type="submit" value="Register">
+            <input type="submit" value="Save">
         </form>
         
         
