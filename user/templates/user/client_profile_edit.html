@@ -66,11 +66,11 @@
             {{ form.pets_type.errors }}<br><br>
 
             {% comment %} 看这里！这条是时间，在这改！ {% endcomment %}
-            <label for="id_preferred_times"><strong>{{ form.preferred_times.label_tag }}</strong></label><br>
+            {% comment %} <label for="id_preferred_times"><strong>{{ form.preferred_times.label_tag }}</strong></label><br>
             {{ form.preferred_times }}<br>
-            {{ form.preferred_times.errors }}<br><br>
+            {{ form.preferred_times.errors }}<br><br> {% endcomment %}
 
-            <input type="submit" value="Register">
+            <input type="submit" value="Save">
         </form> 
         
         {% comment %}
