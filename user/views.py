@@ -254,6 +254,14 @@ def profile_detail(request):
             'time_slots': time_slots,
             'preferred_times': preferred_times,
         }
+    else:
+        context = {
+            'user': user,
+            'user_profile': user_profile,
+            'user_fields': user_fields,
+            'days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            'preferred_times': {},
+        }
     return render(request, 'user/profile_detail.html', context)
 
 @login_required
