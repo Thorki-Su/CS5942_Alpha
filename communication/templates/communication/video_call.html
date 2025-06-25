@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Video Call{% endblock %}
+{% block style %}
+<style>
+    .video-container {
+        width: 80%;
+        margin: 20px auto;
+        display: flex;
+        justify-content: space-between;
+    }
+    video {
+        width: 45%;
+        border: 1px solid #ccc;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="video-container">
+    <video id="localVideo" autoplay playsinline muted></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+</div>
+<button onclick="endCall()" class="btn btn-danger mt-2">End Call</button>
+<script>
+    const roomName = "{{ room_name }}";
+    const videoSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/video/' + roomName + '/'
+    );
+    const peerConnection = new RTCPeerConnection();
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(stream => {
+            localVideo.srcObject = stream;
+            stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+        });
+
+    peerConnection.ontrack = event => {
+        remoteVideo.srcObject = event.streams[0];
+    };
+
+    videoSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if (data.signal) {
+            if (data.sender !== '{{ user.email }}') {
+                peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal))
+                    .then(() => peerConnection.createAnswer())
+                    .then(answer => peerConnection.setLocalDescription(answer))
+                    .then(() => videoSocket.send(JSON.stringify({
+                        signal: peerConnection.localDescription,
+                        sender: '{{ user.email }}'
+                    })));
+            }
+        }
+    };
+
+    peerConnection.createOffer()
+        .then(offer => peerConnection.setLocalDescription(offer))
+        .then(() => videoSocket.send(JSON.stringify({
+            signal: peerConnection.localDescription,
+            sender: '{{ user.email }}'
+        })));
+
+    function endCall() {
+        peerConnection.close();
+        videoSocket.close();
+        window.location.href = "{% url 'user:profile_detail' %}";
+    }
+</script>
+{% endblock %}

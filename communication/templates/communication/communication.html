@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+  {% block title %}Communication{% endblock %}
+  {% block style %}
+  <style>
+      .chat-container {
+          width: 70%;
+          margin: 20px auto;
+          border: 1px solid #ccc;
+          padding: 10px;
+          height: 400px;
+          overflow-y: auto;
+      }
+      .message {
+          margin: 10px 0;
+          padding: 5px;
+          border-radius: 5px;
+      }
+      .message.sent {
+          background-color: #e9ecef;
+          text-align: right;
+      }
+      .message.received {
+          background-color: #f8f9fa;
+      }
+      .video-call-btn {
+          margin-top: 10px;
+      }
+      .video-container {
+          display: none;
+          width: 80%;
+          margin: 20px auto;
+          justify-content: space-between;
+      }
+      video {
+          width: 45%;
+          border: 1px solid #ccc;
+      }
+  </style>
+  {% endblock %}
+  {% block content %}
+  <div class="chat-container" id="chat-container">
+      <div id="message-list"></div>
+      <input type="text" id="message-input" placeholder="Type a message..." class="form-control">
+      <button onclick="sendMessage()" class="btn btn-primary mt-2">Send</button>
+      <button onclick="toggleVideoCall()" class="btn btn-success video-call-btn">Start/Stop Video Call</button>
+  </div>
+  <div class="video-container" id="video-container">
+      <video id="localVideo" autoplay playsinline muted></video>
+      <video id="remoteVideo" autoplay playsinline></video>
+  </div>
+  <script>
+      const roomName = "{{ room_name }}";
+      const chatSocket = new WebSocket(
+          'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+      );
+      let videoSocket = null;
+      let peerConnection = null;
+      let localStream = null;
+
+      chatSocket.onmessage = function(e) {
+          const data = JSON.parse(e.data);
+          const messageList = document.getElementById('message-list');
+          const messageDiv = document.createElement('div');
+          messageDiv.className = `message ${data.sender === '{{ user.email }}' ? 'sent' : 'received'}`;
+          messageDiv.textContent = `${data.sender}: ${data.message}`;
+          messageList.appendChild(messageDiv);
+          messageList.scrollTop = messageList.scrollHeight;
+      };
+
+      function sendMessage() {
+          const messageInput = document.getElementById('message-input');
+          const message = messageInput.value;
+          chatSocket.send(JSON.stringify({'message': message}));
+          messageInput.value = '';
+      }
+
+      function toggleVideoCall() {
+          const videoContainer = document.getElementById('video-container');
+          if (videoContainer.style.display === 'none') {
+              startVideoCall();
+          } else {
+              endCall();
+          }
+      }
+
+      function startVideoCall() {
+          const videoContainer = document.getElementById('video-container');
+          const localVideo = document.getElementById('localVideo');
+          const remoteVideo = document.getElementById('remoteVideo');
+          videoSocket = new WebSocket('ws://' + window.location.host + '/ws/video/' + roomName + '/');
+          peerConnection = new RTCPeerConnection();
+
+          navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+              .then(stream => {
+                  localStream = stream;
+                  localVideo.srcObject = stream;
+                  stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+              });
+
+          peerConnection.ontrack = event => {
+              remoteVideo.srcObject = event.streams[0];
+          };
+
+          videoSocket.onmessage = function(e) {
+              const data = JSON.parse(e.data);
+              if (data.signal) {
+                  if (data.sender !== '{{ user.email }}') {
+                      peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal))
+                          .then(() => peerConnection.createAnswer())
+                          .then(answer => peerConnection.setLocalDescription(answer))
+                          .then(() => videoSocket.send(JSON.stringify({
+                              signal: peerConnection.localDescription,
+                              sender: '{{ user.email }}'
+                          })));
+                  }
+              }
+          };
+
+          peerConnection.createOffer()
+              .then(offer => peerConnection.setLocalDescription(offer))
+              .then(() => videoSocket.send(JSON.stringify({
+                  signal: peerConnection.localDescription,
+                  sender: '{{ user.email }}'
+              })));
+
+          videoContainer.style.display = 'flex';
+      }
+
+      function endCall() {
+          if (peerConnection) peerConnection.close();
+          if (videoSocket) videoSocket.close();
+          if (localStream) localStream.getTracks().forEach(track => track.stop());
+          document.getElementById('video-container').style.display = 'none';
+          document.getElementById('localVideo').srcObject = null;
+          document.getElementById('remoteVideo').srcObject = null;
+      }
+  </script>
+  {% endblock %}

@@ -45,7 +45,19 @@ INSTALLED_APPS = [
     'payment',
     'communication',
     'adminpanel',
+    'channels',
 ]
+
+ASGI_APPLICATION = 'final_project.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 AUTH_USER_MODEL = 'user.CustomUser'
 
