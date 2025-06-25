@@ -1,1 +1,1 @@
-web: python manage.py migrate && gunicorn CS5942_Alpha.wsgi:application --bind 0.0.0.0:$PORT
+web: python manage.py migrate
