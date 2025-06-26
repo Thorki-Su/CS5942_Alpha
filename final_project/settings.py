@@ -27,14 +27,13 @@ SECRET_KEY = 'django-insecure-i!o^^a8m_sz=(_5e_c07nyutwzr(fdu+uihy5=gpr^lwvwpotb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1','mangoairport-artistbanana-8000.codio-box.uk','cs5942-alpha.onrender.com','cs5942-alpha-rpvm.onrender.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','mangoairport-artistbanana-8000.codio-box.uk','cs5942-alpha.onrender.com']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
     'https://mangoairport-artistbanana-8000.codio-box.uk',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'https://cs5942-alpha-rpvm.onrender.com',
 ]
 
 
@@ -94,7 +93,7 @@ WSGI_APPLICATION = 'final_project.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://alphapostgresql_gj9i_user:WPQOH7BHdnaG0iAwjUgFT65WbnQNprp6@dpg-d1errdqdbo4c73esnvug-a.oregon-postgres.render.com/alphapostgresql_gj9i',
+        default='postgresql://alphapostgresql_gj9i_user:WPQOH7BHdnaG0iAwjUgFT65WbnQNprp6@dpg-d1errdqdbo4c73esnvug-a/alphapostgresql_gj9i',
         conn_max_age=600,
         ssl_require=False
     )
