@@ -27,13 +27,14 @@ SECRET_KEY = 'django-insecure-i!o^^a8m_sz=(_5e_c07nyutwzr(fdu+uihy5=gpr^lwvwpotb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1','mangoairport-artistbanana-8000.codio-box.uk','cs5942-alpha.onrender.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','mangoairport-artistbanana-8000.codio-box.uk','cs5942-alpha.onrender.com','cs5942-alpha-rpvm.onrender.com']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
     'https://mangoairport-artistbanana-8000.codio-box.uk',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'https://cs5942-alpha-rpvm.onrender.com',
 ]
 
 
