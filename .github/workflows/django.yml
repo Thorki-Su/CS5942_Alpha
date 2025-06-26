@@ -36,7 +36,7 @@ jobs:
 
       - name: Export DATABASE_URL
         run: |
-          echo "DATABASE_URL=postgres://myuser:mypassword@localhost:5432/cs5942_alpha" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgres://myuser:cnyh4274@localhost:5432/cs5942_alpha" >> $GITHUB_ENV
 
       - name: Run migrations
         run: |
