@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -90,7 +91,8 @@ WSGI_APPLICATION = 'final_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-if os.environ.get('CI', 'false').lower() == 'true':  # CI 环境
+if os.environ.get('CI', 'false').lower() == 'true':
+    # 用于测试环境
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -99,14 +101,11 @@ if os.environ.get('CI', 'false').lower() == 'true':  # CI 环境
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'cs5942_alpha',
-            'USER': 'myuser',
-            'PASSWORD': 'cnyh4274',
-            'HOST': 'localhost',
-            'PORT': '5432',
-        }
+        'default': dj_database_url.config(
+            default='postgres://myuser:cnyh4274@localhost:5432/cs5942_alpha',  # 本地开发使用
+            conn_max_age=600,
+            ssl_require=os.environ.get('RENDER', False),  # Render 上自动启用 SSL
+        )
     }
 
 
