@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'final_project.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgres://myuser:cnyh4274@60bd8400ce6d90d93e6c6aef88333279:5432/cs5942_alpha',
+        default='postgresql://alphapostgresql_user:nIJaP1LsDUpC35jxatw8icIiMykfzA0H@dpg-d1e9oceuk2gs73afl2hg-a.oregon-postgres.render.com/alphapostgresql',
         conn_max_age=600,
         ssl_require=False
     )
