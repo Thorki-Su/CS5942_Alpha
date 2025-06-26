@@ -11,7 +11,7 @@ jobs:
         image: postgres:latest
         env:
           POSTGRES_USER: myuser
-          POSTGRES_PASSWORD: mypassword
+          POSTGRES_PASSWORD: cnyh4274
           POSTGRES_DB: cs5942_alpha
         ports:
           - 5432:5432
