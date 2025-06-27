@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +28,13 @@ SECRET_KEY = 'django-insecure-i!o^^a8m_sz=(_5e_c07nyutwzr(fdu+uihy5=gpr^lwvwpotb
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1','mangoairport-artistbanana-8000.codio-box.uk','cs5942-alpha.onrender.com']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://cs5942-alpha.onrender.com',
+    'https://mangoairport-artistbanana-8000.codio-box.uk',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 
 
 # Application definition
@@ -84,10 +92,11 @@ WSGI_APPLICATION = 'final_project.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='postgresql://alphapostgresql_user:nIJaP1LsDUpC35jxatw8icIiMykfzA0H@dpg-d1e9oceuk2gs73afl2hg-a.oregon-postgres.render.com/alphapostgresql',
+        conn_max_age=600,
+        ssl_require=False
+    )
 }
 
 
