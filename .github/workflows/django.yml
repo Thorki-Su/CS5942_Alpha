@@ -8,24 +8,18 @@ jobs:
 
     services:
       postgres:
-        image: postgres:13
+        image: postgres:latest
         env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
-        ports: ['5432:5432']
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: cnyh4274
+          POSTGRES_DB: cs5942_alpha
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
-    env:
-      POSTGRES_DB: test_db
-      POSTGRES_USER: test_user
-      POSTGRES_PASSWORD: test_pass
-      DJANGO_SECRET_KEY: dummykey
-      DEBUG: true
 
     steps:
       - uses: actions/checkout@v3
@@ -37,10 +31,17 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Export DATABASE_URL
+        run: |
+          echo "DATABASE_URL=postgres://myuser:cnyh4274@localhost:5432/cs5942_alpha" >> $GITHUB_ENV
+
       - name: Run migrations
-        run: python manage.py migrate
+        run: |
+          python manage.py migrate --noinput
 
       - name: Run tests
-        run: python manage.py test
+        run: |
+          python manage.py test
