@@ -12,5 +12,5 @@ ENV/
 env/
 .venv/
 .ENV/
-.env/
+.env
 venv310/
