@@ -35,6 +35,13 @@
             <p><a href="{% url 'user:volunteer_profile_edit' %}">Edit Your Information</a></p>
         {% endif %}
     </div>
+
+    {% if user.role == 'client' %}
+    <div style="margin:50px;margin-left:200px;">
+        <a href="{% url 'volunteer_list' %}" class="btn btn-primary">Matching Volunteers</a>
+    </div>
+    {% endif %}
+
     <div style='margin:50px;margin-left:200px;'>
         <h3>Your Other Personal Information:</h3>
         {% if user.role == 'client' %}

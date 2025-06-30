@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>匹配志愿者</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      padding: 40px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .volunteer-card {
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      margin-top: 10px;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    .alert {
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+    .alert-success {
+      background-color: #d4edda;
+      border-left: 5px solid #28a745;
+    }
+    .alert-error {
+      background-color: #f8d7da;
+      border-left: 5px solid #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>请选择一位志愿者进行匹配</h1>
+
+    <!-- 匹配反馈信息 -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- 志愿者列表 -->
+    {% if volunteers %}
+      {% for volunteer in volunteers %}
+        <div class="volunteer-card">
+          <p><strong>姓名：</strong>{{ volunteer.user_profile.first_name }} {{ volunteer.user_profile.last_name }}</p>
+          <p><strong>邮箱：</strong>{{ volunteer.user_profile.user.email }}</p>
+          <p><strong>专业：</strong>{{ volunteer.university_course }}</p>
+          <p><strong>职业：</strong>{{ volunteer.profession }}</p>
+
+          <form method="post" action="{% url 'match_specific_volunteer' volunteer.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn">匹配该志愿者</button>
+          </form>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>当前没有可用的志愿者。</p>
+    {% endif %}
+  </div>
+</body>
+</html>

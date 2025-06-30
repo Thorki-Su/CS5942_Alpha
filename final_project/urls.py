@@ -24,6 +24,7 @@ urlpatterns = [
     #path('', include('user.urls')),  #add  user's urls
     path('', include(('user.urls', 'user'), namespace='user')),
     #path('', include('adminpanel.urls')), #add adminpanel's urls
+    path('', include('matching.urls')),
 ]
 
 if settings.DEBUG:

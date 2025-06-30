@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户匹配页面</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      padding: 40px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #e9f7ef;
+      border-left: 5px solid #28a745;
+    }
+    .error {
+      background-color: #f8d7da;
+      border-left: 5px solid #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>匹配一位志愿者</h1>
+    <button class="btn" onclick="matchVolunteer()">开始匹配</button>
+    <div id="result" class="result" style="display:none;"></div>
+  </div>
+
+  <script>
+    async function matchVolunteer() {
+      const resultBox = document.getElementById("result");
+      resultBox.style.display = "none";
+      resultBox.classList.remove("error");
+      resultBox.innerText = "";
+
+      try {
+        const response = await fetch("/match/");
+        const text = await response.text();
+
+        resultBox.style.display = "block";
+        if (response.ok) {
+          resultBox.innerText = text;
+        } else {
+          resultBox.classList.add("error");
+          resultBox.innerText = "错误: " + text;
+        }
+      } catch (err) {
+        resultBox.style.display = "block";
+        resultBox.classList.add("error");
+        resultBox.innerText = "连接服务器失败";
+      }
+    }
+  </script>
+</body>
+</html>
