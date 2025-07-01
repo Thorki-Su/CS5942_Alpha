@@ -102,6 +102,7 @@ class ClientProfileForm(forms.ModelForm):
                 label='LWC Certificate',
                 initial=self.instance.lwc_certificate if self.instance else None
             )
+
         if 'NHS' in cert_names:
             self.fields['nhs_certificate'] = forms.FileField(
                 required=False,
@@ -114,7 +115,6 @@ class ClientProfileForm(forms.ModelForm):
                 label='Diagnosis from a Doctor',
                 initial=self.instance.diagnosis if self.instance else None
             )
-        
 
     class Meta:
         model = ClientProfile

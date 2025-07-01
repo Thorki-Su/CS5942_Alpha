@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 import dj_database_url
+<<<<<<< HEAD
 
 # 本地开发时加载 .env 文件
 if os.environ.get('DJANGO_DEVELOPMENT'):
@@ -29,6 +30,8 @@ AWS_S3_OBJECT_PARAMETERS = {}
 
 MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
 
+=======
+>>>>>>> main
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -163,6 +166,7 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / "staticfiles"  #collectstatic
 
+<<<<<<< HEAD
 # MEDIA_URL = '/media/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -176,3 +180,7 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 # print("AWS_SECRET_ACCESS_KEY =", AWS_SECRET_ACCESS_KEY)
 # print("AWS_STORAGE_BUCKET_NAME =", AWS_STORAGE_BUCKET_NAME)
 # print("INSTALLED_APPS =", INSTALLED_APPS)
+=======
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+>>>>>>> main
