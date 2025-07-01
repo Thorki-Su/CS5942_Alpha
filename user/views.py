@@ -20,7 +20,6 @@ from storages.backends.s3boto3 import S3Boto3Storage
 
 def home_view(request):
     return render(request, 'user/home.html')
-
 #  The view of login
 def login_view(request):
     if request.method == 'POST':
@@ -270,6 +269,7 @@ def profile_detail(request):
 def photo_edit(request):
     try:
         user_profile = request.user.userprofile
+
     except Exception:
         return redirect('user:choose_role')
     
@@ -304,6 +304,7 @@ def photo_edit(request):
                 user_profile.save()
             else:
                 form.save()
+
             return redirect('user:profile_detail')
         else:
             print(form.errors)
@@ -311,6 +312,7 @@ def photo_edit(request):
         form = ProfilePhotoForm(instance=user_profile)
     
     return render(request, 'user/photo_edit.html', {'form': form})
+
 
 
 @login_required

@@ -1,0 +1,23 @@
+[
+{
+  "model": "user.certificationtype",
+  "pk": 1,
+  "fields": {
+    "name": "PIP"
+  }
+},
+{
+  "model": "user.certificationtype",
+  "pk": 2,
+  "fields": {
+    "name": "ADP"
+  }
+},
+{
+  "model": "user.certificationtype",
+  "pk": 3,
+  "fields": {
+    "name": "LWC"
+  }
+}
+]

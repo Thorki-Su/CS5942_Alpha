@@ -1,0 +1,41 @@
+[
+{
+  "model": "user.clientprofile",
+  "pk": 1,
+  "fields": {
+    "user_profile": 1,
+    "pip_certificate": "",
+    "adp_certificate": "",
+    "lwc_certificate": "",
+    "eligibility_confirmed": false,
+    "preferred_contact_method": "email",
+    "other_conditions": null,
+    "other_support": null,
+    "preferred_times": {
+      "Saturday": [
+        "11:00-14:00",
+        "14:00-17:00"
+      ],
+      "Sunday": [
+        "11:00-14:00",
+        "14:00-17:00"
+      ]
+    },
+    "allergies": "",
+    "dietary_needs": "",
+    "has_pets": true,
+    "pets_type": "Dog",
+    "certifications": [
+      1
+    ],
+    "conditions": [
+      3
+    ],
+    "support_areas": [
+      1,
+      2,
+      10
+    ]
+  }
+}
+]

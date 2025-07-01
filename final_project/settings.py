@@ -13,7 +13,6 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 import dj_database_url
-
 # 本地开发时加载 .env 文件
 if os.environ.get('DJANGO_DEVELOPMENT'):
     load_dotenv() # 读取根目录的 .env 文件

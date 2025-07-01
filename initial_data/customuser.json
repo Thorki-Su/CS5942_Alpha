@@ -1,0 +1,47 @@
+[
+{
+  "model": "user.customuser",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$NJkz7aE4WUXmhgki6ejNuz$uyQEjuKRenQKp2ymUPBA3XDXTJKh6RKdH+eodn6NAn4=",
+    "last_login": "2025-06-23T22:29:37.983Z",
+    "is_superuser": true,
+    "email": "t01ps24@abdn.ac.uk",
+    "role": "",
+    "is_active": true,
+    "is_staff": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "user.customuser",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$FS5hCwvXzqlK8jhykd8zbD$ZdncsItoRoqNJmKaiK47YneWTXN4wk0zC418NaxZvfI=",
+    "last_login": "2025-06-23T22:38:35.574Z",
+    "is_superuser": false,
+    "email": "applejuice@gmail.com",
+    "role": "client",
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "user.customuser",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$gchpiP66kmkUzQqlHJHAEv$DMsMHDK8L79jFOYr23Qjl2cy12g1JQVpuAeUV2pEEcc=",
+    "last_login": "2025-06-23T22:47:17.954Z",
+    "is_superuser": false,
+    "email": "bananamilk@gmail.com",
+    "role": "volunteer",
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]
