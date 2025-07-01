@@ -5,5 +5,14 @@
 {% block content %}
     <div style='margin:50px;'>
         <p>这里展示全部的可用任务，提供过滤器进行筛选</p>
+        {% if tasks %}
+            {% for task in tasks %}
+                <a href="{% url 'task:task_detail' task.id %}">{{ task.title }}</a><br>
+                Time: {{ task.start_time }} to {{ task.end_time }}<br>
+                Volunteer Number: {{ task.vol_number }}
+            {% endfor %}
+        {% else %}
+            <p>There are currently no tasks available for application.</p>
+        {% endif %}
     </div>
 {% endblock %}

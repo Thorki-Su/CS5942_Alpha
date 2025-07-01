@@ -35,6 +35,22 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    
+    def whether_in_task(self, task_id): #给通讯组使用，判断这个用户有没有在指定任务中
+        from task.models import Task, TaskApplication
+        if self.role == 'client':
+            return Task.objects.filter(
+                client=self,
+                id=task_id,
+            ).exists()
+        elif self.role == 'volunteer':
+            return TaskApplication.objects.filter(
+                volunteer=self,
+                task_id=task_id,
+                status='accepted'
+            ).exists()
+        return False
+            
 
 def user_directory_path(instance, filename):
     return f'profile_photos/{instance.user.email}/{filename}'

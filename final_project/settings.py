@@ -20,10 +20,10 @@ if os.environ.get('DJANGO_DEVELOPMENT'):
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = 'shallion-support-files'
-AWS_S3_REGION_NAME = 'us-east-1'  # 如果你的桶在别的区域，请改这里
-AWS_S3_FILE_OVERWRITE = False  # 同名文件不会被覆盖
-AWS_DEFAULT_ACL = None  # 不设置默认访问权限
-AWS_QUERYSTRING_AUTH = False  # 公开访问，不需要签名URL
+AWS_S3_REGION_NAME = 'us-east-1'
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_QUERYSTRING_AUTH = False
 AWS_S3_OBJECT_PARAMETERS = {}
 
 MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
@@ -166,13 +166,3 @@ STATIC_ROOT = BASE_DIR / "staticfiles"  #collectstatic
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-# print("✅ settings.py 中 DEFAULT_FILE_STORAGE 已设置为：", DEFAULT_FILE_STORAGE)
-
-# import django
-# print("DEBUG =", DEBUG)
-# print("DEFAULT_FILE_STORAGE =", DEFAULT_FILE_STORAGE)
-# print("AWS_ACCESS_KEY_ID =", AWS_ACCESS_KEY_ID)
-# print("AWS_SECRET_ACCESS_KEY =", AWS_SECRET_ACCESS_KEY)
-# print("AWS_STORAGE_BUCKET_NAME =", AWS_STORAGE_BUCKET_NAME)
-# print("INSTALLED_APPS =", INSTALLED_APPS)
-
