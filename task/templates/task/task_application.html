@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Applications{% endblock %}
+
+{% block content %}
+    <div style='margin:50px;'>
+        <h2>Applications</h2>
+        <p>Needed Volunteer Number: {{ task.vol_number }}</p>
+        {% if applications %}
+            <ul>
+                {% for app in applications %}
+                    <li>
+                        Volunteer: {{ app.volunteer.userprofile.first_name }} {{ app.volunteer.userprofile.last_name }}
+                        — Status: {{ app.status }}
+
+                        {% if app.status == 'pending' %}
+                        <form method="post" action="{% url 'task:approve_application' app.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Approve</button>
+                        </form>
+                        <form method="post" action="{% url 'task:reject_application' app.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Reject</button>
+                        </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No volunteers have applied for this task now.</p>
+        {% endif %}
+        
+    </div>
+{% endblock %}

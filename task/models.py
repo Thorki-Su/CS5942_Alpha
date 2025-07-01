@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from user.models import CustomUser, UserProfile, ClientProfile, VolunteerProfile, SupportType
 
 # Create your models here.
@@ -6,6 +7,7 @@ class Task(models.Model):
     STATUS_CHOICES = [
         ('open', 'Open for application'),
         ('selected', 'Selecting Done'),
+        ('onoging', 'Ongoing'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ]
@@ -17,11 +19,16 @@ class Task(models.Model):
     end_time = models.DateTimeField()
     vol_number = models.PositiveIntegerField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
-    patient = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='posted_tasks')
+    client = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='posted_tasks')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.title} ({self.patient.email})"
+    
+    # def is_volunteer_in(self, user): #给通讯组使用，判断一个志愿者有没有在此任务中
+    #     if not user.is_authenticated:
+    #         return False
+    #     return self.applications.filter(volunteer=user, status='accepted').exists()
     
 
 class TaskApplication(models.Model):

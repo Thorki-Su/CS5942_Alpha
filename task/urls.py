@@ -9,4 +9,7 @@ urlpatterns = [
     path('task/myapplication/', views.myapplication, name='myapplication'),
     path('task/available/', views.tasklist, name='tasklist'),
     path('task/ongoing/', views.task_ongoing, name='task_ongoing'),
+    path('task/apply/<int:task_id>/', views.task_apply, name='task_apply'),
+    path('task/application/<int:application_id>/approve/', views.approve_application, name='approve_application'),
+    path('task/application/<int:application_id>/reject/', views.reject_application, name='reject_application'),
 ]

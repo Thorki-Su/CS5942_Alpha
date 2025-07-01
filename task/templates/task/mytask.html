@@ -4,7 +4,25 @@
 
 {% block content %}
     <div style='margin:50px;'>
-        <p>这里展示用户发布的全部任务，按未完成、已完成分类？</p>
+        <h2>My Tasks</h2>
+        {% if tasks %}
+            {% for task in tasks %}
+                {% if task.status != 'completed' and task.status != 'cancelled' %}    
+                    <a href="{% url 'task:task_detail' task.id %}">{{ task.title }}</a><br>
+                    — Status: [{{ task.status }}]<br>
+                    — Time: [{{ task.start_time }}] to [{{ task.end_time }}]<br>
+                    — Volunteer needed: [{{ task.vol_number }}]<br>
+                {% else %}
+                    <a href="{% url 'task:task_detail' task.id %}">{{ task.title }}</a><br>
+                    — Status: [{{ task.status }}]<br>
+                    — Time: [{{ task.start_time }}] to [{{ task.end_time }}]<br>
+                    — Volunteer needed: [{{ task.vol_number }}]<br>
+                {% endif %}
+            {% endfor %}
+
+        {% else %}
+            <p>You haven't posted any tasks yet.</p>
+        {% endif %}
         <p><a href="{% url 'task:task_create' %}">Create a new task</a></p>
     </div>
 {% endblock %}

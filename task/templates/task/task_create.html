@@ -4,6 +4,12 @@
 
 {% block content %}
     <div style='margin:50px;'>
-        <p>用户在这里创建新的任务</p>
+        <p>用户在这里创建新的任务，考虑给任务内容加图，以及预制几个基本任务</p>
+        <h2>Create a new task</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Post</button>
+        </form>
     </div>
 {% endblock %}

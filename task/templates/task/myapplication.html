@@ -5,6 +5,15 @@
 {% block content %}
     <div style='margin:50px;'>
         <p>这里展示用户的全部申请</p>
+        {% if applications %}
+            {% for application in applications %}
+                <a href="{% url 'task:task_detail' application.task.id %}">{{ application.task.title }}</a><br>
+                — Time: {{ application.task.start_time }} to {{ application.task.end_time }}<br>
+                — Status: {{ application.status }}<br>
+            {% endfor %}
+        {% else %}
+            <p>There is no any applications</p>
+        {% endif %}
         <p><a href="{% url 'task:tasklist' %}">Go to the task list to find a new task</a></p>
     </div>
 {% endblock %}
