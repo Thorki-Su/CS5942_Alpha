@@ -78,6 +78,16 @@
             <a href="{% url 'user:home' %}">Home</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'user:profile_detail' %}">Profile</a>
+<<<<<<< HEAD
+                {% if user.role == 'volunteer' %}
+                    <a href="{% url 'task:tasklist' %}">Task List</a>
+                    <a href="{% url 'task:myapplication' %}">My Application</a>
+                {% elif user.role == 'client' %}
+                    <a href="{% url 'task:mytask' %}">My Task</a>
+                {% endif %}
+                <a href="{% url 'task:task_ongoing' %}">Ongoing Task</a>
+=======
+>>>>>>> main
             {% else %}
                 <a href="{% url 'user:login' %}">Login</a>
             {% endif %}

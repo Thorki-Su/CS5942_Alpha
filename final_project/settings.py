@@ -9,10 +9,29 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+from dotenv import load_dotenv
 import os
 from pathlib import Path
 import dj_database_url
+<<<<<<< HEAD
+
+# 本地开发时加载 .env 文件
+if os.environ.get('DJANGO_DEVELOPMENT'):
+    load_dotenv() # 读取根目录的 .env 文件
+
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = 'shallion-support-files'
+AWS_S3_REGION_NAME = 'us-east-1'  # 如果你的桶在别的区域，请改这里
+AWS_S3_FILE_OVERWRITE = False  # 同名文件不会被覆盖
+AWS_DEFAULT_ACL = None  # 不设置默认访问权限
+AWS_QUERYSTRING_AUTH = False  # 公开访问，不需要签名URL
+AWS_S3_OBJECT_PARAMETERS = {}
+
+MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
+
+=======
+>>>>>>> main
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,12 +66,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'user',
-    'service',
+    'task',
     'volunteer',
     'matching',
     'payment',
     'communication',
     'adminpanel',
+    'storages',
 ]
 
 AUTH_USER_MODEL = 'user.CustomUser'
@@ -146,5 +166,21 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / "staticfiles"  #collectstatic
 
+<<<<<<< HEAD
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# print("✅ settings.py 中 DEFAULT_FILE_STORAGE 已设置为：", DEFAULT_FILE_STORAGE)
+
+# import django
+# print("DEBUG =", DEBUG)
+# print("DEFAULT_FILE_STORAGE =", DEFAULT_FILE_STORAGE)
+# print("AWS_ACCESS_KEY_ID =", AWS_ACCESS_KEY_ID)
+# print("AWS_SECRET_ACCESS_KEY =", AWS_SECRET_ACCESS_KEY)
+# print("AWS_STORAGE_BUCKET_NAME =", AWS_STORAGE_BUCKET_NAME)
+# print("INSTALLED_APPS =", INSTALLED_APPS)
+=======
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+>>>>>>> main

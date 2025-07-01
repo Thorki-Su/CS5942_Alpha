@@ -14,34 +14,12 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.utils.safestring import mark_safe
+from django.core.files.storage import default_storage
+
+from storages.backends.s3boto3 import S3Boto3Storage
 
 def home_view(request):
     return render(request, 'user/home.html')
-
-# The view of register
-# def register_view(request):
-#     if request.method == 'POST':
-#         username = request.POST.get('username')
-#         email = request.POST.get('email')
-#         password1 = request.POST.get('password1')
-#         password2 = request.POST.get('password2')
-
-#         if password1 != password2:
-#             messages.error(request, "The two passwords are inconsistent.")
-#             return redirect('register')
-
-#         if User.objects.filter(username=username).exists():
-#             messages.error(request, "The user name already exists.")
-#             return redirect('register')
-
-#         user = User.objects.create_user(username=username, email=email, password=password1)
-#         user.save()
-#         messages.success(request, "Registration is successful, please log in.")
-#         return redirect('login')
-
-#     return render(request, 'user/register.html')
-
-
 #  The view of login
 def login_view(request):
     if request.method == 'POST':
@@ -62,13 +40,6 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('user:login')
-
-
-# the view of page
-# def dashboard_view(request):
-#     if not request.user.is_authenticated:
-#         return redirect('login')
-#     return render(request, 'user/dashboard.html', {'user': request.user})
 
 def choose_role(request):
     return render(request, 'user/role_choose.html')
@@ -264,12 +235,47 @@ def profile_detail(request):
         }
     return render(request, 'user/profile_detail.html', context)
 
+# @login_required
+# def photo_edit(request):
+#     try:
+#         user_profile = request.user.userprofile
+#     except UserProfile.DoesNotExist:
+#         return redirect('user:choose_role')
+
+#     if request.method == 'POST':
+#         form = ProfilePhotoForm(request.POST, request.FILES, instance=user_profile)
+
+#         cropped_data = request.POST.get('cropped_image_data')
+#         if cropped_data:
+#             # 裁剪后的 base64 数据，转成图片
+#             format, imgstr = cropped_data.split(';base64,')
+#             ext = format.split('/')[-1]
+#             img_data = ContentFile(base64.b64decode(imgstr), name=f'user_{request.user.id}_cropped.{ext}')
+#             user_profile.profile_photo = img_data
+#             user_profile.save()
+#             print("保存路径：", user_profile.profile_photo.name)
+#             print("完整 URL：", user_profile.profile_photo.url)
+#             return redirect('user:profile_detail')
+#         elif form.is_valid():
+#             form.save()
+#             return redirect('user:profile_detail')
+#         else:
+#             print(form.errors)
+#     else:
+#         form = ProfilePhotoForm(instance=user_profile)
+#     return render(request, 'user/photo_edit.html', {'form':form})
+
 @login_required
 def photo_edit(request):
     try:
         user_profile = request.user.userprofile
-    except UserProfile.DoesNotExist:
+
+    except Exception:
         return redirect('user:choose_role')
+    
+    # 强制使用 S3 存储
+    s3_storage = S3Boto3Storage()
+    
     if request.method == 'POST':
         form = ProfilePhotoForm(request.POST, request.FILES, instance=user_profile)
 
@@ -279,17 +285,34 @@ def photo_edit(request):
             format, imgstr = cropped_data.split(';base64,')
             ext = format.split('/')[-1]
             img_data = ContentFile(base64.b64decode(imgstr), name=f'user_{request.user.id}_cropped.{ext}')
-            user_profile.profile_photo = img_data
+            
+            # 使用 S3 存储保存文件
+            filename = s3_storage.save(f'profile_photos/{request.user.email}/{img_data.name}', img_data)
+            user_profile.profile_photo.name = filename
             user_profile.save()
+            
+            print("保存路径：", user_profile.profile_photo.name)
+            print("完整 URL：", user_profile.profile_photo.url)
             return redirect('user:profile_detail')
+        
         elif form.is_valid():
-            form.save()
+            # 使用 S3 存储保存文件，如果有上传文件
+            if 'profile_photo' in request.FILES:
+                f = request.FILES['profile_photo']
+                filename = s3_storage.save(f'profile_photos/{request.user.email}/{f.name}', f)
+                user_profile.profile_photo.name = filename
+                user_profile.save()
+            else:
+                form.save()
+
             return redirect('user:profile_detail')
         else:
             print(form.errors)
     else:
         form = ProfilePhotoForm(instance=user_profile)
-    return render(request, 'user/photo_edit.html', {'form':form})
+    
+    return render(request, 'user/photo_edit.html', {'form': form})
+
 
 
 @login_required
