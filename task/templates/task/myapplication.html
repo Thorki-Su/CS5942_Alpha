@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}My Application{% endblock %}
+
+{% block content %}
+    <div style='margin:50px;'>
+        <p>这里展示用户的全部申请</p>
+        <p><a href="{% url 'task:tasklist' %}">Go to the task list to find a new task</a></p>
+    </div>
+{% endblock %}

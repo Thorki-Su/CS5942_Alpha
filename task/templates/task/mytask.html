@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}My Task{% endblock %}
+
+{% block content %}
+    <div style='margin:50px;'>
+        <p>这里展示用户发布的全部任务，按未完成、已完成分类？</p>
+        <p><a href="{% url 'task:task_create' %}">Create a new task</a></p>
+    </div>
+{% endblock %}
