@@ -8,15 +8,15 @@
         <h2>{{ task.title }}</h2>
         <p>{{ task.description }}</p>
         <p>Time: {{ task.start_time }} - {{ task.end_time }}</p>
-        <p>Volunteer needed: {{ task.volunteer_needed }}</p>
-        <p>Status: {{ task.get_status_display }}</p>
+        <p>Volunteer needed: {{ task.vol_number }}</p>
+        <p>Status: {{ task.status }}</p>
 
         {% if is_client %}
             <a href="{% url 'task:task_application' task.id %}">View applied volunteers</a>
         {% elif has_applied %}
             <p>You have applied. Application status:{{ application_status }}</p>
         {% else %}
-            <form method="post" action="{% url 'task:task:task_apply' task.id %}">
+            <form method="post" action="{% url 'task:task_apply' task.id %}">
                 {% csrf_token %}
                 <button type="submit">Application for this task</button>
             </form>

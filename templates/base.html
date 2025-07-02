@@ -91,7 +91,15 @@
         </div>
     </div>
 
-    
+    {% if messages %}
+        <div class="messages" style="margin-top: 100px; margin-left:50px;">
+            {% for message in messages %}
+                <p style="color: {% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% elif message.tags == 'warning' %}red{% else %}black{% endif %};">
+                    {{ message }}
+                </p>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <div class="content-wrapper">
         {% block content %}

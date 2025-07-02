@@ -27,6 +27,8 @@ def volunteer_required(view_func):
 @client_required
 def mytask(request):
     tasks = Task.objects.filter(client=request.user).order_by('-start_time')
+    for task in tasks:
+        task.update_status_if_full()
     return render(request, 'task/mytask.html', {'tasks': tasks})
 
 @login_required
@@ -109,7 +111,7 @@ def task_apply(request, task_id):
         TaskApplication.objects.create(task=task, volunteer=request.user, status='pending')
         messages.success(request, "Application successful, please wait for review")
 
-    return redirect('task_detail', task_id=task.id)
+    return redirect('task:task_detail', task_id=task.id)
 
 @login_required
 @client_required
@@ -127,10 +129,11 @@ def approve_application(request, application_id):
     application.status = 'accepted'
     application.save()
 
-    if approved_count + 1 >= task.volunteer_needed:
+    if approved_count + 1 >= task.vol_number:
         TaskApplication.objects.filter(task=task, status='pending').update(status='unselected')
         task.status = 'selected'
         task.save()
+        # print(f"任务 {task.id} 状态更新为：{task.status}")
     return redirect('task:task_application', task.id)
 
 @login_required

@@ -23,12 +23,13 @@ class Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.title} ({self.patient.email})"
+        return f"{self.title} ({self.client.email})"
     
-    # def is_volunteer_in(self, user): #给通讯组使用，判断一个志愿者有没有在此任务中
-    #     if not user.is_authenticated:
-    #         return False
-    #     return self.applications.filter(volunteer=user, status='accepted').exists()
+    def update_status_if_full(self):
+        approved_count = self.applications.filter(status='accepted').count()
+        if approved_count >= self.vol_number and self.status != 'selected':
+            self.status = 'selected'
+            self.save()
     
 
 class TaskApplication(models.Model):
