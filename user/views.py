@@ -38,6 +38,7 @@ def login_view(request):
 
 # the view of log out
 def logout_view(request):
+    list(messages.get_messages(request))
     logout(request)
     return redirect('user:login')
 
