@@ -12,4 +12,5 @@ urlpatterns = [
     path('task/apply/<int:task_id>/', views.task_apply, name='task_apply'),
     path('task/application/<int:application_id>/approve/', views.approve_application, name='approve_application'),
     path('task/application/<int:application_id>/reject/', views.reject_application, name='reject_application'),
+    path('cancel/<int:task_id>/', views.cancel_task, name='cancel_task'),
 ]

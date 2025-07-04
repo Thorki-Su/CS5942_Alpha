@@ -6,10 +6,71 @@
     <div style='margin:50px;'>
         <p>用户在这里创建新的任务，考虑给任务内容加图，以及预制几个基本任务</p>
         <h2>Create a new task</h2>
-        <form method="post">
+        <form method="post" id="task-form">
             {% csrf_token %}
-            {{ form.as_p }}
+
+            <label for="id_title"><strong>1. Please enter the task title:</strong></label><br>
+            {{ form.title }}<br>
+            {{ form.title.errors }}<br><br>
+
+            <label for="id_description"><strong>2. Please enter the task description:</strong></label><br>
+            {{ form.description }}<br>
+            {{ form.description.errors }}<br><br>
+
+            <label for="id_start_time"><strong>3. Please choose the start time:</strong></label><br>
+            {{ form.start_time }}<br>
+            {{ form.start_time.errors }}<br><br>
+
+            <label for="id_end_time"><strong>4. Please choose the end time:</strong></label><br>
+            {{ form.end_time }}<br>
+            <span>Please note that the period of time needs to be between half an hour and four hours.</span><br>
+            {{ form.end_time.errors }}<br><br>
+
+            <label for="id_vol_number"><strong>5. Please choose the needed volunteer number:</strong></label><br>
+            {{ form.vol_number }}<br>
+            {{ form.vol_number.errors }}<br><br>
+
+            <label for="id_work_area"><strong>6. Please choose the needed support:</strong></label><br>
+            {{ form.work_area }}<br>
+            {{ form.work_area.errors }}<br><br>
+
+
+            {% comment %} {{ form.as_p }} {% endcomment %}
             <button type="submit">Post</button>
         </form>
     </div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const startInput = document.getElementById('start_time');
+        const endInput = document.getElementById('end_time');
+
+        const endPicker = flatpickr(endInput, {
+            enableTime: true,
+            time_24hr: true,
+            dateFormat: "Y-m-d\\TH:i",
+            minuteIncrement: 5,
+        });
+
+        const startPicker = flatpickr(startInput, {
+            enableTime: true,
+            time_24hr: true,
+            dateFormat: "Y-m-d\\TH:i",
+            minuteIncrement: 5,
+            onChange: function(selectedDates, dateStr) {
+                if (selectedDates.length === 0) return;
+
+                const start = selectedDates[0];
+                const minEnd = new Date(start.getTime() + 30 * 60 * 1000);
+                const maxEnd = new Date(start.getTime() + 4 * 60 * 60 * 1000);
+
+                endPicker.set('minDate', minEnd);
+                endPicker.set('maxDate', maxEnd);
+                endPicker.setDate(minEnd, true);
+            }
+        });
+    });
+    </script>
 {% endblock %}

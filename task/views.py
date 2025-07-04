@@ -133,7 +133,6 @@ def approve_application(request, application_id):
         TaskApplication.objects.filter(task=task, status='pending').update(status='unselected')
         task.status = 'selected'
         task.save()
-        # print(f"任务 {task.id} 状态更新为：{task.status}")
     return redirect('task:task_application', task.id)
 
 @login_required
@@ -148,3 +147,27 @@ def reject_application(request, application_id):
     application.status = 'rejected'
     application.save()
     return redirect('task:task_application', task.id)
+
+@login_required
+@client_required
+def cancel_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    
+    if request.method == 'POST':
+        task.cancel()
+        return redirect('task:mytask')
+
+    return redirect('task:task_detail', task_id=task.id)
+
+@login_required
+@volunteer_required
+def cancel_application(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    user = request.user
+    application = TaskApplication.objects.filter(task=task, volunteer=user).first()
+
+    if request.method == 'POST':
+        application.cancel()
+        return redirect('task:myapplication')
+    
+    return redirect('task:task_detail', task_id=task.id)

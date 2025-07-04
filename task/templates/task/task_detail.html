@@ -10,16 +10,29 @@
         <p>Time: {{ task.start_time }} - {{ task.end_time }}</p>
         <p>Volunteer needed: {{ task.vol_number }}</p>
         <p>Status: {{ task.status }}</p>
-
-        {% if is_client %}
-            <a href="{% url 'task:task_application' task.id %}">View applied volunteers</a>
-        {% elif has_applied %}
-            <p>You have applied. Application status:{{ application_status }}</p>
-        {% else %}
-            <form method="post" action="{% url 'task:task_apply' task.id %}">
-                {% csrf_token %}
-                <button type="submit">Application for this task</button>
-            </form>
+        <p>Created at: {{ task.created_at }}</p>
+        {% if task.is_active %}
+            {% if is_client %}     
+                    <a href="{% url 'task:task_application' task.id %}">View applied volunteers</a>
+                
+                    <form method="post" action="{% url 'task:cancel_task' task.id %}" style="margin-top:10px;">
+                        {% csrf_token %}
+                        <button type="submit" onclick="return confirm('Are you sure you want to cancel this task?');">Cancel This Task</button>
+                    </form>
+            {% elif has_applied %}
+                <p>You have applied. Application status:{{ application_status }}</p>
+                <form method="post" action="{% url 'task:cancel_application' task.id %}" style="margin-top:10px;">
+                    {% csrf_token %}
+                    <button type="submit" onclick="return confirm('Are you sure you want to cancel this application?');">Cancel This Application</button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'task:task_apply' task.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Application for this task</button>
+                </form>
+            {% endif %}
+        {% elif task.is_closed %}
+            <p>Closed at: {{ task.closed_at }}
         {% endif %}
     </div>
 {% endblock %}
