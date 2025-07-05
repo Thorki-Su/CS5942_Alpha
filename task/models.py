@@ -8,7 +8,7 @@ class Task(models.Model):
     STATUS_CHOICES = [
         ('open', 'Open for application'),
         ('selected', 'Selecting Done'),
-        ('onoging', 'Ongoing'),
+        ('ongoing', 'Ongoing'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ]
@@ -34,6 +34,20 @@ class Task(models.Model):
         if approved_count >= self.vol_number and self.status != 'selected':
             self.status = 'selected'
             self.save()
+
+    def update_status_by_time(self):
+        """根据时间更新任务状态"""
+        now = timezone.now()
+        if self.status == 'cancelled':
+            return
+        if now > self.end_time:
+            self.status = 'completed'
+            self.closed_at = now
+        elif now >= self.start_time and now <= self.end_time:
+            self.status = 'ongoing'
+        elif now < self.start_time and self.status != 'selected':
+            self.status = 'open'
+        self.save()
         
     def cancel(self):
         self.status = 'cancelled'
@@ -51,7 +65,7 @@ class Task(models.Model):
     
     @property
     def is_ongoing(self):
-        return self.status in ['onoging']
+        return self.status in ['ongoing']
     
 
 class TaskApplication(models.Model):
