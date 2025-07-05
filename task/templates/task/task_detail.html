@@ -30,6 +30,7 @@
                     {% csrf_token %}
                     <button type="submit">Application for this task</button>
                 </form>
+                <p>Notice: You can't apply for time-conflicting tasks. Please leave at least one hour between tasks.</p>
             {% endif %}
         {% elif task.is_closed %}
             <p>Closed at: {{ task.closed_at }}
