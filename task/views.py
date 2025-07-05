@@ -31,6 +31,7 @@ def mytask(request):
     tasks = Task.objects.filter(client=request.user).order_by('-start_time')
     for task in tasks:
         task.update_status_if_full()
+        task.update_status_by_time()
     return render(request, 'task/mytask.html', {'tasks': tasks})
 
 @login_required
@@ -52,6 +53,7 @@ def task_create(request):
 @login_required
 def task_detail(request, task_id):
     task = get_object_or_404(Task, id=task_id)
+    task.update_status_by_time()
     user = request.user
 
     is_client = (user == task.client)
@@ -76,6 +78,7 @@ def task_detail(request, task_id):
 @client_required
 def task_application(request, task_id):
     task = get_object_or_404(Task, id=task_id)
+    task.update_status_by_time()
     applications = TaskApplication.objects.filter(task=task).select_related('volunteer')
     context = {
         'task': task,
@@ -96,16 +99,38 @@ def tasklist(request):
     user = request.user
     applied_task_ids = TaskApplication.objects.filter(volunteer=user).values_list('task_id', flat=True)
     tasks = Task.objects.filter(status='open').exclude(id__in=applied_task_ids)
+    for task in tasks:
+        task.update_status_by_time()
     return render(request, 'task/tasklist.html', {'tasks': tasks})
 
 @login_required
 def task_ongoing(request):
-    return render(request, 'task/task_ongoing.html')
+    user = request.user
+    if user.role == 'client':
+        tasks = Task.objects.filter(client=user, status='ongoing')
+    else:
+        tasks = Task.objects.filter(applications__volunteer=user, applications__status='accepted', status='ongoing')
+    for task in tasks:
+        task.update_status_by_time()
+    tasks_with_status = []
+    for task in tasks:
+        has_accepted_application = (user.role == 'volunteer' and 
+                                  task.applications.filter(volunteer=user, status='accepted').exists())
+        tasks_with_status.append({
+            'task': task,
+            'has_accepted_application': has_accepted_application
+        })
+    
+    return render(request, 'task/task_ongoing.html', {
+        'tasks_with_status': tasks_with_status,
+        'user': user
+    })
 
 @login_required
 @volunteer_required
 def task_apply(request, task_id):
     task = get_object_or_404(Task, id=task_id)
+    task.update_status_by_time()
     user = request.user
 
     buffer = timedelta(hours=1)  # 任务前后一小时不能有其他任务，不确定，可以再改
@@ -135,6 +160,7 @@ def task_apply(request, task_id):
 def approve_application(request, application_id):
     application = get_object_or_404(TaskApplication, id=application_id)
     task = application.task
+    task.update_status_by_time()
 
     if application.status != 'pending':
         return redirect('task:task_application', task.id)
@@ -157,7 +183,7 @@ def approve_application(request, application_id):
 def reject_application(request, application_id):
     application = get_object_or_404(TaskApplication, id=application_id)
     task = application.task
-
+    task.update_status_by_time()
     if application.status != 'pending':
         return redirect('task:task_application', task.id)
     
@@ -169,6 +195,7 @@ def reject_application(request, application_id):
 @client_required
 def cancel_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
+    task.update_status_by_time()
     
     if request.method == 'POST':
         task.cancel()
@@ -180,6 +207,7 @@ def cancel_task(request, task_id):
 @volunteer_required
 def cancel_application(request, task_id):
     task = get_object_or_404(Task, id=task_id)
+    task.update_status_by_time()
     user = request.user
     application = TaskApplication.objects.filter(task=task, volunteer=user).first()
 
