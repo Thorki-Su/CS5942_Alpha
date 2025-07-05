@@ -5,6 +5,8 @@ from .forms import TaskForm
 from django.http import HttpResponseForbidden
 from functools import wraps
 from .models import Task, TaskApplication
+from django.utils import timezone
+from datetime import timedelta
 
 # Create your views here.
 def client_required(view_func):
@@ -104,6 +106,21 @@ def task_ongoing(request):
 @volunteer_required
 def task_apply(request, task_id):
     task = get_object_or_404(Task, id=task_id)
+    user = request.user
+
+    buffer = timedelta(hours=1)  # 任务前后一小时不能有其他任务，不确定，可以再改
+    task_start = task.start_time - buffer
+    task_end = task.end_time + buffer
+
+    conflicting_apps = TaskApplication.objects.filter(
+        volunteer=user,
+        status__in=['pending', 'accepted'],
+        task__start_time__lt=task_end,
+        task__end_time__gt=task_start
+    )
+    if conflicting_apps.exists():
+        messages.error(request, "You have another task near this time. Please check your schedule.")
+        return redirect('task:task_detail', task_id=task.id)
 
     if TaskApplication.objects.filter(task=task, volunteer=request.user).exists():
         messages.warning(request, "You have already applied for the task")
