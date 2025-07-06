@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import TaskForm
+from .forms import TaskForm, TaskFilterForm
 from django.http import HttpResponseForbidden
 from functools import wraps
 from .models import Task, TaskApplication
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, time
+from django.db.models import Q
 
 # Create your views here.
 def client_required(view_func):
@@ -44,6 +45,7 @@ def task_create(request):
             task.client = request.user
             task.status = 'open'
             task.save()
+            form.save_m2m()
             return redirect('task:mytask')
     else:
         form = TaskForm()
@@ -99,9 +101,44 @@ def tasklist(request):
     user = request.user
     applied_task_ids = TaskApplication.objects.filter(volunteer=user).values_list('task_id', flat=True)
     tasks = Task.objects.filter(status='open').exclude(id__in=applied_task_ids)
+    form = TaskFilterForm(request.GET or None)
+    if form.is_valid():
+        keyword = form.cleaned_data.get('keyword')
+        weekday = form.cleaned_data.get('weekday')
+        time_block = form.cleaned_data.get('time_block')
+        work_area = form.cleaned_data.get('work_area')
+
+        if keyword:
+            tasks = tasks.filter(
+                Q(title__icontains=keyword) |
+                Q(description__icontains=keyword)
+            )
+
+        if work_area:
+            tasks = tasks.filter(work_area__in=[work_area])
+
+        if weekday != '':
+            weekday_int = int(weekday)
+            # Django 中 week_day: Sunday = 1, Monday = 2, ..., Saturday = 7
+            # 而 Python datetime.weekday(): Monday = 0
+            # 所以 weekday + 2，再 % 7，然后处理 Sunday = 7
+            django_weekday = (weekday_int + 2) % 7 or 7
+            tasks = tasks.filter(start_time__week_day=django_weekday)
+
+        if time_block:
+            time_ranges = {
+                'morning': (time(8, 0), time(11, 0)),
+                'midday': (time(11, 0), time(14, 0)),
+                'afternoon': (time(14, 0), time(17, 0)),
+            }
+            start, end = time_ranges[time_block]
+            tasks = tasks.filter(start_time__time__gte=start, start_time__time__lt=end)
     for task in tasks:
         task.update_status_by_time()
-    return render(request, 'task/tasklist.html', {'tasks': tasks})
+    return render(request, 'task/tasklist.html', {
+        'tasks': tasks, 
+        'form': form
+    })
 
 @login_required
 def task_ongoing(request):

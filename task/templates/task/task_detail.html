@@ -7,9 +7,9 @@
         <p>任务详情，病人和志愿者会看到不同的按钮</p>
         <h2>{{ task.title }}</h2>
         <p>{{ task.description }}</p>
-        <p>Creater: {{ task.client.userprofile.get_full_name() }}</p>
+        <p>Creater: {{ task.client.userprofile.get_full_name }}</p>
         <p>Time: {{ task.start_time }} - {{ task.end_time }}</p>
-        <p>Support needed: {{ task.work_area }}</p>
+        <p>Support needed: {{ task.work_area.all|join:", " }}</p>
         <p>Volunteer needed: {{ task.vol_number }}</p>
         <p>Status: {{ task.status }}</p>
         <p>Created at: {{ task.created_at }}</p>

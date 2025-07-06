@@ -68,6 +68,7 @@ class UserProfile(models.Model):
     emergency_contact = models.CharField(max_length=255, null=True, blank=True)           #紧急联系人（姓名+联系方式）
     consent_safeguard = models.BooleanField(default=False)                                #是否同意数据使用和安全协议（不确定是否有必要）
 
+    @property
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
 
