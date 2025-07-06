@@ -5,12 +5,11 @@ __pycache__/
 *.sqlite3
 *.log
 
-*.sqlite3
 
 venv/
 ENV/
 env/
 .venv/
 .ENV/
-.env/
+.env
 venv310/

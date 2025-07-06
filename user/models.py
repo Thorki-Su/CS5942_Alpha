@@ -35,6 +35,22 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    
+    def whether_in_task(self, task_id): #给通讯组使用，判断这个用户有没有在指定任务中
+        from task.models import Task, TaskApplication
+        if self.role == 'client':
+            return Task.objects.filter(
+                client=self,
+                id=task_id,
+            ).exists()
+        elif self.role == 'volunteer':
+            return TaskApplication.objects.filter(
+                volunteer=self,
+                task_id=task_id,
+                status='accepted'
+            ).exists()
+        return False
+            
 
 def user_directory_path(instance, filename):
     return f'profile_photos/{instance.user.email}/{filename}'
@@ -77,6 +93,8 @@ class ClientProfile(models.Model):
     pip_certificate = models.FileField(upload_to='certificates/pip/',null=True,blank=True) #如果有认证，客户需将之上传
     adp_certificate = models.FileField(upload_to='certificates/adp/',null=True,blank=True)
     lwc_certificate = models.FileField(upload_to='certificates/lwc/',null=True,blank=True)
+    nhs_certificate = models.FileField(upload_to='certificates/nhs/',null=True,blank=True)
+    diagnosis = models.FileField(upload_to='certificates/diagnosis/',null=True,blank=True)
     eligibility_confirmed = models.BooleanField(default=False)                             #审核通过后改为True
     preferred_contact_method = models.CharField(max_length=20, choices=[('phone', 'Phone'),('email', 'Email')])
     conditions = models.ManyToManyField(ConditionType, blank=True)                         #患病类型，多对多

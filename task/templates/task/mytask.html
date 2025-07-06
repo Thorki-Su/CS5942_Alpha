@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}My Task{% endblock %}
+
+{% block content %}
+    <div style='margin:50px;'>
+        <h2>My Tasks</h2>
+        {% if tasks %}
+            <h3>Active Tasks</h3>
+            {% for task in tasks %}
+                {% if task.is_active %}    
+                    <a href="{% url 'task:task_detail' task.id %}">{{ task.title }}</a><br>
+                    — Status: [{{ task.status }}]<br>
+                    — Time: [{{ task.start_time }}] to [{{ task.end_time }}]<br>
+                    — Volunteer needed: [{{ task.vol_number }}]<br>
+                {% endif %}
+            {% endfor %}
+            <h3>Closed Tasks</h3>
+            {% for task in tasks %}
+                {% if task.is_closed %}
+                    <a href="{% url 'task:task_detail' task.id %}">{{ task.title }}</a><br>
+                    — Status: [{{ task.status }}]<br>
+                    — Time: [{{ task.start_time }}] to [{{ task.end_time }}]<br>
+                    — Volunteer needed: [{{ task.vol_number }}]<br>
+                {% endif %}
+            {% endfor %}
+
+        {% else %}
+            <p>You haven't posted any tasks yet.</p>
+        {% endif %}
+        <p><a href="{% url 'task:task_create' %}">Create a new task</a></p>
+    </div>
+{% endblock %}

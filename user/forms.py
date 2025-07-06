@@ -56,11 +56,6 @@ class ClientRegisterForm(UserCreationForm):
 
 #Client在个人信息页面用于补充信息的表
 class ClientProfileForm(forms.ModelForm):
-    # profile_photo = forms.FileField(
-    #     required=False,
-    #     label='Please upload your photo',
-    # )
-    #尝试把图片摘出去
     support_areas = forms.ModelMultipleChoiceField(
         queryset=SupportType.objects.all(),
         widget=forms.CheckboxSelectMultiple,
@@ -107,13 +102,19 @@ class ClientProfileForm(forms.ModelForm):
                 label='LWC Certificate',
                 initial=self.instance.lwc_certificate if self.instance else None
             )
-        
-        # if 'pip' in certifications:
-        #     self.fields['pip_certificate'] = forms.FileField(required=False, label='PIP Certificate')
-        # if 'adp' in certifications:
-        #     self.fields['adp_certificate'] = forms.FileField(required=False, label='ADP Certificate')
-        # if 'lwc' in certifications:
-        #     self.fields['lwc_certificate'] = forms.FileField(required=False, label='LWC Certificate')
+
+        if 'NHS' in cert_names:
+            self.fields['nhs_certificate'] = forms.FileField(
+                required=False,
+                label='NHS Certificate',
+                initial=self.instance.nhs_certificate if self.instance else None
+            )
+        if 'Diagnosis' in cert_names:
+            self.fields['diagnosis'] = forms.FileField(
+                required=False,
+                label='Diagnosis from a Doctor',
+                initial=self.instance.diagnosis if self.instance else None
+            )
 
     class Meta:
         model = ClientProfile
@@ -184,10 +185,6 @@ class VolunteerRegisterForm(UserCreationForm):
         return user
     
 class VolunteerProfileForm(forms.ModelForm):
-    # profile_photo = forms.FileField(
-    #     required=False,
-    #     label='Please upload your photo',
-    # )
     age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
     gender = forms.ChoiceField(choices=[('male', 'Male'), ('Female', 'female')], label='Gender')
     emergency_contact = forms.CharField(max_length=255)
