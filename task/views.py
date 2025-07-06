@@ -198,7 +198,10 @@ def cancel_task(request, task_id):
     task.update_status_by_time()
     
     if request.method == 'POST':
-        task.cancel()
+        if task.is_within_24h():
+            messages.error(request, "Cannot cancel a task less than 24 hours before it starts.")
+        else:
+            task.cancel()
         return redirect('task:mytask')
 
     return redirect('task:task_detail', task_id=task.id)
@@ -212,7 +215,10 @@ def cancel_application(request, task_id):
     application = TaskApplication.objects.filter(task=task, volunteer=user).first()
 
     if request.method == 'POST':
-        application.cancel()
+        if not application.can_be_cancelled():
+            messages.error(request, "You cannot cancel this application within 24 hours of task start.")
+        else:
+            application.cancel()
         return redirect('task:myapplication')
     
     return redirect('task:task_detail', task_id=task.id)

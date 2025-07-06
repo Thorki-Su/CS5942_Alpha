@@ -21,12 +21,14 @@
                         {% csrf_token %}
                         <button type="submit" onclick="return confirm('Are you sure you want to cancel this task?');">Cancel This Task</button>
                     </form>
+                    <p>Notice: You can't cancel a task less than 24 hours before it starts.</p>
             {% elif has_applied %}
                 <p>You have applied. Application status:{{ application_status }}</p>
                 <form method="post" action="{% url 'task:cancel_application' task.id %}" style="margin-top:10px;">
                     {% csrf_token %}
                     <button type="submit" onclick="return confirm('Are you sure you want to cancel this application?');">Cancel This Application</button>
                 </form>
+                <p>Notice: You can't cancel this application within 24 hours of task start.</p>
             {% else %}
                 <form method="post" action="{% url 'task:task_apply' task.id %}">
                     {% csrf_token %}
