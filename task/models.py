@@ -44,7 +44,9 @@ class Task(models.Model):
             self.status = 'completed'
             self.closed_at = now
         elif now >= self.start_time and now <= self.end_time:
-            self.status = 'ongoing'
+            if self.status != 'ongoing':
+                self.status = 'ongoing'
+                self.applications.filter(status='pending').update(status='unselected')
         elif now < self.start_time and self.status != 'selected':
             self.status = 'open'
         self.save()
@@ -93,3 +95,11 @@ class TaskApplication(models.Model):
         self.status = 'cancelled'
         self.cancelled_at = timezone.now()
         self.save()
+    
+    @property
+    def is_active(self):
+        return self.status in ['pending', 'accepted']
+    
+    @property
+    def is_closed(self):
+        return self.status in ['unselected', 'rejected', 'cancelled']
