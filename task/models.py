@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from user.models import CustomUser, UserProfile, ClientProfile, VolunteerProfile, SupportType
 from django.utils import timezone
+from datetime import timedelta
 
 # Create your models here.
 class Task(models.Model):
@@ -32,8 +33,13 @@ class Task(models.Model):
             return
         approved_count = self.applications.filter(status='accepted').count()
         if approved_count >= self.vol_number and self.status != 'selected':
-            self.status = 'selected'
-            self.save()
+            if self.status != 'selected':
+                self.status = 'selected'
+                self.save()
+        else:
+            if self.status == 'selected':
+                self.status = 'open'
+                self.save()
 
     def update_status_by_time(self):
         """根据时间更新任务状态"""
@@ -55,7 +61,11 @@ class Task(models.Model):
         self.status = 'cancelled'
         self.closed_at = timezone.now()
         self.save()
-        self.applications.update(status='cancelled')
+        for application in self.applications.all():
+            application.cancel()
+
+    def is_within_24h(self):
+        return self.start_time - timezone.now() < timedelta(hours=24)
 
     @property
     def is_active(self):
@@ -95,6 +105,10 @@ class TaskApplication(models.Model):
         self.status = 'cancelled'
         self.cancelled_at = timezone.now()
         self.save()
+        self.task.update_status_if_full()
+
+    def can_be_cancelled(self):
+        return not self.task.is_within_24h()
     
     @property
     def is_active(self):
