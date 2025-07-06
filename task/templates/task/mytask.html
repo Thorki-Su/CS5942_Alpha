@@ -14,6 +14,7 @@
                     <a href="{% url 'task:task_detail' task.id %}">{{ task.title }}</a><br>
                     — Status: [{{ task.status }}]<br>
                     — Time: [{{ task.start_time }}] to [{{ task.end_time }}]<br>
+                    — Support needed: {{ task.work_area }}<br>
                     — Volunteer needed: [{{ task.vol_number }}]<br>
                 </div>
                 {% endif %}
@@ -24,8 +25,7 @@
                 <div style="margin-bottom: 1em;">
                     <a href="{% url 'task:task_detail' task.id %}">{{ task.title }}</a><br>
                     — Status: [{{ task.status }}]<br>
-                    — Time: [{{ task.start_time }}] to [{{ task.end_time }}]<br>
-                    — Volunteer needed: [{{ task.vol_number }}]<br>
+                    — Closed at: {{ task.closed_at }}<br>
                 </div>
                 {% endif %}
             {% endfor %}

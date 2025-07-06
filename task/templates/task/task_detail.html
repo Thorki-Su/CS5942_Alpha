@@ -7,12 +7,14 @@
         <p>任务详情，病人和志愿者会看到不同的按钮</p>
         <h2>{{ task.title }}</h2>
         <p>{{ task.description }}</p>
+        <p>Creater: {{ task.client.userprofile.get_full_name() }}</p>
         <p>Time: {{ task.start_time }} - {{ task.end_time }}</p>
+        <p>Support needed: {{ task.work_area }}</p>
         <p>Volunteer needed: {{ task.vol_number }}</p>
         <p>Status: {{ task.status }}</p>
         <p>Created at: {{ task.created_at }}</p>
         {% if task.is_active %}
-            {% if is_client %}     
+            {% if is_client %}
                     <a href="{% url 'task:task_application' task.id %}">View applied volunteers</a>
                 
                     <form method="post" action="{% url 'task:cancel_task' task.id %}" style="margin-top:10px;">
@@ -33,7 +35,7 @@
                 <p>Notice: You can't apply for time-conflicting tasks. Please leave at least one hour between tasks.</p>
             {% endif %}
         {% elif task.is_closed %}
-            <p>Closed at: {{ task.closed_at }}
+            <p>Closed at: {{ task.closed_at }}</p>
         {% endif %}
     </div>
 {% endblock %}

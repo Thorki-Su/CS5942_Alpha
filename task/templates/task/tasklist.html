@@ -10,6 +10,7 @@
             <div style="margin-bottom: 1em;">
                 <a href="{% url 'task:task_detail' task.id %}">{{ task.title }}</a><br>
                 Time: {{ task.start_time }} to {{ task.end_time }}<br>
+                Support needed: {{ task.work_area }}<br>
                 Volunteer Number: {{ task.vol_number }}<br>
             </div> 
             {% endfor %}
