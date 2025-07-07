@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import TaskForm, TaskFilterForm
 from django.http import HttpResponseForbidden
 from functools import wraps
-from .models import Task, TaskApplication
+from .models import Task, TaskApplication, TaskTemplate
 from django.utils import timezone
 from datetime import timedelta, time
 from django.db.models import Q
@@ -38,6 +38,8 @@ def mytask(request):
 @login_required
 @client_required
 def task_create(request):
+    templates = TaskTemplate.objects.prefetch_related('work_area').all()
+
     if request.method == 'POST':
         form = TaskForm(request.POST)
         if form.is_valid():
@@ -50,7 +52,10 @@ def task_create(request):
     else:
         form = TaskForm()
 
-    return render(request, 'task/task_create.html', {'form': form})
+    return render(request, 'task/task_create.html', {
+        'form': form,
+        'templates': templates
+        })
 
 @login_required
 def task_detail(request, task_id):
