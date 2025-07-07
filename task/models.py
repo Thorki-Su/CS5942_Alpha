@@ -50,9 +50,16 @@ class Task(models.Model):
             self.status = 'completed'
             self.closed_at = now
         elif now >= self.start_time and now <= self.end_time:
-            if self.status != 'ongoing':
-                self.status = 'ongoing'
-                self.applications.filter(status='pending').update(status='unselected')
+            approved_count = self.applications.filter(status='accepted').count()
+            if approved_count == 0:
+                self.status = 'cancelled'
+                self.closed_at = now
+                for application in self.applications.all():
+                    application.cancel()
+            else:
+                if self.status != 'ongoing':
+                    self.status = 'ongoing'
+                    self.applications.filter(status='pending').update(status='unselected')
         elif now < self.start_time and self.status != 'selected':
             self.status = 'open'
         self.save()
@@ -117,3 +124,12 @@ class TaskApplication(models.Model):
     @property
     def is_closed(self):
         return self.status in ['unselected', 'rejected', 'cancelled']
+    
+class TaskTemplate(models.Model):
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    work_area = models.ManyToManyField(SupportType)
+
+    def __str__(self):
+        return self.name

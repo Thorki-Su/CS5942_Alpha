@@ -6,6 +6,19 @@
     <div style='margin:50px;'>
         <p>用户在这里创建新的任务，考虑给任务内容加图，以及预制几个基本任务</p>
         <h2>Create a new task</h2>
+        <p>Notice: Here are some task templates, which can help you to create tasks quickly.</p>
+        <select id="template-select">
+            <option value="">-- Please choose a template --</option>
+            {% for template in templates %}
+                <option value="{{ template.id }}"
+                    data-title="{{ template.title|escapejs }}"
+                    data-description="{{ template.description|escapejs }}"
+                    data-workareas="{% for wa in template.work_area.all %}{{ wa.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                    {{ template.name }}
+                </option>
+            {% endfor %}
+        </select>
+
         <form method="post" id="task-form">
             {% csrf_token %}
 
@@ -70,6 +83,34 @@
                 endPicker.set('maxDate', maxEnd);
                 endPicker.setDate(minEnd, true);
             }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const select = document.getElementById('template-select');
+        const titleInput = document.getElementById('id_title');
+        const descInput = document.getElementById('id_description');
+
+        select.addEventListener('change', function () {
+            const selected = this.options[this.selectedIndex];
+            if (!selected.value) return;
+
+            // 填充标题和描述
+            titleInput.value = selected.dataset.title || '';
+            descInput.value = selected.dataset.description || '';
+
+            // 清除所有 work area 勾选
+            document.querySelectorAll('input[name="work_area"]').forEach(cb => cb.checked = false);
+
+            // 获取选中的 work_area ID 列表
+            const workAreaIds = (selected.dataset.workareas || '').split(',').map(id => id.trim());
+
+            // 勾选匹配的复选框
+            document.querySelectorAll('input[name="work_area"]').forEach(cb => {
+                if (workAreaIds.includes(cb.value)) {
+                    cb.checked = true;
+                }
+            });
         });
     });
     </script>
