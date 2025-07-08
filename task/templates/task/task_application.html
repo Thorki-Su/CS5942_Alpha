@@ -10,7 +10,7 @@
             <ul>
                 {% for app in applications %}
                     <li>
-                        Volunteer: {{ app.volunteer.userprofile.get_full_name() }} [{{ app.volunteer.email }}]
+                        Volunteer: {{ app.volunteer.userprofile.get_full_name }} [{{ app.volunteer.email }}]
                         — Status: {{ app.status }}
 
                         {% if app.status == 'pending' %}

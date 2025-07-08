@@ -11,6 +11,7 @@ class Task(models.Model):
         ('selected', 'Selecting Done'),
         ('ongoing', 'Ongoing'),
         ('completed', 'Completed'),
+        ('timeout', 'Timeout'),
         ('cancelled', 'Cancelled'),
     ]
 
@@ -24,6 +25,8 @@ class Task(models.Model):
     client = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='posted_tasks')
     created_at = models.DateTimeField(auto_now_add=True)
     closed_at = models.DateTimeField(null=True, blank=True)
+    confirmed_by_client = models.BooleanField(default=False)
+    volunteer_submitted = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.title} ({self.client.email})"
@@ -42,14 +45,13 @@ class Task(models.Model):
                 self.save()
 
     def update_status_by_time(self):
-        """根据时间更新任务状态"""
         now = timezone.now()
-        if self.status == 'cancelled':
+        if self.status in ['cancelled', 'completed']:
             return
-        if now > self.end_time:
-            self.status = 'completed'
-            self.closed_at = now
-        elif now >= self.start_time and now <= self.end_time:
+        # if now > self.end_time:
+        #     self.status = 'completed'
+        #     self.closed_at = now
+        if now >= self.start_time and now <= self.end_time:
             approved_count = self.applications.filter(status='accepted').count()
             if approved_count == 0:
                 self.status = 'cancelled'
@@ -60,7 +62,15 @@ class Task(models.Model):
                 if self.status != 'ongoing':
                     self.status = 'ongoing'
                     self.applications.filter(status='pending').update(status='unselected')
-        elif now < self.start_time and self.status != 'selected':
+        # elif now < self.start_time and self.status != 'selected':
+        #     self.status = 'open'
+        elif now > self.end_time:
+            if not self.confirmed_by_client:
+                self.status = 'timeout'
+            else:
+                self.status = 'completed'
+            self.closed_at = now
+        elif self.status not in ['selected', 'timeout']:
             self.status = 'open'
         self.save()
         
@@ -133,3 +143,13 @@ class TaskTemplate(models.Model):
 
     def __str__(self):
         return self.name
+
+class TaskRecord(models.Model):
+    task = models.OneToOneField(Task, on_delete=models.CASCADE, related_name='record')
+    volunteer = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    records = models.JSONField(default=list)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Record for {self.task.title} by {self.volunteer.userprofile.get_full_name} [{self.volunteer.email}]"
+

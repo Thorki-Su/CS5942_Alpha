@@ -13,4 +13,6 @@ urlpatterns = [
     path('task/application/<int:application_id>/approve/', views.approve_application, name='approve_application'),
     path('task/application/<int:application_id>/reject/', views.reject_application, name='reject_application'),
     path('cancel/<int:task_id>/', views.cancel_task, name='cancel_task'),
+    path('task/<int:task_id>/confirm/', views.task_confirm, name='task_confirm'),
+    path('task/<int:task_id>/record/', views.task_record, name='task_record'),
 ]

@@ -36,6 +36,15 @@
                 </form>
                 <p>Notice: You can't apply for time-conflicting tasks. Please leave at least one hour between tasks.</p>
             {% endif %}
+        {% elif task.is_ongoing %}
+        <p>DEBUG: This task is ongoing.</p>
+        <p>is_client: {{ is_client }}</p>
+        <p>be_accepted: {{ be_accepted }}</p>
+            {% if is_client %}
+                <a href="{% url 'task:task_confirm' task.id %}">View task records</a>
+            {% elif be_accepted %}
+                <a href="{% url 'task:task_record' task.id %}">Submit task records</a>
+            {% endif %}
         {% elif task.is_closed %}
             <p>Closed at: {{ task.closed_at }}</p>
         {% endif %}
