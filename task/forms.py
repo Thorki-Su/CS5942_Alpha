@@ -38,3 +38,9 @@ class TaskFilterForm(forms.Form):
     weekday = forms.ChoiceField(choices=[('', 'Any day')] + WEEKDAYS, required=False)
     time_block = forms.ChoiceField(choices=[('', 'Any time')] + TIME_BLOCKS, required=False)
     work_area = forms.ModelChoiceField(queryset=SupportType.objects.all(), required=False, empty_label="All Areas")
+
+class TaskRecordForm(forms.Form):
+    record_0 = forms.CharField(label="Record 1", required=True)
+
+    def get_record_list(self):
+        return [value for key, value in self.cleaned_data.items() if key.startswith('record_')]

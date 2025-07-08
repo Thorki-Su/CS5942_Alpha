@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import TaskForm, TaskFilterForm
+from .forms import TaskForm, TaskFilterForm, TaskRecordForm
 from django.http import HttpResponseForbidden
 from functools import wraps
-from .models import Task, TaskApplication, TaskTemplate
+from .models import Task, TaskApplication, TaskTemplate, TaskRecord
 from django.utils import timezone
 from datetime import timedelta, time
 from django.db.models import Q
@@ -67,17 +67,21 @@ def task_detail(request, task_id):
 
     has_applied = False
     application_status = None
+    be_accepted = False
     if hasattr(user, 'volunteerprofile'):
         application = TaskApplication.objects.filter(task=task, volunteer=user).first()
         if application:
             has_applied = True
             application_status = application.status
+        if application_status == 'accepted':
+            be_accepted =True
 
     context = {
         'task': task,
         'is_client': is_client,
         'has_applied': has_applied,
         'application_status': application_status,
+        'be_accepted': be_accepted,
     }
     return render(request, 'task/task_detail.html', context)
 
@@ -264,3 +268,31 @@ def cancel_application(request, task_id):
         return redirect('task:myapplication')
     
     return redirect('task:task_detail', task_id=task.id)
+
+@login_required
+@client_required
+def task_confirm(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    task.update_status_by_time()
+    return redirect('task:task_confirm', task_id=task.id)
+
+@login_required
+@volunteer_required
+def task_record(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    task.update_status_by_time()
+    if not TaskApplication.objects.filter(task=task, volunteer=request.user, status='accepted').exists():
+        return redirect('task:task_detail', task_id=task.id)
+    
+    if request.method == 'POST':
+        records = [value for key, value in request.POST.items() if key.startswith('record_') and value.strip()]
+        if records:
+            TaskRecord.objects.update_or_create(
+                task=task,
+                volunteer=request.user,
+                defaults={'records': records}
+            )
+            task.volunteer_submitted = True
+            task.save()
+            return redirect('task:task_detail', task_id=task.id)
+    return redirect('task:task_record', task_id=task.id)
