@@ -65,16 +65,20 @@ def task_detail(request, task_id):
 
     is_client = (user == task.client)
 
-    has_applied = False
-    application_status = None
-    be_accepted = False
-    if hasattr(user, 'volunteerprofile'):
-        application = TaskApplication.objects.filter(task=task, volunteer=user).first()
-        if application:
-            has_applied = True
-            application_status = application.status
-        if application_status == 'accepted':
-            be_accepted =True
+    # has_applied = False
+    # application_status = None
+    # be_accepted = False
+    # if hasattr(user, 'volunteerprofile'):
+    #     application = TaskApplication.objects.filter(task=task, volunteer=user).first()
+    #     if application:
+    #         has_applied = True
+    #         application_status = application.status
+    #     if application_status == 'accepted':
+    #         be_accepted =True
+    application = TaskApplication.objects.filter(task=task, volunteer=user).first()
+    has_applied = application is not None
+    application_status = application.status if application else None
+    be_accepted = application_status == 'accepted'
 
     context = {
         'task': task,
@@ -142,8 +146,10 @@ def tasklist(request):
             }
             start, end = time_ranges[time_block]
             tasks = tasks.filter(start_time__time__gte=start, start_time__time__lt=end)
+    
     for task in tasks:
         task.update_status_by_time()
+
     return render(request, 'task/tasklist.html', {
         'tasks': tasks, 
         'form': form
@@ -152,10 +158,19 @@ def tasklist(request):
 @login_required
 def task_ongoing(request):
     user = request.user
+    related_tasks = Task.objects.filter(
+        Q(client=user) | 
+        Q(applications__volunteer=user)
+    ).distinct()
+
+    for task in related_tasks:
+        task.update_status_by_time()
+
     if user.role == 'client':
         tasks = Task.objects.filter(client=user, status='ongoing')
     else:
         tasks = Task.objects.filter(applications__volunteer=user, applications__status='accepted', status='ongoing')
+    
     for task in tasks:
         task.update_status_by_time()
     tasks_with_status = []
@@ -218,10 +233,13 @@ def approve_application(request, application_id):
     application.status = 'accepted'
     application.save()
 
-    if approved_count + 1 >= task.vol_number:
-        TaskApplication.objects.filter(task=task, status='pending').update(status='unselected')
-        task.status = 'selected'
-        task.save()
+    # if approved_count + 1 >= task.vol_number:
+    #     TaskApplication.objects.filter(task=task, status='pending').update(status='unselected')
+    #     task.status = 'selected'
+    #     task.save()
+    application.status = 'accepted'
+    application.save()
+    task.update_status_if_full()
     return redirect('task:task_application', task.id)
 
 @login_required
@@ -274,7 +292,19 @@ def cancel_application(request, task_id):
 def task_confirm(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     task.update_status_by_time()
-    return redirect('task:task_confirm', task_id=task.id)
+
+    if request.user != task.client or not task.volunteer_submitted:
+        return redirect('task:task_detail', task_id=task.id)
+    
+    record = getattr(task, 'record', None)
+    if request.method == 'POST':
+        task.confirmed_by_client = True
+        task.status = 'completed'
+        task.closed_at = timezone.now()
+        task.save()
+        return redirect('task:mytask')
+    
+    return render(request, 'task/task_confirm.html', {'task': task, 'record': record})
 
 @login_required
 @volunteer_required
@@ -295,4 +325,4 @@ def task_record(request, task_id):
             task.volunteer_submitted = True
             task.save()
             return redirect('task:task_detail', task_id=task.id)
-    return redirect('task:task_record', task_id=task.id)
+    return render(request, 'task/task_record.html')

@@ -3,6 +3,30 @@
 {% block title %}Task Complete Confirm{% endblock %}
 
 {% block content %}
+    <div style="margin: 50px;">
+        <h2>Confirm Task Completion</h2>
 
+        <p><strong>Task:</strong> {{ task.title }}</p>
+        <p><strong>Time:</strong> {{ task.start_time }} - {{ task.end_time }}</p>
+
+        {% if record %}
+            <h3>Submitted Records:</h3>
+            <p><strong>Submitted by:</strong> {{ record.volunteer.userprofile.get_full_name }}[{{ record.volunteer.email }}]</p>
+            <ul>
+                {% for item in record.records %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No records submitted yet.</p>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" onclick="return confirm('Are you sure to mark this task as completed?');">
+                Confirm Task Completion
+            </button>
+        </form>
+    </div>
 
 {% endblock %}
