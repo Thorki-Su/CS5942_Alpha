@@ -51,7 +51,6 @@
             text-align: center;
         }
         .footer {
-            /* position: fixed; */
             bottom: 0;
             width: 100%;
             text-align: center;
@@ -59,7 +58,6 @@
             background-color: #f8f9fa;
             font-size: 14px;
         }
-        
         .content-wrapper {
             padding-top: 60px;
         }
@@ -85,6 +83,10 @@
                     <a href="{% url 'task:mytask' %}">My Task</a>
                 {% endif %}
                 <a href="{% url 'task:task_ongoing' %}">Ongoing Task</a>
+                <form action="{% url 'user:logout' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link">Log Out</button>
+                </form>
             {% else %}
                 <a href="{% url 'user:login' %}">Login</a>
             {% endif %}

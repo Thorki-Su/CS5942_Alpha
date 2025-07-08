@@ -1,111 +1,75 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Create a new task{% endblock %}
 
 {% block content %}
-    <div style='margin:50px;'>
-        <p>用户在这里创建新的任务，考虑给任务内容加图，以及预制几个基本任务</p>
-        <h2>Create a new task</h2>
-        <p>Notice: Here are some task templates, which can help you to create tasks quickly.</p>
-        <select id="template-select">
-            <option value="">-- Please choose a template --</option>
+<div style='margin:50px;'>
+    <h2>Create a new task</h2>
+    <p>Notice: Please select a template by clicking below. It will help auto-fill the form.</p>
+
+    <form method="post" id="task-form" style="margin-top: 30px;">
+        {% csrf_token %}
+
+        <label for="id_title"><strong>1. Please enter the task title:</strong></label><br>
+        {{ form.title }}<br><br>
+
+        <!-- ✅ 图像模板展示区 插在标题下方 -->
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 30px;">
             {% for template in templates %}
-                <option value="{{ template.id }}"
-                    data-title="{{ template.title|escapejs }}"
-                    data-description="{{ template.description|escapejs }}"
-                    data-workareas="{% for wa in template.work_area.all %}{{ wa.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
-                    {{ template.name }}
-                </option>
+            <div style="text-align: center; width: 150px; cursor: pointer;" class="template-card"
+                data-id="{{ template.id }}"
+                data-title="{{ template.title|escapejs }}"
+                data-description="{{ template.description|escapejs }}"
+                data-workareas="{% for wa in template.work_area.all %}{{ wa.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                
+                <img src="{% static 'images/taskTemplate/' %}{{ template.name|slugify }}.jpg" 
+                     alt="{{ template.name }}" width="150" height="150"
+                     style="object-fit: cover; border-radius: 10px; border: 2px solid transparent;">
+                <p>{{ template.name }}</p>
+            </div>
             {% endfor %}
-        </select>
+        </div>
 
-        <form method="post" id="task-form">
-            {% csrf_token %}
+        <label for="id_description"><strong>2. Please enter the task description:</strong></label><br>
+        {{ form.description }}<br><br>
 
-            <label for="id_title"><strong>1. Please enter the task title:</strong></label><br>
-            {{ form.title }}<br>
-            {{ form.title.errors }}<br><br>
+        <label for="id_start_time"><strong>3. Please choose the start time:</strong></label><br>
+        {{ form.start_time }}<br><br>
 
-            <label for="id_description"><strong>2. Please enter the task description:</strong></label><br>
-            {{ form.description }}<br>
-            {{ form.description.errors }}<br><br>
+        <label for="id_end_time"><strong>4. Please choose the end time:</strong></label><br>
+        {{ form.end_time }}<br><br>
 
-            <label for="id_start_time"><strong>3. Please choose the start time:</strong></label><br>
-            {{ form.start_time }}<br>
-            {{ form.start_time.errors }}<br><br>
+        <label for="id_vol_number"><strong>5. Please choose the needed volunteer number:</strong></label><br>
+        {{ form.vol_number }}<br><br>
 
-            <label for="id_end_time"><strong>4. Please choose the end time:</strong></label><br>
-            {{ form.end_time }}<br>
-            <span>Please note that the period of time needs to be between half an hour and four hours.</span><br>
-            {{ form.end_time.errors }}<br><br>
+        <label for="id_work_area"><strong>6. Please choose the needed support:</strong></label><br>
+        {{ form.work_area }}<br><br>
 
-            <label for="id_vol_number"><strong>5. Please choose the needed volunteer number:</strong></label><br>
-            {{ form.vol_number }}<br>
-            {{ form.vol_number.errors }}<br><br>
+        <button type="submit">Post</button>
+    </form>
+</div>
 
-            <label for="id_work_area"><strong>6. Please choose the needed support:</strong></label><br>
-            {{ form.work_area }}<br>
-            {{ form.work_area.errors }}<br><br>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const titleInput = document.getElementById('id_title');
+    const descInput = document.getElementById('id_description');
 
+    document.querySelectorAll('.template-card').forEach(card => {
+        card.addEventListener('click', function () {
+            // 设置边框高亮
+            document.querySelectorAll('.template-card img').forEach(img => img.style.border = '2px solid transparent');
+            this.querySelector('img').style.border = '2px solid #007bff';
 
-            {% comment %} {{ form.as_p }} {% endcomment %}
-            <button type="submit">Post</button>
-        </form>
-    </div>
+            // 自动填充字段
+            titleInput.value = this.dataset.title || '';
+            descInput.value = this.dataset.description || '';
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const startInput = document.getElementById('start_time');
-        const endInput = document.getElementById('end_time');
-
-        const endPicker = flatpickr(endInput, {
-            enableTime: true,
-            time_24hr: true,
-            dateFormat: "Y-m-d\\TH:i",
-            minuteIncrement: 5,
-        });
-
-        const startPicker = flatpickr(startInput, {
-            enableTime: true,
-            time_24hr: true,
-            dateFormat: "Y-m-d\\TH:i",
-            minuteIncrement: 5,
-            onChange: function(selectedDates, dateStr) {
-                if (selectedDates.length === 0) return;
-
-                const start = selectedDates[0];
-                const minEnd = new Date(start.getTime() + 30 * 60 * 1000);
-                const maxEnd = new Date(start.getTime() + 4 * 60 * 60 * 1000);
-
-                endPicker.set('minDate', minEnd);
-                endPicker.set('maxDate', maxEnd);
-                endPicker.setDate(minEnd, true);
-            }
-        });
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const select = document.getElementById('template-select');
-        const titleInput = document.getElementById('id_title');
-        const descInput = document.getElementById('id_description');
-
-        select.addEventListener('change', function () {
-            const selected = this.options[this.selectedIndex];
-            if (!selected.value) return;
-
-            // 填充标题和描述
-            titleInput.value = selected.dataset.title || '';
-            descInput.value = selected.dataset.description || '';
-
-            // 清除所有 work area 勾选
+            // 取消选择所有work_area
             document.querySelectorAll('input[name="work_area"]').forEach(cb => cb.checked = false);
 
-            // 获取选中的 work_area ID 列表
-            const workAreaIds = (selected.dataset.workareas || '').split(',').map(id => id.trim());
-
-            // 勾选匹配的复选框
+            // 勾选模板包含的work_area
+            const workAreaIds = (this.dataset.workareas || '').split(',');
             document.querySelectorAll('input[name="work_area"]').forEach(cb => {
                 if (workAreaIds.includes(cb.value)) {
                     cb.checked = true;
@@ -113,5 +77,6 @@
             });
         });
     });
-    </script>
+});
+</script>
 {% endblock %}
