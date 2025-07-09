@@ -37,16 +37,48 @@
                 <p>Notice: You can't apply for time-conflicting tasks. Please leave at least one hour between tasks.</p>
             {% endif %}
         {% elif task.is_ongoing %}
-        <p>DEBUG: This task is ongoing.</p>
-        <p>is_client: {{ is_client }}</p>
-        <p>be_accepted: {{ be_accepted }}</p>
             {% if is_client %}
                 <a href="{% url 'task:task_confirm' task.id %}">View task records</a>
+
+                <h3>Feedback for Volunteers:</h3>
+                <ul>
+                    {% for volunteer in accepted_volunteers %}
+                        <li>
+                            {{ volunteer.userprofile.get_full_name }} 
+                            <a href="{% url 'task:task_feedback' task.id volunteer.id %}">Give Feedback</a>
+                        </li>
+                    {% empty %}
+                        <li>No volunteers accepted yet.</li>
+                    {% endfor %}
+                </ul>
             {% elif be_accepted %}
                 <a href="{% url 'task:task_record' task.id %}">Submit task records</a>
+
+                <h3>Feedback for Client:</h3>
+                <p>
+                    <a href="{% url 'task:task_feedback' task.id task.client.id %}">Give Feedback to Client</a>
+                </p>
             {% endif %}
         {% elif task.is_closed %}
             <p>Closed at: {{ task.closed_at }}</p>
+            {% if is_client %}
+                <h3>Feedback for Volunteers:</h3>
+                <ul>
+                    {% for volunteer in accepted_volunteers %}
+                        <li>
+                            {{ volunteer.userprofile.get_full_name }} 
+                            <a href="{% url 'task:task_feedback' task.id volunteer.id %}">Give Feedback</a>
+                        </li>
+                    {% empty %}
+                        <li>No volunteers accepted yet.</li>
+                    {% endfor %}
+                </ul>
+            {% elif be_accepted %}
+                <h3>Feedback for Client:</h3>
+                <p>
+                    <a href="{% url 'task:task_feedback' task.id task.client.id %}">Give Feedback to Client</a>
+                </p>
+            {% endif %}
         {% endif %}
     </div>
 {% endblock %}

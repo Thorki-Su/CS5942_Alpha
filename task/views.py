@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import TaskForm, TaskFilterForm, TaskRecordForm
+from .forms import TaskForm, TaskFilterForm, TaskRecordForm, FeedbackForm
 from django.http import HttpResponseForbidden
 from functools import wraps
-from .models import Task, TaskApplication, TaskTemplate, TaskRecord
+from user.models import CustomUser
+from .models import Task, TaskApplication, TaskTemplate, TaskRecord, Feedback, StarRelation
 from django.utils import timezone
 from datetime import timedelta, time
 from django.db.models import Q
@@ -65,20 +66,13 @@ def task_detail(request, task_id):
 
     is_client = (user == task.client)
 
-    # has_applied = False
-    # application_status = None
-    # be_accepted = False
-    # if hasattr(user, 'volunteerprofile'):
-    #     application = TaskApplication.objects.filter(task=task, volunteer=user).first()
-    #     if application:
-    #         has_applied = True
-    #         application_status = application.status
-    #     if application_status == 'accepted':
-    #         be_accepted =True
     application = TaskApplication.objects.filter(task=task, volunteer=user).first()
     has_applied = application is not None
     application_status = application.status if application else None
     be_accepted = application_status == 'accepted'
+
+    accepted_volunteers = task.applications.filter(status='accepted').values_list('volunteer', flat=False)
+    volunteers = CustomUser.objects.filter(id__in=accepted_volunteers)
 
     context = {
         'task': task,
@@ -86,6 +80,7 @@ def task_detail(request, task_id):
         'has_applied': has_applied,
         'application_status': application_status,
         'be_accepted': be_accepted,
+        'accepted_volunteers': volunteers,
     }
     return render(request, 'task/task_detail.html', context)
 
@@ -167,9 +162,13 @@ def task_ongoing(request):
         task.update_status_by_time()
 
     if user.role == 'client':
-        tasks = Task.objects.filter(client=user, status='ongoing')
+        tasks = Task.objects.filter(client=user, status__in=['ongoing', 'timeout'])
     else:
-        tasks = Task.objects.filter(applications__volunteer=user, applications__status='accepted', status='ongoing')
+        tasks = Task.objects.filter(
+            applications__volunteer=user,
+            applications__status='accepted',
+            status__in=['ongoing', 'timeout']
+        )
     
     for task in tasks:
         task.update_status_by_time()
@@ -326,3 +325,55 @@ def task_record(request, task_id):
             task.save()
             return redirect('task:task_detail', task_id=task.id)
     return render(request, 'task/task_record.html')
+
+@login_required
+def task_feedback(request, task_id, to_user_id):
+    task = get_object_or_404(Task, id=task_id)
+    to_user = get_object_or_404(CustomUser, id=to_user_id)
+    from_user = request.user
+
+    # 确认 from_user 和 to_user 都在任务中
+    if not from_user.whether_in_task(task_id) or not to_user.whether_in_task(task_id):
+        messages.error(request, "You are not allowed to provide feedback for this user.")
+        return redirect('task:task_detail', task_id=task_id)
+
+    # 检查是否已经反馈过
+    if Feedback.objects.filter(task=task, from_user=from_user, to_user=to_user).exists():
+        messages.info(request, "You have already submitted feedback for this user.")
+        return redirect('task:task_detail', task_id=task_id)
+
+    if request.method == 'POST':
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            is_satisfied = form.cleaned_data['satisfied'] == 'True'
+            starred = form.cleaned_data['starred']
+            comment = form.cleaned_data['comment']
+
+            Feedback.objects.create(
+                task=task,
+                from_user=from_user,
+                to_user=to_user,
+                is_satisfied=is_satisfied,
+                comment=comment,
+                submitted_at=timezone.now()
+            )
+
+            if starred:
+                StarRelation.objects.get_or_create(from_user=from_user, to_user=to_user)
+            else:
+                StarRelation.objects.filter(from_user=from_user, to_user=to_user).delete()
+
+            messages.success(request, "Feedback submitted successfully.")
+            return redirect('task:task_detail', task_id=task_id)
+    else:
+        initial_data = {
+            'to_user': to_user_id,
+            'starred': StarRelation.objects.filter(from_user=from_user, to_user=to_user).exists()
+        }
+        form = FeedbackForm(initial=initial_data)
+
+    return render(request, 'task/task_feedback.html', {
+        'form': form,
+        'to_user': to_user,
+        'task': task,
+    })

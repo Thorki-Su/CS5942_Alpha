@@ -28,9 +28,9 @@ WEEKDAYS = [
 ]
 
 TIME_BLOCKS = [
-    ('morning', '08:00–11:00'),
-    ('midday', '11:00–14:00'),
-    ('afternoon', '14:00–17:00'),
+    ('morning', '08:00-11:00'),
+    ('midday', '11:00-14:00'),
+    ('afternoon', '14:00-17:00'),
 ]
 
 class TaskFilterForm(forms.Form):
@@ -44,3 +44,20 @@ class TaskRecordForm(forms.Form):
 
     def get_record_list(self):
         return [value for key, value in self.cleaned_data.items() if key.startswith('record_')]
+    
+class FeedbackForm(forms.Form):
+    satisfied = forms.ChoiceField(
+        choices=[(True, 'Yes'), (False, 'No')],
+        widget=forms.RadioSelect,
+        label="Are you satisfied with he/she?"
+    )
+    starred = forms.BooleanField(
+        required=False,
+        label="Mark he/she as starred?"
+    )
+    comment = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 4, 'cols': 40}),
+        label="Leave a comment (optional):"
+    )
+    to_user = forms.IntegerField(widget=forms.HiddenInput())

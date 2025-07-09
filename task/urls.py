@@ -15,4 +15,5 @@ urlpatterns = [
     path('cancel/<int:task_id>/', views.cancel_task, name='cancel_task'),
     path('task/<int:task_id>/confirm/', views.task_confirm, name='task_confirm'),
     path('task/<int:task_id>/record/', views.task_record, name='task_record'),
+    path('task/<int:task_id>/feedback/<int:to_user_id>/', views.task_feedback, name='task_feedback'),
 ]

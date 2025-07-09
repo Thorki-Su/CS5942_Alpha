@@ -64,7 +64,7 @@ class Task(models.Model):
                     self.applications.filter(status='pending').update(status='unselected')
         # elif now < self.start_time and self.status != 'selected':
         #     self.status = 'open'
-        elif now > self.end_time:
+        elif now > self.end_time + timedelta(hours=2):
             if not self.confirmed_by_client:
                 self.status = 'timeout'
             else:
@@ -153,3 +153,21 @@ class TaskRecord(models.Model):
     def __str__(self):
         return f"Record for {self.task.title} by {self.volunteer.userprofile.get_full_name} [{self.volunteer.email}]"
 
+class Feedback(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='feedbacks')
+    from_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='feedbacks_given')
+    to_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='feedbacks_received')
+    is_satisfied = models.BooleanField()
+    comment = models.TextField(blank=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('task', 'from_user', 'to_user')
+
+class StarRelation(models.Model):
+    from_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='starred_users')
+    to_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='starred_by')
+    starred_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('from_user', 'to_user')
