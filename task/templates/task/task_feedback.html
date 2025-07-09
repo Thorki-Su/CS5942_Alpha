@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Feedback{% endblock %}
+
+{% block content %}
+    <div style="margin:50px;">
+        <h2>Give Feedback for {{ to_user.userprofile.get_full_name }}</h2>
+        <p>Task: {{ task.title }}</p>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.to_user }}
+            <p>
+                {{ form.satisfied.label_tag }}<br>
+                {{ form.satisfied }}
+            </p>
+            <p>
+                {{ form.starred }} {{ form.starred.label_tag }}
+            </p>
+            <p>
+                {{ form.comment.label_tag }}<br>{{ form.comment }}
+            </p>
+
+            <button type="submit">Submit Feedback</button>
+        </form>
+    </div>
+{% endblock %}
