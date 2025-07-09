@@ -4,20 +4,12 @@ from user.models import CustomUser
 from .models import ChatMessage, VideoCallSession
 import logging
 
-# 配置日志记录器
 logger = logging.getLogger(__name__)
 
 @login_required
 def communication_view(request):
-    """
-    处理通信视图，生成 room_name 并渲染聊天界面。
-    """
     logger.info("Entering communication_view for user: %s", request.user.email)
-    
-    # 默认 room_name
     room_name = f"{request.user.id}_default"
-    
-    # 根据角色匹配其他用户
     if request.user.role == 'client':
         logger.debug("User is client, searching for volunteer")
         support_worker = CustomUser.objects.filter(role='volunteer').exclude(id=request.user.id).first()
@@ -26,7 +18,7 @@ def communication_view(request):
             room_name = f"{min(request.user.id, support_worker.id)}_{max(request.user.id, support_worker.id)}"
         else:
             logger.warning("No volunteer found for client")
-    else:  # volunteer
+    else:
         logger.debug("User is volunteer, searching for client")
         client = CustomUser.objects.filter(role='client').exclude(id=request.user.id).first()
         if client:
@@ -34,7 +26,6 @@ def communication_view(request):
             room_name = f"{min(request.user.id, client.id)}_{max(request.user.id, client.id)}"
         else:
             logger.warning("No client found for volunteer")
-
     logger.info(f"Generated room_name: {room_name} for user: {request.user.email}")
     return render(request, 'communication/communication.html', {
         'room_name': room_name,
@@ -43,9 +34,6 @@ def communication_view(request):
 
 @login_required
 def start_video_call(request):
-    """
-    处理视频通话请求，创建会话并渲染视频通话界面。
-    """
     logger.info("Entering start_video_call for user: %s", request.user.email)
     if request.method == 'POST':
         participant_id = request.POST.get('participant_id')
@@ -64,3 +52,18 @@ def start_video_call(request):
             return render(request, 'communication/video_call.html', {'error': 'Participant not found'})
     logger.warning("Invalid request method for start_video_call")
     return render(request, 'communication/video_call.html')
+
+@login_required
+def task_communication_view(request, task_id):
+    from task.models import Task
+    task = Task.objects.get(id=task_id)
+    if task.status in ['completed', 'cancelled']:
+        logger.warning(f"Task {task_id} is closed, cannot join chat")
+        return redirect('task:mytask')
+    room_name = f"task_{task.id}"
+    logger.info(f"Generated task room_name: {room_name} for user: {request.user.email}")
+    return render(request, 'communication/communication.html', {
+        'room_name': room_name,
+        'user': request.user,
+        'is_task_group': True
+    })

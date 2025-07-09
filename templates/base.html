@@ -8,24 +8,25 @@
         body {
             margin: 0;
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
         }
         .header {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 24px;
-            font-weight: bold;
-            font-family: "Times New Roman", Times, serif;
-            z-index: 10;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            padding: 10px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .navbar {
-            position: absolute;
-            top: 10px;
-            right: 10px;
             display: flex;
             gap: 15px;
             align-items: center;
-            z-index: 10;
         }
         .navbar a, .navbar button {
             text-decoration: none;
@@ -36,30 +37,32 @@
             cursor: pointer;
             padding: 5px 10px;
             white-space: nowrap;
+            transition: color 0.3s;
         }
         .navbar a:hover, .navbar button:hover {
             color: #007bff;
         }
-        .sidebar {
-            position: fixed;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
+        .logo {
+            height: 40px;
+            vertical-align: middle;
+        }
+        .content-wrapper {
+            margin-top: 60px;
+            padding: 20px;
         }
         .footer {
+            position: fixed;
             bottom: 0;
             width: 100%;
             text-align: center;
             padding: 10px 0;
-            background-color: #f8f9fa;
+            background-color: #fff;
             font-size: 14px;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
         }
-        .content-wrapper {
-            padding-top: 60px;
+        .messages {
+            margin-top: 80px;
+            margin-left: 20px;
         }
     </style>
     {% block style %}
@@ -70,20 +73,48 @@
     {% load static %}
     <div class="header">
         <div class="navbar">
-            <img src="{% static 'images/ShallionLogoTransparent.png' %}" alt="Shallion Logo" style="height: 40px; vertical-align: middle;">
+            <img src="{% static 'images/ShallionLogoTransparent.png' %}" alt="Shallion Logo" class="logo">
             <a href="{% url 'user:home' %}">Home</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'user:profile_detail' %}">Profile</a>
-                <a href="{% url 'communication:communication_view' %}">Chat</a> <!-- 添加聊天链接 -->
+                <a href="{% url 'communication:communication_view' %}">1v1 Chat</a>
+                <a href="{% url 'communication:start_video_call' %}">Start Video Call</a>
+                {% if user.role == 'volunteer' %}
+                    <a href="{% url 'task:tasklist' %}">Task List</a>
+                    <a href="{% url 'task:myapplication' %}">My Application</a>
+                {% elif user.role == 'client' %}
+                    <a href="{% url 'task:mytask' %}">My Task</a>
+                {% endif %}
+                <a href="{% url 'task:task_ongoing' %}">Ongoing Task</a>
+                {% if task and task.room_name and task.status not in 'completed,cancelled' %}
+                    <a href="{% url 'communication:task_communication_view' task.id %}">Group Chat</a>
+                {% endif %}
+                <form action="{% url 'user:logout' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link">Log Out</button>
+                </form>
             {% else %}
                 <a href="{% url 'user:login' %}">Login</a>
             {% endif %}
         </div>
     </div>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <div class="content-wrapper">
         {% block content %}
         {% endblock %}
     </div>
+
     <div class="footer">
         © 2025 Shallion
     </div>

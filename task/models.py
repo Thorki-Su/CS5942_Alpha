@@ -3,7 +3,6 @@ from django.conf import settings
 from user.models import CustomUser, UserProfile, ClientProfile, VolunteerProfile, SupportType
 from django.utils import timezone
 
-# Create your models here.
 class Task(models.Model):
     STATUS_CHOICES = [
         ('open', 'Open for application'),
@@ -23,6 +22,7 @@ class Task(models.Model):
     client = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='posted_tasks')
     created_at = models.DateTimeField(auto_now_add=True)
     closed_at = models.DateTimeField(null=True, blank=True)
+    room_name = models.CharField(max_length=50, null=True, blank=True, unique=True)
 
     def __str__(self):
         return f"{self.title} ({self.client.email})"
@@ -54,19 +54,19 @@ class Task(models.Model):
         self.closed_at = timezone.now()
         self.save()
         self.applications.update(status='cancelled')
+        if self.room_name:
+            # 动态导入以避免循环
+            from communication.consumers import close_chat_room
+            close_chat_room(self.room_name)
 
     @property
     def is_active(self):
         return self.status in ['open', 'selected']
     
-    @property
-    def is_closed(self):
-        return self.status in ['completed', 'cancelled']
-    
-    @property
-    def is_ongoing(self):
-        return self.status in ['ongoing']
-    
+    def save(self, *args, **kwargs):
+        if not self.room_name and self.status == 'open':
+            self.room_name = f"task_{self.id}"
+        super().save(*args, **kwargs)
 
 class TaskApplication(models.Model):
     STATUS_CHOICES = [
@@ -84,10 +84,10 @@ class TaskApplication(models.Model):
     cancelled_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('task', 'volunteer')  # 每个志愿者只能申请一次
+        unique_together = ('task', 'volunteer')
 
     def __str__(self):
-        return f"{self.volunteer.email}applys for {self.task.title}"
+        return f"{self.volunteer.email} applies for {self.task.title}"
     
     def cancel(self):
         self.status = 'cancelled'

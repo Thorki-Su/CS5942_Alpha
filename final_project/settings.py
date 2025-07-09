@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'communication',
     'adminpanel',
     'channels',
+    'task'
 ]
 
 ASGI_APPLICATION = 'final_project.asgi.application'

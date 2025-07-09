@@ -12,31 +12,43 @@
         width: 45%;
         border: 1px solid #ccc;
     }
+    audio {
+        width: 45%;
+        border: 1px solid #ccc;
+    }
 </style>
 {% endblock %}
 {% block content %}
 <div class="video-container">
     <video id="localVideo" autoplay playsinline muted></video>
     <video id="remoteVideo" autoplay playsinline></video>
+    <audio id="localAudio" autoplay playsinline muted></audio>
+    <audio id="remoteAudio" autoplay playsinline></audio>
 </div>
+<button onclick="toggleAudio()" class="btn btn-info mt-2" id="audio-btn">Toggle Audio</button>
 <button onclick="endCall()" class="btn btn-danger mt-2">End Call</button>
 <script>
     const roomName = "{{ room_name }}";
-    const videoSocket = new WebSocket(
-        'ws://' + window.location.host + '/ws/video/' + roomName + '/'
-    );
+    const videoSocket = new WebSocket('ws://' + window.location.host + '/ws/video/' + roomName + '/');
     const peerConnection = new RTCPeerConnection();
     const localVideo = document.getElementById('localVideo');
     const remoteVideo = document.getElementById('remoteVideo');
+    const localAudio = document.getElementById('localAudio');
+    const remoteAudio = document.getElementById('remoteAudio');
+    let localStream = null;
+    let isMuted = false;
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(stream => {
+            localStream = stream;
             localVideo.srcObject = stream;
+            localAudio.srcObject = stream;
             stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
         });
 
     peerConnection.ontrack = event => {
         remoteVideo.srcObject = event.streams[0];
+        remoteAudio.srcObject = event.streams[0];
     };
 
     videoSocket.onmessage = function(e) {
@@ -52,6 +64,16 @@
                     })));
             }
         }
+        if (data.audio_data) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const audioData = base64ToArrayBuffer(data.audio_data);
+            audioContext.decodeAudioData(audioData, function(buffer) {
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioContext.destination);
+                source.start(0);
+            });
+        }
     };
 
     peerConnection.createOffer()
@@ -61,10 +83,41 @@
             sender: '{{ user.email }}'
         })));
 
+    function toggleAudio() {
+        if (!isMuted) {
+            localStream.getAudioTracks().forEach(track => track.enabled = false);
+            document.getElementById('audio-btn').textContent = 'Unmute Audio';
+        } else {
+            localStream.getAudioTracks().forEach(track => track.enabled = true);
+            document.getElementById('audio-btn').textContent = 'Mute Audio';
+        }
+        isMuted = !isMuted;
+    }
+
     function endCall() {
         peerConnection.close();
         videoSocket.close();
+        if (localStream) localStream.getTracks().forEach(track => track.stop());
         window.location.href = "{% url 'user:profile_detail' %}";
+    }
+
+    function arrayBufferToBase64(buffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    }
+
+    function base64ToArrayBuffer(base64) {
+        const binaryString = atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes.buffer;
     }
 </script>
 {% endblock %}

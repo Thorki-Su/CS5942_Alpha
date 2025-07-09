@@ -7,8 +7,8 @@ from functools import wraps
 from .models import Task, TaskApplication
 from django.utils import timezone
 from datetime import timedelta
+from communication.views import task_communication_view
 
-# Create your views here.
 def client_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
@@ -43,11 +43,11 @@ def task_create(request):
             task = form.save(commit=False)
             task.client = request.user
             task.status = 'open'
-            task.save()
-            return redirect('task:mytask')
+            task.save()  # 保存后生成 room_name
+            messages.success(request, f"Task '{task.title}' created successfully. Chat room created as 'task_{task.id}'.")
+            return redirect('task:mytask')  # 或 redirect('communication:task_communication_view', task_id=task.id)
     else:
         form = TaskForm()
-
     return render(request, 'task/task_create.html', {'form': form})
 
 @login_required
@@ -57,7 +57,6 @@ def task_detail(request, task_id):
     user = request.user
 
     is_client = (user == task.client)
-
     has_applied = False
     application_status = None
     if hasattr(user, 'volunteerprofile'):
@@ -72,6 +71,8 @@ def task_detail(request, task_id):
         'has_applied': has_applied,
         'application_status': application_status,
     }
+    if task.room_name and task.status not in ['completed', 'cancelled']:
+        context['room_name'] = task.room_name
     return render(request, 'task/task_detail.html', context)
 
 @login_required
@@ -133,7 +134,7 @@ def task_apply(request, task_id):
     task.update_status_by_time()
     user = request.user
 
-    buffer = timedelta(hours=1)  # 任务前后一小时不能有其他任务，不确定，可以再改
+    buffer = timedelta(hours=1)
     task_start = task.start_time - buffer
     task_end = task.end_time + buffer
 
