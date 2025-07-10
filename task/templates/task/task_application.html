@@ -10,18 +10,18 @@
             <ul>
                 {% for app in applications %}
                     <li>
-                        Volunteer: {{ app.volunteer.userprofile.first_name }} {{ app.volunteer.userprofile.last_name }}
+                        Volunteer: {{ app.volunteer.userprofile.get_full_name }} [{{ app.volunteer.email }}]
                         — Status: {{ app.status }}
 
                         {% if app.status == 'pending' %}
-                        <form method="post" action="{% url 'task:approve_application' app.id %}" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit">Approve</button>
-                        </form>
-                        <form method="post" action="{% url 'task:reject_application' app.id %}" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit">Reject</button>
-                        </form>
+                            <form method="post" action="{% url 'task:approve_application' app.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit">Approve</button>
+                            </form>
+                            <form method="post" action="{% url 'task:reject_application' app.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit">Reject</button>
+                            </form>
                         {% endif %}
                     </li>
                 {% endfor %}

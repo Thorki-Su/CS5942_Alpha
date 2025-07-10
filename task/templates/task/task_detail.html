@@ -7,24 +7,28 @@
         <p>任务详情，病人和志愿者会看到不同的按钮</p>
         <h2>{{ task.title }}</h2>
         <p>{{ task.description }}</p>
+        <p>Creater: {{ task.client.userprofile.get_full_name }}</p>
         <p>Time: {{ task.start_time }} - {{ task.end_time }}</p>
+        <p>Support needed: {{ task.work_area.all|join:", " }}</p>
         <p>Volunteer needed: {{ task.vol_number }}</p>
         <p>Status: {{ task.status }}</p>
         <p>Created at: {{ task.created_at }}</p>
         {% if task.is_active %}
-            {% if is_client %}     
+            {% if is_client %}
                     <a href="{% url 'task:task_application' task.id %}">View applied volunteers</a>
                 
                     <form method="post" action="{% url 'task:cancel_task' task.id %}" style="margin-top:10px;">
                         {% csrf_token %}
                         <button type="submit" onclick="return confirm('Are you sure you want to cancel this task?');">Cancel This Task</button>
                     </form>
+                    <p>Notice: You can't cancel a task less than 24 hours before it starts.</p>
             {% elif has_applied %}
                 <p>You have applied. Application status:{{ application_status }}</p>
                 <form method="post" action="{% url 'task:cancel_application' task.id %}" style="margin-top:10px;">
                     {% csrf_token %}
                     <button type="submit" onclick="return confirm('Are you sure you want to cancel this application?');">Cancel This Application</button>
                 </form>
+                <p>Notice: You can't cancel this application within 24 hours of task start.</p>
             {% else %}
                 <form method="post" action="{% url 'task:task_apply' task.id %}">
                     {% csrf_token %}
@@ -32,8 +36,49 @@
                 </form>
                 <p>Notice: You can't apply for time-conflicting tasks. Please leave at least one hour between tasks.</p>
             {% endif %}
+        {% elif task.is_ongoing %}
+            {% if is_client %}
+                <a href="{% url 'task:task_confirm' task.id %}">View task records</a>
+
+                <h3>Feedback for Volunteers:</h3>
+                <ul>
+                    {% for volunteer in accepted_volunteers %}
+                        <li>
+                            {{ volunteer.userprofile.get_full_name }} 
+                            <a href="{% url 'task:task_feedback' task.id volunteer.id %}">Give Feedback</a>
+                        </li>
+                    {% empty %}
+                        <li>No volunteers accepted yet.</li>
+                    {% endfor %}
+                </ul>
+            {% elif be_accepted %}
+                <a href="{% url 'task:task_record' task.id %}">Submit task records</a>
+
+                <h3>Feedback for Client:</h3>
+                <p>
+                    <a href="{% url 'task:task_feedback' task.id task.client.id %}">Give Feedback to Client</a>
+                </p>
+            {% endif %}
         {% elif task.is_closed %}
-            <p>Closed at: {{ task.closed_at }}
+            <p>Closed at: {{ task.closed_at }}</p>
+            {% if is_client %}
+                <h3>Feedback for Volunteers:</h3>
+                <ul>
+                    {% for volunteer in accepted_volunteers %}
+                        <li>
+                            {{ volunteer.userprofile.get_full_name }} 
+                            <a href="{% url 'task:task_feedback' task.id volunteer.id %}">Give Feedback</a>
+                        </li>
+                    {% empty %}
+                        <li>No volunteers accepted yet.</li>
+                    {% endfor %}
+                </ul>
+            {% elif be_accepted %}
+                <h3>Feedback for Client:</h3>
+                <p>
+                    <a href="{% url 'task:task_feedback' task.id task.client.id %}">Give Feedback to Client</a>
+                </p>
+            {% endif %}
         {% endif %}
     </div>
 {% endblock %}

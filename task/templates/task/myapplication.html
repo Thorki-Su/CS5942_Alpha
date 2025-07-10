@@ -4,16 +4,33 @@
 
 {% block content %}
     <div style='margin:50px;'>
-        <p>这里展示用户的全部申请</p>
+        <p><a href="{% url 'task:tasklist' %}">Go to the task list to find a new task</a></p>
         {% if applications %}
+            <h3>Active Applications</h3>
             {% for application in applications %}
-                <a href="{% url 'task:task_detail' application.task.id %}">{{ application.task.title }}</a><br>
-                — Time: {{ application.task.start_time }} to {{ application.task.end_time }}<br>
-                — Status: {{ application.status }}<br>
+                {% if application.is_active %} 
+                    <div style="margin-bottom: 1em;">
+                        <a href="{% url 'task:task_detail' application.task.id %}">{{ application.task.title }}</a><br>
+                        — Time: {{ application.task.start_time }} to {{ application.task.end_time }}<br>
+                        — Status: {{ application.status }}<br>
+                        — Applied at: {{ application.applied_at }}<br>
+                    </div> 
+                {% endif %}
+            {% endfor %}
+            <h3>Closed Applications</h3>
+            {% for application in applications %}
+                {% if application.is_closed %}
+                    <div style="margin-bottom: 1em;">
+                        <a href="{% url 'task:task_detail' application.task.id %}">{{ application.task.title }}</a><br>
+                        — Status: {{ application.status }}<br>
+                        — Applied at: {{ application.applied_at }}<br> 
+                        {% comment %} 之后可以改成关闭时间 {% endcomment %}
+                    </div> 
+                {% endif %}
             {% endfor %}
         {% else %}
             <p>There is no any applications</p>
         {% endif %}
-        <p><a href="{% url 'task:tasklist' %}">Go to the task list to find a new task</a></p>
+        
     </div>
 {% endblock %}
