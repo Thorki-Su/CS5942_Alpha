@@ -13,3 +13,7 @@ env/
 .ENV/
 .env
 venv310/
+
+.DS_Store
+**/.DS_Store
+*.rdb

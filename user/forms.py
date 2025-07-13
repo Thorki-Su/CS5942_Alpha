@@ -7,7 +7,6 @@ true_and_false = [
     (False, 'No'),
 ]
 
-#Client注册表
 class ClientRegisterForm(UserCreationForm):
     first_name = forms.CharField(max_length=100, label='First Name')
     last_name = forms.CharField(max_length=100, label='Last Name')
@@ -18,19 +17,19 @@ class ClientRegisterForm(UserCreationForm):
     )
     location = forms.CharField(max_length=255, label='Location/Postcode')
     certifications = forms.ModelMultipleChoiceField(
-        queryset=CertificationType.objects.all(), #从CertificationType选取所有对象作为可选项
-        widget=forms.CheckboxSelectMultiple, #复选框
+        queryset=CertificationType.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
         label='Certifications'
     )
     consent_safeguard = forms.BooleanField(
         label='I agree with the agreement',
         required=True,
-        error_messages={'required':'You must agree with the agreement to continue.'}
+        error_messages={'required': 'You must agree with the agreement to continue.'}
     )
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'password1', 'password2') #可以加别的属性来控制顺序（不知道行不行）
+        fields = ('email', 'password1', 'password2')
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -54,7 +53,6 @@ class ClientRegisterForm(UserCreationForm):
             client_profile.certifications.set(self.cleaned_data['certifications'])
         return user
 
-#Client在个人信息页面用于补充信息的表
 class ClientProfileForm(forms.ModelForm):
     support_areas = forms.ModelMultipleChoiceField(
         queryset=SupportType.objects.all(),
@@ -67,54 +65,45 @@ class ClientProfileForm(forms.ModelForm):
         label='Conditions you live with'
     )
     age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
-    gender = forms.ChoiceField(choices=[('male', 'Male'), ('Female', 'female')], label='Gender')
+    gender = forms.ChoiceField(choices=[('male', 'Male'), ('female', 'Female')], label='Gender')
     has_pets = forms.BooleanField(required=False, label='Do you have pets?')
     pets_type = forms.CharField(max_length=255, required=False, label='Pets Type')
     emergency_contact = forms.CharField(max_length=255)
 
-    # 动态添加证书上传字段
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # 获取 instance 的 certifications
-        #certifications = []
-        cert_names = []
-        #if self.instance and self.instance.certifications:
         if self.instance and self.instance.certifications.exists():
-            #certifications = self.instance.certifications
             cert_names = list(self.instance.certifications.values_list('name', flat=True))
-        
-        if 'PIP' in cert_names:
-            self.fields['pip_certificate'] = forms.FileField(
-                required=False,
-                label='PIP Certificate',
-                initial=self.instance.pip_certificate if self.instance else None
-            )
-        if 'ADP' in cert_names:
-            self.fields['adp_certificate'] = forms.FileField(
-                required=False,
-                label='ADP Certificate',
-                initial=self.instance.adp_certificate if self.instance else None
-            )
-        if 'LWC' in cert_names:
-            self.fields['lwc_certificate'] = forms.FileField(
-                required=False,
-                label='LWC Certificate',
-                initial=self.instance.lwc_certificate if self.instance else None
-            )
-
-        if 'NHS' in cert_names:
-            self.fields['nhs_certificate'] = forms.FileField(
-                required=False,
-                label='NHS Certificate',
-                initial=self.instance.nhs_certificate if self.instance else None
-            )
-        if 'Diagnosis' in cert_names:
-            self.fields['diagnosis'] = forms.FileField(
-                required=False,
-                label='Diagnosis from a Doctor',
-                initial=self.instance.diagnosis if self.instance else None
-            )
+            if 'PIP' in cert_names:
+                self.fields['pip_certificate'] = forms.FileField(
+                    required=False,
+                    label='PIP Certificate',
+                    initial=self.instance.pip_certificate if self.instance else None
+                )
+            if 'ADP' in cert_names:
+                self.fields['adp_certificate'] = forms.FileField(
+                    required=False,
+                    label='ADP Certificate',
+                    initial=self.instance.adp_certificate if self.instance else None
+                )
+            if 'LWC' in cert_names:
+                self.fields['lwc_certificate'] = forms.FileField(
+                    required=False,
+                    label='LWC Certificate',
+                    initial=self.instance.lwc_certificate if self.instance else None
+                )
+            if 'NHS' in cert_names:
+                self.fields['nhs_certificate'] = forms.FileField(
+                    required=False,
+                    label='NHS Certificate',
+                    initial=self.instance.nhs_certificate if self.instance else None
+                )
+            if 'Diagnosis' in cert_names:
+                self.fields['diagnosis'] = forms.FileField(
+                    required=False,
+                    label='Diagnosis from a Doctor',
+                    initial=self.instance.diagnosis if self.instance else None
+                )
 
     class Meta:
         model = ClientProfile
@@ -135,8 +124,16 @@ class ClientProfileForm(forms.ModelForm):
             'dietary_needs': forms.Textarea(attrs={'rows': 2}),
         }
 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+            for field_name, field_value in self.cleaned_data.items():
+                if field_name in ['pip_certificate', 'adp_certificate', 'lwc_certificate', 'nhs_certificate', 'diagnosis']:
+                    setattr(instance, field_name, field_value)
+            instance.save()
+        return instance
 
-#Volunteer注册表
 class VolunteerRegisterForm(UserCreationForm):
     first_name = forms.CharField(max_length=100, label='First Name')
     last_name = forms.CharField(max_length=100, label='Last Name')
@@ -144,7 +141,6 @@ class VolunteerRegisterForm(UserCreationForm):
     location = forms.CharField(max_length=255, label='Location/Postcode')
     university_course = forms.CharField(max_length=255, label='University and Course')
     profession = forms.CharField(max_length=255, label='Profession')
-    #is_for_credit = forms.BooleanField(label='Are you volunteering for credit?', required=True)
     is_for_credit = forms.ChoiceField(
         label='Are you volunteering for credit?',
         choices=true_and_false,
@@ -154,7 +150,7 @@ class VolunteerRegisterForm(UserCreationForm):
     consent_safeguard = forms.BooleanField(
         label='I agree with the agreement',
         required=True,
-        error_messages={'required':'You must agree with the agreement to continue.'}
+        error_messages={'required': 'You must agree with the agreement to continue.'}
     )
 
     class Meta:
@@ -180,13 +176,13 @@ class VolunteerRegisterForm(UserCreationForm):
                 user_profile=user_profile,
                 university_course=self.cleaned_data['university_course'],
                 profession=self.cleaned_data['profession'],
-                is_for_credit = self.cleaned_data['is_for_credit']
+                is_for_credit=self.cleaned_data['is_for_credit']
             )
         return user
     
 class VolunteerProfileForm(forms.ModelForm):
     age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
-    gender = forms.ChoiceField(choices=[('male', 'Male'), ('Female', 'female')], label='Gender')
+    gender = forms.ChoiceField(choices=[('male', 'Male'), ('female', 'Female')], label='Gender')
     emergency_contact = forms.CharField(max_length=255)
     preferred_tasks = forms.ModelMultipleChoiceField(
         queryset=SupportType.objects.all(),
