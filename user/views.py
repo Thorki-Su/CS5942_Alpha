@@ -147,13 +147,13 @@ def volunteer_profile_edit(request):
 @login_required
 def profile_detail(request):
     user = request.user
-    user_profile, created = UserProfile.objects.get_or_create(user=user)
+    user_profile = user.userprofile
     user_fields = model_to_dict(user_profile)
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     time_slots = ['08:00-11:00', '11:00-14:00', '14:00-17:00']
 
     if user.role == 'client':
-        client_profile, created = ClientProfile.objects.get_or_create(user_profile=user_profile)
+        client_profile = user_profile.clientprofile
         client_fields = model_to_dict(client_profile)
 
         client_fields['certifications'] = ", ".join(
@@ -190,7 +190,7 @@ def profile_detail(request):
             'preferred_times': preferred_times,
         }
     elif user.role == 'volunteer':
-        volunteer_profile, created = VolunteerProfile.objects.get_or_create(user_profile=user_profile)
+        volunteer_profile = user_profile.volunteerprofile
         volunteer_fields = model_to_dict(volunteer_profile)
         preferred_times = volunteer_fields.get('availability', {})
         if isinstance(preferred_times, str):
@@ -239,15 +239,17 @@ def photo_edit(request):
             filename = s3_storage.save(f'profile_photos/{request.user.email}/{img_data.name}', img_data)
             user_profile.profile_photo.name = filename
             user_profile.save()
-            print("保存路径：", user_profile.profile_photo.name)
-            print("完整 URL：", user_profile.profile_photo.url)
+            # print("保存路径：", user_profile.profile_photo.name)
+            # print("完整 URL：", user_profile.profile_photo.url)
             return redirect('user:profile_detail')
         elif form.is_valid():
             if 'profile_photo' in request.FILES:
                 f = request.FILES['profile_photo']
                 filename = s3_storage.save(f'profile_photos/{request.user.email}/{f.name}', f)
                 user_profile.profile_photo.name = filename
-            user_profile.save()
+                user_profile.save()
+            else:
+                form.save()
             return redirect('user:profile_detail')
         else:
             print(form.errors)
