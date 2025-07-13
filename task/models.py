@@ -104,7 +104,7 @@ class TaskApplication(models.Model):
     cancelled_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('task', 'volunteer')
+        unique_together = ('task', 'volunteer') # 每个志愿者只能申请一次
 
     def __str__(self):
         return f"{self.volunteer.email} applies for {self.task.title}"

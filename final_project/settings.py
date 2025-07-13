@@ -9,15 +9,38 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+import dj_database_url
+
+# 本地开发时加载 .env 文件
+if os.environ.get('DJANGO_DEVELOPMENT'):
+    load_dotenv() # 读取根目录的 .env 文件
+
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = 'shallion-support-files'
+AWS_S3_REGION_NAME = 'us-east-1'
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_OBJECT_PARAMETERS = {}
+
+MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-i!o^^a8m_sz=(_5e_c07nyutwzr(fdu+uihy5=gpr^lwvwpotb'
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'mangoairport-artistbanana-8000.codio-box.uk', 'cs5942-alpha.onrender.com']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://cs5942-alpha.onrender.com',
+    'https://mangoairport-artistbanana-8000.codio-box.uk',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -27,7 +50,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'user',
-    'service',
     'volunteer',
     'matching',
     'payment',
@@ -82,10 +104,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'final_project.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='postgresql://alphapostgresql_user:nIJaP1LsDUpC35jxatw8icIiMykfzA0H@dpg-d1e9oceuk2gs73afl2hg-a.oregon-postgres.render.com/alphapostgresql',
+        conn_max_age=600,
+        ssl_require=False
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -96,21 +119,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/London'
 USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-AWS_ACCESS_KEY_ID = 'your-access-key'  # 替换为实际值
-AWS_SECRET_ACCESS_KEY = 'your-secret-key'  # 替换为实际值
-AWS_STORAGE_BUCKET_NAME = 'your-bucket-name'  # 替换为实际值
-AWS_S3_FILE_OVERWRITE = False
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
