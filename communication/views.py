@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 def communication_view(request):
     logger.info("Entering communication_view for user: %s", request.user.email)
     room_name = f"chat_{request.user.id}_default"
-    mode = request.GET.get('mode', 'chat')  # 支持 'chat', 'audio', 'video'
     if request.user.role == 'client':
         logger.debug("User is client, searching for volunteer")
         support_worker = CustomUser.objects.filter(role='volunteer').exclude(id=request.user.id).first()
@@ -27,11 +26,10 @@ def communication_view(request):
             room_name = f"chat_{min(request.user.id, client.id)}_{max(request.user.id, client.id)}"
         else:
             logger.warning("No client found for volunteer")
-    logger.info(f"Generated room_name: {room_name} for user: {request.user.email} in mode: {mode}")
+    logger.info(f"Generated room_name: {room_name} for user: {request.user.email}")
     return render(request, 'communication/communication.html', {
         'room_name': room_name,
         'user': request.user,
-        'mode': mode
     })
 
 @login_required
@@ -50,3 +48,9 @@ def task_communication_view(request, task_id):
         'is_task_group': True,
         'mode': mode
     })
+
+@login_required
+def group_chats(request):
+    from task.models import Task
+    tasks = Task.objects.filter(status__in=['open', 'selected', 'ongoing']).order_by('id')
+    return render(request, 'communication/group_chats.html', {'tasks': tasks})

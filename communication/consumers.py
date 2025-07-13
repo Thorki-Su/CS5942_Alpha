@@ -53,22 +53,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
             message = text_data_json.get('message')
             audio_data = text_data_json.get('audio_data')
             video_signal = text_data_json.get('video_signal')
-            mode = text_data_json.get('mode', 'chat')  # 支持 'chat', 'audio', 'video'
 
-            if message and mode == 'chat':
+            if message:
                 await self.channel_layer.group_send(self.room_group_name, {
                     'type': 'chat_message',
                     'message': message,
                     'sender': self.scope['user'].email,
                     'is_task_group': self.is_task_group
                 })
-            if audio_data and mode == 'audio':
+            if audio_data:
                 await self.channel_layer.group_send(self.room_group_name, {
                     'type': 'audio_message',
                     'audio_data': audio_data,
                     'sender': self.scope['user'].email
                 })
-            if video_signal and mode == 'video':
+            if video_signal:
                 await self.channel_layer.group_send(self.room_group_name, {
                     'type': 'video_signal',
                     'signal': video_signal,
@@ -87,8 +86,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({
                 'message': message,
                 'sender': sender,
-                'is_task_group': is_task_group,
-                'mode': 'chat'
+                'is_task_group': is_task_group
             }))
         except Exception as e:
             print(f"Error in chat_message: {e}")
@@ -97,11 +95,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             audio_data = event['audio_data']
             sender = event['sender']
-            await self.send(text_data=json.dumps({
-                'audio_data': audio_data,
-                'sender': sender,
-                'mode': 'audio'
-            }))
+            if audio_data == 'toggle':
+                await self.send(text_data=json.dumps({
+                    'audio_data': 'toggle',
+                    'sender': sender
+                }))
+            else:
+                await self.send(text_data=json.dumps({
+                    'audio_data': audio_data,
+                    'sender': sender
+                }))
         except Exception as e:
             print(f"Error in audio_message: {e}")
 
@@ -111,8 +114,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender = event['sender']
             await self.send(text_data=json.dumps({
                 'video_signal': video_signal,
-                'sender': sender,
-                'mode': 'video'
+                'sender': sender
             }))
         except Exception as e:
             print(f"Error in video_signal: {e}")
@@ -143,7 +145,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             print(f"Error in save_message: {e}")
 
-# VideoCallConsumer 保留，但可考虑移除或整合，当前不修改
 class VideoCallConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         try:
