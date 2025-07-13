@@ -11,16 +11,15 @@ from django.core.files.base import ContentFile
 import base64
 import re
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 import json
 from django.utils.safestring import mark_safe
 from django.core.files.storage import default_storage
-
 from storages.backends.s3boto3 import S3Boto3Storage
 
 def home_view(request):
     return render(request, 'user/home.html')
-#  The view of login
+
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -33,10 +32,8 @@ def login_view(request):
             return redirect('user:login')
     else:
         form = AuthenticationForm()
-    return render(request, 'user/login.html', {'form':form})
+    return render(request, 'user/login.html', {'form': form})
 
-
-# the view of log out
 def logout_view(request):
     list(messages.get_messages(request))
     logout(request)
@@ -52,11 +49,11 @@ def client_register(request):
             user = form.save()
             login(request, user)
             return redirect('user:home')
-        else: #展示错误，之后没问题了可以去掉
+        else:
             print(form.errors)
     else:
         form = ClientRegisterForm()
-    return render(request, 'user/client_register.html', {'form':form})
+    return render(request, 'user/client_register.html', {'form': form})
 
 def volunteer_register(request):
     if request.method == 'POST':
@@ -65,11 +62,11 @@ def volunteer_register(request):
             user = form.save()
             login(request, user)
             return redirect('user:home')
-        else: #同理
+        else:
             print(form.errors)
     else:
         form = VolunteerRegisterForm()
-    return render(request, 'user/volunteer_register.html', {'form':form})
+    return render(request, 'user/volunteer_register.html', {'form': form})
 
 @login_required
 def client_profile_edit(request):
@@ -82,28 +79,20 @@ def client_profile_edit(request):
         if form.is_valid():
             form.save()
             user_profile = request.user.userprofile
-            # profile_photo_file = form.cleaned_data.get('profile_photo') 
-            user_age = form.cleaned_data.get('age')#手动保存年龄和性别
+            user_age = form.cleaned_data.get('age')
             user_gender = form.cleaned_data.get('gender')
             user_emergency_contact = form.cleaned_data.get('emergency_contact')
-            # if profile_photo_file:
-            #     user_profile.profile_photo = profile_photo_file
-            #     user_profile.save()
-            
             if user_age:
                 user_profile.age = user_age
                 user_profile.save()
-
             if user_gender:
                 user_profile.gender = user_gender
                 user_profile.save()
-
             if user_emergency_contact:
                 user_profile.emergency_contact = user_emergency_contact
                 user_profile.save()
-
             return redirect('user:profile_detail')
-        else: #同理
+        else:
             print(form.errors)
     else:
         form = ClientProfileForm(
@@ -114,7 +103,7 @@ def client_profile_edit(request):
                 'emergency_contact': request.user.userprofile.emergency_contact
             }
         )
-    return render(request, 'user/client_profile_edit.html', {'form':form})
+    return render(request, 'user/client_profile_edit.html', {'form': form})
 
 @login_required
 def volunteer_profile_edit(request):
@@ -127,28 +116,20 @@ def volunteer_profile_edit(request):
         if form.is_valid():
             form.save()
             user_profile = request.user.userprofile
-            # profile_photo_file = form.cleaned_data.get('profile_photo') 
-            user_age = form.cleaned_data.get('age') #同理
+            user_age = form.cleaned_data.get('age')
             user_gender = form.cleaned_data.get('gender')
             user_emergency_contact = form.cleaned_data.get('emergency_contact')
-            # if profile_photo_file:
-            #     user_profile.profile_photo = profile_photo_file
-            #     user_profile.save()
-            
             if user_age:
                 user_profile.age = user_age
                 user_profile.save()
-
             if user_gender:
                 user_profile.gender = user_gender
                 user_profile.save()
-
             if user_emergency_contact:
                 user_profile.emergency_contact = user_emergency_contact
                 user_profile.save()
-            
             return redirect('user:profile_detail')
-        else: #同理
+        else:
             print(form.errors)
     else:
         form = VolunteerProfileForm(
@@ -159,18 +140,18 @@ def volunteer_profile_edit(request):
                 'emergency_contact': request.user.userprofile.emergency_contact
             }
         )
-    return render(request, 'user/volunteer_profile_edit.html', {'form':form})
+    return render(request, 'user/volunteer_profile_edit.html', {'form': form})
 
-@login_required 
+@login_required
 def profile_detail(request):
     user = request.user
-    user_profile = user.userprofile
+    user_profile, created = UserProfile.objects.get_or_create(user=user)
     user_fields = model_to_dict(user_profile)
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     time_slots = ['08:00-11:00', '11:00-14:00', '14:00-17:00']
 
     if user.role == 'client':
-        client_profile = user_profile.clientprofile
+        client_profile, created = ClientProfile.objects.get_or_create(user_profile=user_profile)
         client_fields = model_to_dict(client_profile)
 
         client_fields['certifications'] = ", ".join(
@@ -206,16 +187,16 @@ def profile_detail(request):
             'time_slots': time_slots,
             'preferred_times': preferred_times,
         }
-
     elif user.role == 'volunteer':
-        volunteer_profile = user_profile.volunteerprofile
+        volunteer_profile, created = VolunteerProfile.objects.get_or_create(user_profile=user_profile)
         volunteer_fields = model_to_dict(volunteer_profile)
-        preferred_times = volunteer_fields.get('preferred_times', {})
+        preferred_times = volunteer_fields.get('availability', {})
         if isinstance(preferred_times, str):
             try:
                 preferred_times = json.loads(preferred_times)
             except json.JSONDecodeError:
                 preferred_times = {}
+
         context = {
             'user': user,
             'user_profile': user_profile,
@@ -231,50 +212,18 @@ def profile_detail(request):
             'user': user,
             'user_profile': user_profile,
             'user_fields': user_fields,
-            'days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            'days': days,
             'preferred_times': {},
         }
     return render(request, 'user/profile_detail.html', context)
-
-# @login_required
-# def photo_edit(request):
-#     try:
-#         user_profile = request.user.userprofile
-#     except UserProfile.DoesNotExist:
-#         return redirect('user:choose_role')
-
-#     if request.method == 'POST':
-#         form = ProfilePhotoForm(request.POST, request.FILES, instance=user_profile)
-
-#         cropped_data = request.POST.get('cropped_image_data')
-#         if cropped_data:
-#             # 裁剪后的 base64 数据，转成图片
-#             format, imgstr = cropped_data.split(';base64,')
-#             ext = format.split('/')[-1]
-#             img_data = ContentFile(base64.b64decode(imgstr), name=f'user_{request.user.id}_cropped.{ext}')
-#             user_profile.profile_photo = img_data
-#             user_profile.save()
-#             print("保存路径：", user_profile.profile_photo.name)
-#             print("完整 URL：", user_profile.profile_photo.url)
-#             return redirect('user:profile_detail')
-#         elif form.is_valid():
-#             form.save()
-#             return redirect('user:profile_detail')
-#         else:
-#             print(form.errors)
-#     else:
-#         form = ProfilePhotoForm(instance=user_profile)
-#     return render(request, 'user/photo_edit.html', {'form':form})
 
 @login_required
 def photo_edit(request):
     try:
         user_profile = request.user.userprofile
-
     except Exception:
         return redirect('user:choose_role')
     
-    # 强制使用 S3 存储
     s3_storage = S3Boto3Storage()
     
     if request.method == 'POST':
@@ -282,42 +231,30 @@ def photo_edit(request):
 
         cropped_data = request.POST.get('cropped_image_data')
         if cropped_data:
-            # 裁剪后的 base64 数据，转成图片
             format, imgstr = cropped_data.split(';base64,')
             ext = format.split('/')[-1]
             img_data = ContentFile(base64.b64decode(imgstr), name=f'user_{request.user.id}_cropped.{ext}')
-            
-            # 使用 S3 存储保存文件
             filename = s3_storage.save(f'profile_photos/{request.user.email}/{img_data.name}', img_data)
             user_profile.profile_photo.name = filename
             user_profile.save()
-            
             print("保存路径：", user_profile.profile_photo.name)
             print("完整 URL：", user_profile.profile_photo.url)
             return redirect('user:profile_detail')
-        
         elif form.is_valid():
-            # 使用 S3 存储保存文件，如果有上传文件
             if 'profile_photo' in request.FILES:
                 f = request.FILES['profile_photo']
                 filename = s3_storage.save(f'profile_photos/{request.user.email}/{f.name}', f)
                 user_profile.profile_photo.name = filename
-                user_profile.save()
-            else:
-                form.save()
-
+            user_profile.save()
             return redirect('user:profile_detail')
         else:
             print(form.errors)
     else:
         form = ProfilePhotoForm(instance=user_profile)
-    
     return render(request, 'user/photo_edit.html', {'form': form})
 
-
-
 @login_required
-@csrf_exempt  # 开发用
+@ensure_csrf_cookie
 def save_preferred_times(request):
     if request.method == 'POST':
         data = json.loads(request.body)

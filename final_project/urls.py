@@ -7,7 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(('user.urls', 'user'), namespace='user')),
     path('communication/', include(('communication.urls', 'communication'), namespace='communication')),
-    # path('', include('adminpanel.urls')), # 注释掉或移除，直到 adminpanel.urls 准备好
+    path('task/', include(('task.urls', 'task'), namespace='task')),
 ]
 
 if settings.DEBUG:

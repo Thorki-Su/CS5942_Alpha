@@ -2,15 +2,14 @@ from django.urls import re_path, path
 from channels.routing import URLRouter
 from . import views
 
-# 延迟加载 consumers
 def get_websocket_urlpatterns():
     from .consumers import ChatConsumer, VideoCallConsumer
     return [
-        re_path(r'ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),
-        re_path(r'ws/video/(?P<room_name>\w+)/$', VideoCallConsumer.as_asgi()),
+        re_path(r'ws/chat/(?P<room_name>chat_\d+_\d+|chat_task_\d+)/$', ChatConsumer.as_asgi()),
+        re_path(r'ws/video/(?P<room_name>video_\w+)/$', VideoCallConsumer.as_asgi()),
     ]
 
-websocket_urlpatterns = URLRouter(get_websocket_urlpatterns())
+websocket_urlpatterns = get_websocket_urlpatterns()
 
 urlpatterns = [
     path('', views.communication_view, name='communication_view'),

@@ -4,166 +4,224 @@ import asyncio
 
 async def close_chat_room(room_name):
     group_name = f'chat_{room_name}'
-    await channel_layer.group_send(
-        group_name,
-        {
-            'type': 'close_room',
-        }
-    )
+    try:
+        await channel_layer.group_send(
+            group_name,
+            {
+                'type': 'close_room',
+            }
+        )
+    except Exception as e:
+        print(f"Error closing chat room {room_name}: {e}")
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        from task.models import Task, TaskApplication
-        self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = f'chat_{self.room_name}'
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        self.user = self.scope['user']
+        try:
+            from task.models import Task, TaskApplication
+            self.room_name = self.scope['url_route']['kwargs']['room_name']
+            self.room_group_name = f'chat_{self.room_name}'
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            self.user = self.scope['user']
 
-        self.is_task_group = self.room_name.startswith('task_')
-        if self.is_task_group:
-            task_id = int(self.room_name.split('_')[1])
-            task = await asyncio.to_thread(Task.objects.get, id=task_id)
-            if task.status in ['completed', 'cancelled']:
-                await self.close()
-                return
-            if not (task.client == self.user or TaskApplication.objects.filter(task=task, volunteer=self.user, status='accepted').exists()):
-                await self.close()
-                return
+            self.is_task_group = self.room_name.startswith('chat_task_')
+            if self.is_task_group:
+                task_id = int(self.room_name.split('_')[2])
+                task = await asyncio.to_thread(Task.objects.get, id=task_id)
+                if task.status in ['completed', 'cancelled']:
+                    await self.close()
+                    return
+                if not (task.client == self.user or TaskApplication.objects.filter(task=task, volunteer=self.user, status='accepted').exists()):
+                    await self.close()
+                    return
 
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-        await self.accept()
+            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+            await self.accept()
+        except Exception as e:
+            print(f"Error in connect: {e}")
+            await self.close()
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        try:
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        except Exception as e:
+            print(f"Error in disconnect: {e}")
 
     async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json.get('message')
-        audio_data = text_data_json.get('audio_data')
+        try:
+            text_data_json = json.loads(text_data)
+            message = text_data_json.get('message')
+            audio_data = text_data_json.get('audio_data')
+            video_signal = text_data_json.get('video_signal')
+            mode = text_data_json.get('mode', 'chat')  # 支持 'chat', 'audio', 'video'
 
-        if message:
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
+            if message and mode == 'chat':
+                await self.channel_layer.group_send(self.room_group_name, {
                     'type': 'chat_message',
                     'message': message,
                     'sender': self.scope['user'].email,
                     'is_task_group': self.is_task_group
-                }
-            )
-        if audio_data:
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
+                })
+            if audio_data and mode == 'audio':
+                await self.channel_layer.group_send(self.room_group_name, {
                     'type': 'audio_message',
                     'audio_data': audio_data,
                     'sender': self.scope['user'].email
-                }
-            )
+                })
+            if video_signal and mode == 'video':
+                await self.channel_layer.group_send(self.room_group_name, {
+                    'type': 'video_signal',
+                    'signal': video_signal,
+                    'sender': self.scope['user'].email
+                })
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
 
     async def chat_message(self, event):
-        message = event['message']
-        sender = event['sender']
-        is_task_group = event.get('is_task_group', False)
-        receiver = None if is_task_group else self.scope['user'].email
-        await self.save_message(sender, receiver, message, is_task_group)
-        await self.send(text_data=json.dumps({
-            'message': message,
-            'sender': sender,
-            'is_task_group': is_task_group
-        }))
+        try:
+            message = event['message']
+            sender = event['sender']
+            is_task_group = event.get('is_task_group', False)
+            receiver = None if is_task_group else self.scope['user'].email
+            await self.save_message(sender, receiver, message, is_task_group)
+            await self.send(text_data=json.dumps({
+                'message': message,
+                'sender': sender,
+                'is_task_group': is_task_group,
+                'mode': 'chat'
+            }))
+        except Exception as e:
+            print(f"Error in chat_message: {e}")
 
     async def audio_message(self, event):
-        audio_data = event['audio_data']
-        sender = event['sender']
-        await self.send(text_data=json.dumps({
-            'audio_data': audio_data,
-            'sender': sender
-        }))
-
-    async def close_room(self, event):
-        await self.close()
-
-    async def save_message(self, sender_email, receiver_email, message, is_task_group):
-        from django.contrib.auth import get_user_model
-        from task.models import Task, TaskApplication
-        from communication.models import ChatMessage
-        User = get_user_model()
-        sender = await asyncio.to_thread(User.objects.get, email=sender_email)
-        task = None
-        if is_task_group:
-            task_id = int(self.room_name.split('_')[1])
-            task = await asyncio.to_thread(Task.objects.get, id=task_id)
-        ChatMessage.objects.create(
-            sender=sender,
-            receiver=None if is_task_group else await asyncio.to_thread(User.objects.get, email=receiver_email),
-            content=message,
-            task=task
-        )
-
-class VideoCallConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        from task.models import Task, TaskApplication
-        self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = f'video_{self.room_name}'
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        self.user = self.scope['user']
-
-        self.is_task_group = self.room_name.startswith('task_')
-        if self.is_task_group:
-            task_id = int(self.room_name.split('_')[1])
-            task = await asyncio.to_thread(Task.objects.get, id=task_id)
-            if task.status in ['completed', 'cancelled']:
-                await self.close()
-                return
-            if not (task.client == self.user or TaskApplication.objects.filter(task=task, volunteer=self.user, status='accepted').exists()):
-                await self.close()
-                return
-
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-        await self.accept()
-
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-
-    async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        signal = text_data_json.get('signal')
-        audio_data = text_data_json.get('audio_data')
-
-        if signal:
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'video_signal',
-                    'signal': signal,
-                    'sender': self.scope['user'].email
-                }
-            )
-        if audio_data:
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'audio_message',
-                    'audio_data': audio_data,
-                    'sender': self.scope['user'].email
-                }
-            )
+        try:
+            audio_data = event['audio_data']
+            sender = event['sender']
+            await self.send(text_data=json.dumps({
+                'audio_data': audio_data,
+                'sender': sender,
+                'mode': 'audio'
+            }))
+        except Exception as e:
+            print(f"Error in audio_message: {e}")
 
     async def video_signal(self, event):
-        signal = event['signal']
-        sender = event['sender']
-        await self.send(text_data=json.dumps({
-            'signal': signal,
-            'sender': sender
-        }))
+        try:
+            video_signal = event['signal']
+            sender = event['sender']
+            await self.send(text_data=json.dumps({
+                'video_signal': video_signal,
+                'sender': sender,
+                'mode': 'video'
+            }))
+        except Exception as e:
+            print(f"Error in video_signal: {e}")
+
+    async def close_room(self, event):
+        try:
+            await self.close()
+        except Exception as e:
+            print(f"Error in close_room: {e}")
+
+    async def save_message(self, sender_email, receiver_email, message, is_task_group):
+        try:
+            from django.contrib.auth import get_user_model
+            from task.models import Task, TaskApplication
+            from communication.models import ChatMessage
+            User = get_user_model()
+            sender = await asyncio.to_thread(User.objects.get, email=sender_email)
+            task = None
+            if is_task_group:
+                task_id = int(self.room_name.split('_')[2])
+                task = await asyncio.to_thread(Task.objects.get, id=task_id)
+            ChatMessage.objects.create(
+                sender=sender,
+                receiver=None if is_task_group else await asyncio.to_thread(User.objects.get, email=receiver_email),
+                content=message,
+                task=task
+            )
+        except Exception as e:
+            print(f"Error in save_message: {e}")
+
+# VideoCallConsumer 保留，但可考虑移除或整合，当前不修改
+class VideoCallConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        try:
+            from task.models import Task, TaskApplication
+            self.room_name = self.scope['url_route']['kwargs']['room_name']
+            self.room_group_name = f'video_{self.room_name}'
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            self.user = self.scope['user']
+
+            self.is_task_group = self.room_name.startswith('chat_task_')
+            if self.is_task_group:
+                task_id = int(self.room_name.split('_')[2])
+                task = await asyncio.to_thread(Task.objects.get, id=task_id)
+                if task.status in ['completed', 'cancelled']:
+                    await self.close()
+                    return
+                if not (task.client == self.user or TaskApplication.objects.filter(task=task, volunteer=self.user, status='accepted').exists()):
+                    await self.close()
+                    return
+
+            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+            await self.accept()
+        except Exception as e:
+            print(f"Error in connect: {e}")
+            await self.close()
+
+    async def disconnect(self, close_code):
+        try:
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        except Exception as e:
+            print(f"Error in disconnect: {e}")
+
+    async def receive(self, text_data):
+        try:
+            text_data_json = json.loads(text_data)
+            signal = text_data_json.get('signal')
+            audio_data = text_data_json.get('audio_data')
+
+            if signal:
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'video_signal',
+                        'signal': signal,
+                        'sender': self.scope['user'].email
+                    }
+                )
+            if audio_data:
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'audio_message',
+                        'audio_data': audio_data,
+                        'sender': self.scope['user'].email
+                    }
+                )
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+
+    async def video_signal(self, event):
+        try:
+            signal = event['signal']
+            sender = event['sender']
+            await self.send(text_data=json.dumps({
+                'signal': signal,
+                'sender': sender
+            }))
+        except Exception as e:
+            print(f"Error in video_signal: {e}")
 
     async def audio_message(self, event):
-        audio_data = event['audio_data']
-        sender = event['sender']
-        await self.send(text_data=json.dumps({
-            'audio_data': audio_data,
-            'sender': sender
-        }))
+        try:
+            audio_data = event['audio_data']
+            sender = event['sender']
+            await self.send(text_data=json.dumps({
+                'audio_data': audio_data,
+                'sender': sender
+            }))
+        except Exception as e:
+            print(f"Error in audio_message: {e}")
