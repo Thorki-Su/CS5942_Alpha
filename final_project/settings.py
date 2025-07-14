@@ -18,6 +18,9 @@ import dj_database_url
 if os.environ.get('DJANGO_DEVELOPMENT'):
     load_dotenv() # 读取根目录的 .env 文件
 
+print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
+print("DEBUG: DATABASE_URL =", os.environ.get('DATABASE_URL'))
+
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = 'shallion-support-files'
@@ -106,7 +109,8 @@ WSGI_APPLICATION = 'final_project.wsgi.application'
 IS_TESTING = 'test' in os.sys.argv
 IS_DEVELOPMENT = os.environ.get('DJANGO_DEVELOPMENT') == '1'
 
-if IS_TESTING or IS_DEVELOPMENT:
+#if IS_TESTING or IS_DEVELOPMENT:
+if IS_TESTING:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
