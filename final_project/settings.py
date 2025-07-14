@@ -104,8 +104,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'final_project.wsgi.application'
 
 IS_TESTING = 'test' in os.sys.argv
+IS_DEVELOPMENT = os.environ.get('DJANGO_DEVELOPMENT') == '1'
 
-if IS_TESTING:
+if IS_TESTING or IS_DEVELOPMENT:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
