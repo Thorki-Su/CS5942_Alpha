@@ -9,6 +9,7 @@ from .models import Task, TaskApplication, TaskTemplate, TaskRecord, Feedback, S
 from django.utils import timezone
 from datetime import timedelta, time
 from django.db.models import Q
+from matching.utils import match_volunteers_for_task
 
 # Create your views here.
 def client_required(view_func):
@@ -49,6 +50,11 @@ def task_create(request):
             task.status = 'open'
             task.save()
             form.save_m2m()
+
+            # 调用自动匹配逻辑
+            matched_count = match_volunteers_for_task(task)
+            print(f"Manual matching complete: {matched_count} volunteers matched.")
+
             return redirect('task:mytask')
     else:
         form = TaskForm()

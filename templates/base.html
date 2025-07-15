@@ -85,6 +85,7 @@
                 <a href="{% url 'communication:communication_view' %}">1v1 Chat</a>
                 <a href="{% url 'communication:group_chats' %}">Group Chat</a> <!-- 单一入口 -->
                 {% if user.role == 'volunteer' %}
+                    <a href="{% url 'matching:shift' %}">Join Shift</a>
                     <a href="{% url 'task:tasklist' %}">Task List</a>
                     <a href="{% url 'task:myapplication' %}">My Application</a>
                 {% elif user.role == 'client' %}

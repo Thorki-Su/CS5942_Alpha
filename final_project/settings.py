@@ -18,8 +18,8 @@ import dj_database_url
 if os.environ.get('DJANGO_DEVELOPMENT'):
     load_dotenv() # 读取根目录的 .env 文件
 
-print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
-print("DEBUG: DATABASE_URL =", os.environ.get('DATABASE_URL'))
+# print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
+# print("DEBUG: DATABASE_URL =", os.environ.get('DATABASE_URL'))
 
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')

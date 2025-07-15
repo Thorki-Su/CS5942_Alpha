@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Join Shift{% endblock %}
+
+{% block content %}
+    <div style='margin:50px;'>
+        <h2>Setting Scheduling Intentions</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Saving settings</button>
+        </form>
+    </div>
+{% endblock %}

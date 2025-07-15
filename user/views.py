@@ -17,6 +17,7 @@ from django.utils.safestring import mark_safe
 from django.core.files.storage import default_storage
 from storages.backends.s3boto3 import S3Boto3Storage
 from task.models import Task
+from user.utils import geocode_address, is_valid_aberdeen_postcode
 
 def home_view(request):
     tasks = Task.objects.filter(client=request.user) if request.user.is_authenticated and request.user.role == 'client' else []
@@ -48,9 +49,13 @@ def client_register(request):
     if request.method == 'POST':
         form = ClientRegisterForm(request.POST, request.FILES)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('user:home')
+            location = form.cleaned_data.get('location')
+            if not is_valid_aberdeen_postcode(location):
+                form.add_error('location', 'Please enter a valid postcode within Aberdeen')
+            else:
+                user = form.save()
+                login(request, user)
+                return redirect('user:home')
         else:
             print(form.errors)
     else:
@@ -61,9 +66,13 @@ def volunteer_register(request):
     if request.method == 'POST':
         form = VolunteerRegisterForm(request.POST, request.FILES)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('user:home')
+            location = form.cleaned_data.get('location')
+            if not is_valid_aberdeen_postcode(location):
+                form.add_error('location', 'Please enter a valid postcode within Aberdeen')
+            else:
+                user = form.save()
+                login(request, user)
+                return redirect('user:home')
         else:
             print(form.errors)
     else:

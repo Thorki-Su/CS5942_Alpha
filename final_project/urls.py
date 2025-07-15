@@ -8,6 +8,7 @@ urlpatterns = [
     path('', include(('user.urls', 'user'), namespace='user')),
     path('communication/', include(('communication.urls', 'communication'), namespace='communication')),
     path('', include(('task.urls', 'task'), namespace='task')),
+    path('', include(('matching.urls', 'matching'), namespace='matching')),
 ]
 
 if settings.DEBUG:
