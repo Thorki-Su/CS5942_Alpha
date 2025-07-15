@@ -102,6 +102,7 @@ class TaskApplication(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     applied_at = models.DateTimeField(auto_now_add=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
+    is_auto_matched = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('task', 'volunteer') # 每个志愿者只能申请一次
