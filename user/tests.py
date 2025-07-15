@@ -29,7 +29,7 @@ class CustomUserModelTests(TestCase):
             first_name='Client',
             last_name='Test',
             phone_number='1234567890',
-            location='Test City',
+            location='AB25 3DD',
             consent_safeguard=True
         )
         self.user_profile_volunteer = UserProfile.objects.create(
@@ -37,7 +37,7 @@ class CustomUserModelTests(TestCase):
             first_name='Volunteer',
             last_name='Test',
             phone_number='0987654321',
-            location='Test City',
+            location='AB25 3DD',
             consent_safeguard=True
         )
         self.cert_type = CertificationType.objects.create(name='PIP')
@@ -365,7 +365,7 @@ class UserViewsTests(TestCase):
             'last_name': 'Client',
             'phone_number': '1234567890',
             'contact_method': 'email',
-            'location': 'Test City',
+            'location': 'AB25 3DD',
             'certifications': [cert_type.id],
             'consent_safeguard': True
         })
@@ -385,7 +385,7 @@ class UserViewsTests(TestCase):
             'first_name': 'New',
             'last_name': 'Volunteer',
             'phone_number': '0987654321',
-            'location': 'Test City',
+            'location': 'AB25 3DD',
             'university_course': 'Biology',
             'profession': 'Student',
             'is_for_credit': False,
