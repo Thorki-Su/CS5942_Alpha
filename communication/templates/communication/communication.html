@@ -63,12 +63,16 @@
     let localStream = null;
     let isMuted = false;
 
+    chatSocket.onopen = function(e) {
+        console.log("WebSocket connected");
+    };
+
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         const messageList = document.getElementById('message-list');
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${data.sender === '{{ user.email }}' ? 'sent' : 'received'}`;
-        messageDiv.textContent = `${data.sender}: ${data.message}`;
+        messageDiv.innerHTML = `<strong>${data.sender}</strong>: ${data.message} <small>(${new Date(data.timestamp).toLocaleString()})</small>`;
         messageList.appendChild(messageDiv);
         messageList.scrollTop = messageList.scrollHeight;
 
@@ -84,11 +88,28 @@
         }
     };
 
+    chatSocket.onclose = function(e) {
+        console.log("WebSocket disconnected");
+    };
+
     function sendMessage() {
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value;
-        chatSocket.send(JSON.stringify({'message': message}));
-        messageInput.value = '';
+        if (message) {
+            const data = {
+                'message': message,
+                'timestamp': new Date().toISOString()
+            };
+            chatSocket.send(JSON.stringify(data));
+            // 本地回显
+            const messageList = document.getElementById('message-list');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message sent';
+            messageDiv.innerHTML = `<strong>{{ user.email }}</strong>: ${message} <small>(${new Date().toLocaleString()})</small>`;
+            messageList.appendChild(messageDiv);
+            messageList.scrollTop = messageList.scrollHeight;
+            messageInput.value = '';
+        }
     }
 
     function toggleVideoCall() {

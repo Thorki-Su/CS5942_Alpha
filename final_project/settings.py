@@ -14,12 +14,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
-# 本地开发时加载 .env 文件
-if os.environ.get('DJANGO_DEVELOPMENT'):
-    load_dotenv() # 读取根目录的 .env 文件
-
-# print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
-# print("DEBUG: DATABASE_URL =", os.environ.get('DATABASE_URL'))
+# 强制加载 .env 文件
+load_dotenv()  # 确保在所有情况下加载
+if not os.getenv('DATABASE_URL'):
+    raise ValueError("DATABASE_URL environment variable not set. Please check .env file.")
+print("DEBUG: Loaded DATABASE_URL =", os.environ.get('DATABASE_URL'))  # 调试
 
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
@@ -109,30 +108,21 @@ WSGI_APPLICATION = 'final_project.wsgi.application'
 IS_TESTING = 'test' in os.sys.argv
 IS_DEVELOPMENT = os.environ.get('DJANGO_DEVELOPMENT') == '1'
 
-#if IS_TESTING or IS_DEVELOPMENT:
 if IS_TESTING:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': ':memory:',  # 使用内存数据库
         }
     }
 else:
     DATABASES = {
         'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL'),
+            default=os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3'),
             conn_max_age=600,
             ssl_require=os.getenv('RENDER') == 'true'
         )
     }
-
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default='postgresql://alphapostgresql_user:nIJaP1LsDUpC35jxatw8icIiMykfzA0H@dpg-d1e9oceuk2gs73afl2hg-a.oregon-postgres.render.com/alphapostgresql',
-#         conn_max_age=600,
-#         ssl_require=False
-#     )
-# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -151,8 +141,5 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

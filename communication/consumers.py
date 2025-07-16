@@ -1,6 +1,9 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 import asyncio
+from task.models import Task, TaskApplication
+from django.contrib.auth import get_user_model
+from asgiref.sync import sync_to_async
 
 async def close_chat_room(room_name):
     group_name = f'chat_{room_name}'
@@ -14,24 +17,45 @@ async def close_chat_room(room_name):
     except Exception as e:
         print(f"Error closing chat room {room_name}: {e}")
 
+@sync_to_async
+def get_task(task_id):
+    return Task.objects.get(id=task_id)
+
+@sync_to_async
+def check_task_permission(task, user):
+    from task.models import TaskApplication
+    return task.client == user or TaskApplication.objects.filter(task=task, volunteer=user, status='accepted').exists()
+
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         try:
-            from task.models import Task, TaskApplication
-            self.room_name = self.scope['url_route']['kwargs']['room_name']
-            self.room_group_name = f'chat_{self.room_name}'
             from django.contrib.auth import get_user_model
             User = get_user_model()
             self.user = self.scope['user']
+            if not self.user.is_authenticated:
+                await self.close()
+                return
 
+            path = self.scope['path']
+            if not path.startswith('/ws/chat/'):
+                print(f"Error in connect: Invalid path {path}")
+                await self.close()
+                return
+            self.room_name = path.split('/')[3]  # 提取 room_name，例如 chat_task_1
+            if not self.room_name:
+                print("Error in connect: 'room_name' not found in path")
+                await self.close()
+                return
+
+            self.room_group_name = f'chat_{self.room_name}'
             self.is_task_group = self.room_name.startswith('chat_task_')
             if self.is_task_group:
                 task_id = int(self.room_name.split('_')[2])
-                task = await asyncio.to_thread(Task.objects.get, id=task_id)
+                task = await get_task(task_id)
                 if task.status in ['completed', 'cancelled']:
                     await self.close()
                     return
-                if not (task.client == self.user or TaskApplication.objects.filter(task=task, volunteer=self.user, status='accepted').exists()):
+                if not await check_task_permission(task, self.user):
                     await self.close()
                     return
 
@@ -135,7 +159,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             task = None
             if is_task_group:
                 task_id = int(self.room_name.split('_')[2])
-                task = await asyncio.to_thread(Task.objects.get, id=task_id)
+                task = await get_task(task_id)
             ChatMessage.objects.create(
                 sender=sender,
                 receiver=None if is_task_group else await asyncio.to_thread(User.objects.get, email=receiver_email),
@@ -148,21 +172,33 @@ class ChatConsumer(AsyncWebsocketConsumer):
 class VideoCallConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         try:
-            from task.models import Task, TaskApplication
-            self.room_name = self.scope['url_route']['kwargs']['room_name']
-            self.room_group_name = f'video_{self.room_name}'
             from django.contrib.auth import get_user_model
             User = get_user_model()
             self.user = self.scope['user']
+            if not self.user.is_authenticated:
+                await self.close()
+                return
 
+            path = self.scope['path']
+            if not path.startswith('/ws/video/'):
+                print(f"Error in connect: Invalid path {path}")
+                await self.close()
+                return
+            self.room_name = path.split('/')[3]  # 提取 room_name，例如 chat_task_1
+            if not self.room_name:
+                print("Error in connect: 'room_name' not found in path")
+                await self.close()
+                return
+
+            self.room_group_name = f'video_{self.room_name}'
             self.is_task_group = self.room_name.startswith('chat_task_')
             if self.is_task_group:
                 task_id = int(self.room_name.split('_')[2])
-                task = await asyncio.to_thread(Task.objects.get, id=task_id)
+                task = await get_task(task_id)
                 if task.status in ['completed', 'cancelled']:
                     await self.close()
                     return
-                if not (task.client == self.user or TaskApplication.objects.filter(task=task, volunteer=self.user, status='accepted').exists()):
+                if not await check_task_permission(task, self.user):
                     await self.close()
                     return
 
