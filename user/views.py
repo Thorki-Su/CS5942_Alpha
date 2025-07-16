@@ -29,6 +29,8 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            if user.role == 'admin':
+                return redirect('/admin/')
             return redirect('user:home')
         else:
             messages.error(request, "Wrong email or password.")
