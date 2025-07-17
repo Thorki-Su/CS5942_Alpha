@@ -79,7 +79,7 @@ def send_activation_email(user, request):
 
     subject = "Activate Your Account"
     message = f"""\
-Hi {user.first_name or user.email},
+Hi {user.email},
 
 Thank you for registering on our platform.
 
