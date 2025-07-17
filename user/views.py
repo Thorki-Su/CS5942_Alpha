@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import CustomUser, UserProfile, ClientProfile, VolunteerProfile
@@ -17,7 +17,10 @@ from django.utils.safestring import mark_safe
 from django.core.files.storage import default_storage
 from storages.backends.s3boto3 import S3Boto3Storage
 from task.models import Task
-from user.utils import geocode_address, is_valid_aberdeen_postcode
+from user.utils import geocode_address, is_valid_aberdeen_postcode, send_activation_email
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 
 def home_view(request):
     tasks = Task.objects.filter(client=request.user) if request.user.is_authenticated and request.user.role == 'client' else []
@@ -56,8 +59,13 @@ def client_register(request):
                 form.add_error('location', 'Please enter a valid postcode within Aberdeen')
             else:
                 user = form.save()
-                login(request, user)
-                return redirect('user:home')
+                # login(request, user)
+                # return redirect('user:home')
+                # print("EMAIL_HOST:", settings.EMAIL_HOST)
+                # print("EMAIL_HOST_USER:", settings.EMAIL_HOST_USER)
+                # print("DEFAULT_FROM_EMAIL:", settings.DEFAULT_FROM_EMAIL)
+                send_activation_email(user, request)
+                return render(request, 'user/please_check_email.html')
         else:
             print(form.errors)
     else:
@@ -73,13 +81,30 @@ def volunteer_register(request):
                 form.add_error('location', 'Please enter a valid postcode within Aberdeen')
             else:
                 user = form.save()
-                login(request, user)
-                return redirect('user:home')
+                # login(request, user)
+                # return redirect('user:home')
+                send_activation_email(user, request)
+                return render(request, 'user/please_check_email.html')
         else:
             print(form.errors)
     else:
         form = VolunteerRegisterForm()
     return render(request, 'user/volunteer_register.html', {'form': form})
+
+def activate_account(request, uidb64, token):
+    User = get_user_model()
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (User.DoesNotExist, ValueError, TypeError):
+        user = None
+
+    if user and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return render(request, 'user/activation_success.html')
+    else:
+        return render(request, 'user/activation_failed.html')
 
 @login_required
 def client_profile_edit(request):

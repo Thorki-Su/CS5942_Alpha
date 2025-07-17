@@ -13,4 +13,5 @@ urlpatterns = [
     path('profile/', views.profile_detail, name='profile_detail'),
     path('profile/photoedit/', views.photo_edit, name='photo_edit'),
     path('save-preferred-times/', views.save_preferred_times, name='save_preferred_times'),
+    path('activate/<uidb64>/<token>/', views.activate_account, name='activate'),
 ]

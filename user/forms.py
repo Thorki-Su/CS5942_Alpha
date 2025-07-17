@@ -33,6 +33,7 @@ class ClientRegisterForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
+        user.is_active = False # 禁用账户，直到点击激活链接
         user.role = 'client'
         user.username = self.cleaned_data['email']
         if commit:
@@ -159,6 +160,7 @@ class VolunteerRegisterForm(UserCreationForm):
     
     def save(self, commit=True):
         user = super().save(commit=False)
+        user.is_active = False # 禁用账户，直到点击激活链接
         user.role = 'volunteer'
         user.username = self.cleaned_data['email']
         if commit:

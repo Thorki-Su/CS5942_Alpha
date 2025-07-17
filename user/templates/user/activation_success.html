@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block title %}Activation Success{% endblock %}
+
+{% block content %}
+    <h2>Your account has been activated.</h2>
+    <a href="{% url 'user:login' %}">Click here to login</a>
+{% endblock %}

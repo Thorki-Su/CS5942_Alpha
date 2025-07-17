@@ -17,6 +17,14 @@ import dj_database_url
 # 本地开发时加载 .env 文件
 if os.environ.get('DJANGO_DEVELOPMENT'):
     load_dotenv() # 读取根目录的 .env 文件
+    
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "shallion9527@gmail.com")
 
 # print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
 # print("DEBUG: DATABASE_URL =", os.environ.get('DATABASE_URL'))
@@ -140,6 +148,10 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+
+# 本地测试用
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com'
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Europe/London'
