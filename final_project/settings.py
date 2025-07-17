@@ -142,7 +142,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # 本地测试用
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com'
 
 LANGUAGE_CODE = 'en-us'
