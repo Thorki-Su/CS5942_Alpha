@@ -2,6 +2,11 @@
 
 import requests
 import re
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.urls import reverse
 
 def normalize_uk_postcode(postcode):
     postcode = postcode.upper().strip().replace(' ', '')
@@ -34,7 +39,7 @@ def geocode_address(address):
     # 为保险起见加上国家
     cleaned_address = ', '.join(clean_parts + ['UK'])
 
-    print(f"尝试解析地址：{cleaned_address}")
+    # print(f"尝试解析地址：{cleaned_address}")
 
     url = f"https://nominatim.openstreetmap.org/search"
     params = {
@@ -56,3 +61,17 @@ def geocode_address(address):
         print(f"[Geocode ERROR] 地址解析失败：{cleaned_address} → {e}")
     return None, None
 
+def send_activation_email(user, request):
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+
+    activation_url = request.build_absolute_uri(
+        reverse('user:activate', kwargs={'uidb64': uid, 'token': token})
+    )
+
+    subject = "Activate your account"
+    message = f"Hi {user.email},\n\nPlease click the link below to activate your account:\n\n{activation_url}\n\nIf you did not register, please ignore this email."
+    from_email = "noreply@yourdomain.com"
+    recipient_list = [user.email]
+
+    send_mail(subject, message, from_email, recipient_list)

@@ -25,7 +25,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('volunteer', 'Volunteer'),
         ('admin', 'Admin'),
     ])
-    is_active = models.BooleanField(default=True) #控制账户是否激活（考虑是否需要）
+    is_active = models.BooleanField(default=False) #控制账户是否激活（考虑是否需要）
     is_staff = models.BooleanField(default=False) #控制账号访问管理后台的权限
 
     USERNAME_FIELD = 'email'                      #指定email为登录的标识（取代username）
