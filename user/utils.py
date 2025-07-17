@@ -7,6 +7,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
+from django.conf import settings
 
 def normalize_uk_postcode(postcode):
     postcode = postcode.upper().strip().replace(' ', '')
@@ -71,7 +72,7 @@ def send_activation_email(user, request):
 
     subject = "Activate your account"
     message = f"Hi {user.email},\n\nPlease click the link below to activate your account:\n\n{activation_url}\n\nIf you did not register, please ignore this email."
-    from_email = "noreply@yourdomain.com"
+    from_email = settings.DEFAULT_FROM_EMAIL
     recipient_list = [user.email]
 
     send_mail(subject, message, from_email, recipient_list)

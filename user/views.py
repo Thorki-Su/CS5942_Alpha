@@ -20,6 +20,7 @@ from task.models import Task
 from user.utils import geocode_address, is_valid_aberdeen_postcode, send_activation_email
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 
 def home_view(request):
     tasks = Task.objects.filter(client=request.user) if request.user.is_authenticated and request.user.role == 'client' else []
@@ -60,6 +61,9 @@ def client_register(request):
                 user = form.save()
                 # login(request, user)
                 # return redirect('user:home')
+                # print("EMAIL_HOST:", settings.EMAIL_HOST)
+                # print("EMAIL_HOST_USER:", settings.EMAIL_HOST_USER)
+                # print("DEFAULT_FROM_EMAIL:", settings.DEFAULT_FROM_EMAIL)
                 send_activation_email(user, request)
                 return render(request, 'user/please_check_email.html')
         else:
