@@ -55,6 +55,10 @@ class ClientRegisterForm(UserCreationForm):
         return user
 
 class ClientProfileForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=100, label='First Name')
+    last_name = forms.CharField(max_length=100, label='Last Name')
+    phone_number = forms.CharField(max_length=20, label='Phone Number')
+    location = forms.CharField(max_length=255, label='Location / Postcode')
     support_areas = forms.ModelMultipleChoiceField(
         queryset=SupportType.objects.all(),
         widget=forms.CheckboxSelectMultiple,
@@ -73,6 +77,16 @@ class ClientProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.instance:
+            user_profile = self.instance.user_profile
+            self.fields['first_name'].initial = user_profile.first_name
+            self.fields['last_name'].initial = user_profile.last_name
+            self.fields['age'].initial = user_profile.age
+            self.fields['gender'].initial = user_profile.gender
+            self.fields['phone_number'].initial = user_profile.phone_number
+            self.fields['location'].initial = user_profile.location
+            self.fields['emergency_contact'].initial = user_profile.emergency_contact
+
         if self.instance and self.instance.certifications.exists():
             cert_names = list(self.instance.certifications.values_list('name', flat=True))
             if 'PIP' in cert_names:
@@ -127,12 +141,22 @@ class ClientProfileForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
+        user_profile = instance.user_profile
+        user_profile.first_name = self.cleaned_data['first_name']
+        user_profile.last_name = self.cleaned_data['last_name']
+        user_profile.age = self.cleaned_data['age']
+        user_profile.gender = self.cleaned_data['gender']
+        user_profile.phone_number = self.cleaned_data['phone_number']
+        user_profile.location = self.cleaned_data['location']
+        user_profile.emergency_contact = self.cleaned_data['emergency_contact']
+        user_profile.save()
         if commit:
             instance.save()
             for field_name, field_value in self.cleaned_data.items():
                 if field_name in ['pip_certificate', 'adp_certificate', 'lwc_certificate', 'nhs_certificate', 'diagnosis']:
                     setattr(instance, field_name, field_value)
             instance.save()
+            self.save_m2m()
         return instance
 
 class VolunteerRegisterForm(UserCreationForm):
@@ -183,6 +207,10 @@ class VolunteerRegisterForm(UserCreationForm):
         return user
     
 class VolunteerProfileForm(forms.ModelForm):
+    first_name = forms.CharField(disabled=True, required=False, label='First Name')
+    last_name = forms.CharField(disabled=True, required=False, label='Last Name')
+    location = forms.CharField(disabled=True, required=False, label='Postcode')
+    phone_number = forms.CharField(disabled=True, required=False, label='Phone Number')
     age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
     gender = forms.ChoiceField(choices=[('male', 'Male'), ('female', 'Female')], label='Gender')
     emergency_contact = forms.CharField(max_length=255)
@@ -194,6 +222,10 @@ class VolunteerProfileForm(forms.ModelForm):
     class Meta:
         model = VolunteerProfile
         fields = [
+            'first_name',
+            'last_name',
+            'location',
+            'phone_number',
             'skills',
             'interests',
             'preferred_tasks',
@@ -209,6 +241,37 @@ class VolunteerProfileForm(forms.ModelForm):
             }),
             'motivation': forms.Textarea(attrs={'rows': 3}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance:
+            user_profile = self.instance.user_profile
+            self.fields['first_name'].initial = user_profile.first_name
+            self.fields['last_name'].initial = user_profile.last_name
+            self.fields['location'].initial = user_profile.location
+            self.fields['phone_number'].initial = user_profile.phone_number
+            self.fields['age'].initial = user_profile.age
+            self.fields['gender'].initial = user_profile.gender
+            self.fields['emergency_contact'].initial = user_profile.emergency_contact
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        user_profile = instance.user_profile
+
+        user_profile.first_name = self.cleaned_data['first_name']
+        user_profile.last_name = self.cleaned_data['last_name']
+        user_profile.location = self.cleaned_data['location']
+        user_profile.phone_number = self.cleaned_data['phone_number']
+        user_profile.age = self.cleaned_data['age']
+        user_profile.gender = self.cleaned_data['gender']
+        user_profile.emergency_contact = self.cleaned_data['emergency_contact']
+        user_profile.save()
+
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
 class ProfilePhotoForm(forms.ModelForm):
     profile_photo = forms.FileField(

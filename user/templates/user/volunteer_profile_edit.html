@@ -9,6 +9,25 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
+            <label for="id_first_name"><strong>{{ form.first_name.label_tag }}</strong></label><br>
+            {{ form.first_name }}<br>
+            {{ form.first_name.errors }}<br><br>
+
+            <label for="id_last_name"><strong>{{ form.last_name.label_tag }}</strong></label><br>
+            {{ form.last_name }}<br>
+            {{ form.last_name.errors }}<br><br>
+
+            <label for="id_phone_number"><strong>{{ form.phone_number.label_tag }}</strong></label><br>
+            {{ form.phone_number }}<br>
+            {{ form.phone_number.errors }}<br><br>
+
+            <label for="id_location"><strong>Please enter your postcode:</strong></label><br>
+            <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="autoFillLocation()">📍 Use My Location</button>
+            <small id="location-message" class="text-muted d-block mt-1"></small>
+            <input id="id_location" name="location" type="text" class="form-control" placeholder="Start typing address or postcode" autocomplete="off" style='width: 200px;'>
+            <ul id="address-suggestions" class="list-group" style='z-index: 1000;width: 100%;'></ul>
+            {{ form.location.errors }}<br>
+
             <label for="id_age"><strong>{{ form.age.label_tag }}</strong></label><br>
             {{ form.age }}<br>
             {{ form.age.errors }}<br><br>
@@ -45,11 +64,6 @@
             {{ form.motivation }}<br>
             {{ form.motivation.errors }}<br><br>
 
-            {% comment %} 看这里！这条是时间，在这改！ {% endcomment %}
-            {% comment %} <label for="id_availability"><strong>{{ form.availability.label_tag }}</strong></label><br>
-            {{ form.availability }}<br>
-            {{ form.availability.errors }}<br><br> {% endcomment %}
-
             <input type="submit" value="Save">
         </form>
         
@@ -64,5 +78,106 @@
         {% endcomment %}
 
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var input = document.getElementById('id_location');
+            var suggestions = document.getElementById('address-suggestions');
+
+            input.addEventListener('input', function() {
+                var query = this.value.trim();
+                if (query.length < 3) {
+                    suggestions.innerHTML = '';
+                    return;
+                }
+
+                // 检查是否是 UK postcode 格式
+                var postcodeRegex = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}$/i;
+                if (postcodeRegex.test(query)) {
+                    // 查询 Postcodes.io
+                    fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            suggestions.innerHTML = '';
+                            if (data.status === 200) {
+                                var address = `${data.result.postcode}, ${data.result.admin_ward}, ${data.result.admin_district}, ${data.result.region}`;
+                                var li = document.createElement('li');
+                                li.textContent = address;
+                                li.classList.add('list-group-item', 'list-group-item-action');
+                                li.style.cursor = 'pointer';
+                                li.addEventListener('click', function() {
+                                    input.value = address;
+                                    suggestions.innerHTML = '';
+                                });
+                                suggestions.appendChild(li);
+                            }
+                        });
+                } else {
+                    // 否则走 Nominatim 查询地址
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&countrycodes=gb&limit=5&viewbox=-2.1800,57.2000,-2.0500,57.1200&bounded=1`)
+                        .then(response => response.json())
+                        .then(data => {
+                            suggestions.innerHTML = '';
+                            data.forEach(function(item) {
+                                var li = document.createElement('li');
+                                li.textContent = item.display_name;
+                                li.classList.add('list-group-item', 'list-group-item-action');
+                                li.style.cursor = 'pointer';
+                                li.addEventListener('click', function() {
+                                    input.value = item.display_name;
+                                    suggestions.innerHTML = '';
+                                });
+                                suggestions.appendChild(li);
+                            });
+                        });
+                }
+            });
+
+            // 点击其他地方隐藏 suggestions
+            document.addEventListener('click', function(e) {
+                if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+                    suggestions.innerHTML = '';
+                }
+            });
+        });
+
+        function autoFillLocation() {
+            const input = document.getElementById('id_location');
+            const msg = document.getElementById('location-message');
+
+            msg.innerText = 'Trying to detect your location...';
+
+            if (!navigator.geolocation) {
+                msg.innerText = 'Geolocation is not supported by your browser.';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(success, error);
+
+            function success(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                fetch(`https://api.postcodes.io/postcodes?lon=${lon}&lat=${lat}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 200 && data.result.length > 0) {
+                            const postcode = data.result[0].postcode;
+                            input.value = postcode;
+                            msg.innerText = `Detected postcode: ${postcode}`;
+                        } else {
+                            msg.innerText = 'Could not find a postcode near your location.';
+                        }
+                    })
+                    .catch(() => {
+                        msg.innerText = 'Failed to retrieve postcode.';
+                    });
+            }
+
+            function error() {
+                msg.innerText = 'Location access denied or unavailable.';
+            }
+        }
+    </script>
 
 {% endblock %}

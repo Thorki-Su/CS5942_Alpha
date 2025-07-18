@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import CustomUser, UserProfile, ClientProfile, VolunteerProfile
 from .forms import ClientRegisterForm, ClientProfileForm, VolunteerRegisterForm, VolunteerProfileForm, ProfilePhotoForm
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.forms.models import model_to_dict
 from django.core.files.base import ContentFile
 import base64
@@ -21,6 +21,9 @@ from user.utils import geocode_address, is_valid_aberdeen_postcode, send_activat
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 def home_view(request):
     tasks = Task.objects.filter(client=request.user) if request.user.is_authenticated and request.user.role == 'client' else []
@@ -112,23 +115,20 @@ def client_profile_edit(request):
         client_profile = request.user.userprofile.clientprofile
     except ClientProfile.DoesNotExist:
         return redirect('user:choose_role')
+    
     if request.method == 'POST':
         form = ClientProfileForm(request.POST, request.FILES, instance=client_profile)
         if form.is_valid():
             form.save()
-            user_profile = request.user.userprofile
-            user_age = form.cleaned_data.get('age')
-            user_gender = form.cleaned_data.get('gender')
-            user_emergency_contact = form.cleaned_data.get('emergency_contact')
-            if user_age:
-                user_profile.age = user_age
-                user_profile.save()
-            if user_gender:
-                user_profile.gender = user_gender
-                user_profile.save()
-            if user_emergency_contact:
-                user_profile.emergency_contact = user_emergency_contact
-                user_profile.save()
+            # user_profile = request.user.userprofile
+            # user_profile.first_name = form.cleaned_data.get('first_name') or user_profile.first_name
+            # user_profile.last_name = form.cleaned_data.get('last_name') or user_profile.last_name
+            # user_profile.phone_number = form.cleaned_data.get('phone_number') or user_profile.phone_number
+            # user_profile.location = form.cleaned_data.get('location') or user_profile.location
+            # user_profile.age = form.cleaned_data.get('age') or user_profile.age
+            # user_profile.gender = form.cleaned_data.get('gender') or user_profile.gender
+            # user_profile.emergency_contact = form.cleaned_data.get('emergency_contact') or user_profile.emergency_contact
+            # user_profile.save()
             return redirect('user:profile_detail')
         else:
             print(form.errors)
@@ -136,6 +136,10 @@ def client_profile_edit(request):
         form = ClientProfileForm(
             instance=client_profile,
             initial={
+                'first_name': request.user.userprofile.first_name,
+                'last_name': request.user.userprofile.last_name,
+                'phone_number': request.user.userprofile.phone_number,
+                'location': request.user.userprofile.location,
                 'age': request.user.userprofile.age,
                 'gender': request.user.userprofile.gender,
                 'emergency_contact': request.user.userprofile.emergency_contact
@@ -153,19 +157,19 @@ def volunteer_profile_edit(request):
         form = VolunteerProfileForm(request.POST, request.FILES, instance=volunteer_profile)
         if form.is_valid():
             form.save()
-            user_profile = request.user.userprofile
-            user_age = form.cleaned_data.get('age')
-            user_gender = form.cleaned_data.get('gender')
-            user_emergency_contact = form.cleaned_data.get('emergency_contact')
-            if user_age:
-                user_profile.age = user_age
-                user_profile.save()
-            if user_gender:
-                user_profile.gender = user_gender
-                user_profile.save()
-            if user_emergency_contact:
-                user_profile.emergency_contact = user_emergency_contact
-                user_profile.save()
+            # user_profile = request.user.userprofile
+            # user_age = form.cleaned_data.get('age')
+            # user_gender = form.cleaned_data.get('gender')
+            # user_emergency_contact = form.cleaned_data.get('emergency_contact')
+            # if user_age:
+            #     user_profile.age = user_age
+            #     user_profile.save()
+            # if user_gender:
+            #     user_profile.gender = user_gender
+            #     user_profile.save()
+            # if user_emergency_contact:
+            #     user_profile.emergency_contact = user_emergency_contact
+            #     user_profile.save()
             return redirect('user:profile_detail')
         else:
             print(form.errors)
@@ -173,6 +177,10 @@ def volunteer_profile_edit(request):
         form = VolunteerProfileForm(
             instance=volunteer_profile,
             initial={
+                'first_name': request.user.userprofile.first_name,
+                'last_name': request.user.userprofile.last_name,
+                'phone_number': request.user.userprofile.phone_number,
+                'location': request.user.userprofile.location,
                 'age': request.user.userprofile.age,
                 'gender': request.user.userprofile.gender,
                 'emergency_contact': request.user.userprofile.emergency_contact
@@ -309,3 +317,8 @@ def save_preferred_times(request):
             volunteer_profile.save()
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
+
+class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    form_class = PasswordChangeForm
+    template_name = 'user/password_change.html'
+    success_url = reverse_lazy('user:password_change_done')
