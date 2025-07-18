@@ -80,5 +80,8 @@
                 </p>
             {% endif %}
         {% endif %}
+        {% if be_accepted or is_client %}
+            <a href="{% url 'communication:task_communication_view' task.id %}" class="btn btn-primary mt-3">Join Task Chat</a>
+        {% endif %}
     </div>
 {% endblock %}

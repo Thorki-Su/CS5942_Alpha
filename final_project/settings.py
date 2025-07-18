@@ -41,7 +41,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
     'https://mangoairport-artistbanana-8000.codio-box.uk',
     'http://localhost:8000',
-    'http://127.0.0.1:8000',
+    'http://127.0.0.1:8000',  # 确保包含本地开发环境
+    'http://127.0.0.1',  # 覆盖所有本地请求
 ]
 
 INSTALLED_APPS = [
@@ -50,7 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles',  # 确保静态文件应用已启用
     'user',
     'volunteer',
     'matching',
@@ -70,6 +71,9 @@ CHANNEL_LAYERS = {
         'CONFIG': {
             "hosts": [('127.0.0.1', 6379)],
         },
+        'expire': 120,
+        'timeout': 30,
+        'retry_attempts': 3,  # 添加重试
     },
 }
 
@@ -90,14 +94,15 @@ ROOT_URLCONF = 'final_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
+        'DIRS': [BASE_DIR / 'templates'],  # 全局模板目录
+        'APP_DIRS': True,  # 启用应用内模板查找
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.static',  # 添加静态文件上下文处理器
             ],
         },
     },
@@ -120,7 +125,7 @@ else:
         'default': dj_database_url.config(
             default=os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3'),
             conn_max_age=600,
-            ssl_require=os.getenv('RENDER') == 'true'
+            ssl_require=os.environ.get('RENDER') == 'true'
         )
     }
 
@@ -136,10 +141,15 @@ TIME_ZONE = 'Europe/London'
 USE_I18N = True
 USE_TZ = True
 
+# 确保 Session 配置
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # 默认数据库存储
+CSRF_COOKIE_SECURE = False  # 开发环境禁用安全 Cookie
+SESSION_COOKIE_SECURE = False  # 开发环境禁用安全 Session Cookie
+
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]  # 确保静态文件目录正确配置
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

@@ -1,178 +1,134 @@
-{% extends 'base.html' %}
-{% block title %}Communication{% endblock %}
-{% block style %}
-<style>
-    .chat-container {
-        width: 70%;
-        margin: 20px auto;
-        border: 1px solid #ccc;
-        padding: 10px;
-        height: 400px;
-        overflow-y: auto;
-    }
-    .message {
-        margin: 10px 0;
-        padding: 5px;
-        border-radius: 5px;
-    }
-    .message.sent {
-        background-color: #e9ecef;
-        text-align: right;
-    }
-    .message.received {
-        background-color: #f8f9fa;
-    }
-    .video-call-btn, .audio-btn {
-        margin-top: 10px;
-    }
-    .video-container {
-        display: none;
-        width: 80%;
-        margin: 20px auto;
-        justify-content: space-between;
-    }
-    video {
-        width: 45%;
-        border: 1px solid #ccc;
-    }
-    audio {
-        width: 45%;
-        border: 1px solid #ccc;
-    }
-</style>
-{% endblock %}
-{% block content %}
-<div class="chat-container" id="chat-container">
-    <div id="message-list"></div>
-    <input type="text" id="message-input" placeholder="Type a message..." class="form-control">
-    <button onclick="sendMessage()" class="btn btn-primary mt-2">Send</button>
-    <button onclick="toggleVideoCall()" class="btn btn-success video-call-btn">Start/Stop Video Call</button>
-    <button onclick="toggleAudio()" class="btn btn-info audio-btn" id="audio-btn">Start/Stop Audio</button>
-</div>
-<div class="video-container" id="video-container">
-    <video id="localVideo" autoplay playsinline muted></video>
-    <video id="remoteVideo" autoplay playsinline></video>
-    <audio id="localAudio" autoplay playsinline muted></audio>
-    <audio id="remoteAudio" autoplay playsinline></audio>
-</div>
-<script>
-    const roomName = "{{ room_name }}";
-    const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/' + roomName + '/');
-    let videoSocket = null;
-    let peerConnection = null;
-    let localStream = null;
-    let isMuted = false;
-
-    chatSocket.onopen = function(e) {
-        console.log("WebSocket connected");
-    };
-
-    chatSocket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        const messageList = document.getElementById('message-list');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${data.sender === '{{ user.email }}' ? 'sent' : 'received'}`;
-        messageDiv.innerHTML = `<strong>${data.sender}</strong>: ${data.message} <small>(${new Date(data.timestamp).toLocaleString()})</small>`;
-        messageList.appendChild(messageDiv);
-        messageList.scrollTop = messageList.scrollHeight;
-
-        if (data.audio_data) {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const audioData = base64ToArrayBuffer(data.audio_data);
-            audioContext.decodeAudioData(audioData, function(buffer) {
-                const source = audioContext.createBufferSource();
-                source.buffer = buffer;
-                source.connect(audioContext.destination);
-                source.start(0);
-            });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1v1 Chat Room</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
         }
-    };
-
-    chatSocket.onclose = function(e) {
-        console.log("WebSocket disconnected");
-    };
-
-    function sendMessage() {
-        const messageInput = document.getElementById('message-input');
-        const message = messageInput.value;
-        if (message) {
-            const data = {
-                'message': message,
-                'timestamp': new Date().toISOString()
-            };
-            chatSocket.send(JSON.stringify(data));
-            // 本地回显
-            const messageList = document.getElementById('message-list');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message sent';
-            messageDiv.innerHTML = `<strong>{{ user.email }}</strong>: ${message} <small>(${new Date().toLocaleString()})</small>`;
-            messageList.appendChild(messageDiv);
-            messageList.scrollTop = messageList.scrollHeight;
-            messageInput.value = '';
+        .message {
+            max-width: 70%;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            display: inline-block;
         }
-    }
-
-    function toggleVideoCall() {
-        const videoContainer = document.getElementById('video-container');
-        if (videoContainer.style.display === 'none') {
-            startVideoCall();
-        } else {
-            endCall();
+        .sent {
+            background-color: #0084ff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
         }
-    }
-
-    function toggleAudio() {
-        if (!localStream) {
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(stream => {
-                    localStream = stream;
-                    sendAudioStream();
-                    document.getElementById('audio-btn').textContent = 'Stop Audio';
-                })
-                .catch(err => console.error('Audio error:', err));
-        } else {
-            localStream.getAudioTracks().forEach(track => track.stop());
-            localStream = null;
-            chatSocket.send(JSON.stringify({'audio_data': null}));
-            document.getElementById('audio-btn').textContent = 'Start Audio';
+        .received {
+            background-color: #e9ecef;
+            color: black;
+            margin-right: auto;
+            text-align: left;
         }
-    }
+        .message-time {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .input-area {
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            background-color: #fff;
+        }
+        .video-container, .audio-container {
+            display: none;
+            width: 80%;
+            margin: 20px auto;
+            justify-content: space-between;
+        }
+        video, audio {
+            width: 45%;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center">
+    <div class="w-full max-w-2xl bg-white shadow-lg rounded-lg flex flex-col h-screen">
+        <!-- Header -->
+        <div class="p-4 border-b flex justify-between items-center">
+            <h2 class="text-xl font-bold">Chat with {{ user2_email }}</h2>
+            <span class="text-gray-600">You: {{ request.user.email }}</span>
+        </div>
 
-    function startVideoCall() {
-        const videoContainer = document.getElementById('video-container');
-        const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
-        const localAudio = document.getElementById('localAudio');
-        const remoteAudio = document.getElementById('remoteAudio');
-        videoSocket = new WebSocket('ws://' + window.location.host + '/ws/video/' + roomName + '/');
-        peerConnection = new RTCPeerConnection();
+        <!-- Chat Container -->
+        <div class="chat-container" id="chat-container">
+            {% for message in messages %}
+                {% if message.sender.email == request.user.email %}
+                    <div class="message sent">
+                        <p>{{ message.content }}</p>
+                        <div class="message-time">{{ message.timestamp|date:"H:i" }}</div>
+                    </div>
+                {% else %}
+                    <div class="message received">
+                        <p>{{ message.content }}</p>
+                        <div class="message-time">{{ message.timestamp|date:"H:i" }}</div>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <p class="text-center text-gray-500">No messages yet. Start the conversation!</p>
+            {% endfor %}
+            <div id="message-list"></div> <!-- 保留动态消息区域 -->
+        </div>
 
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-            .then(stream => {
-                localStream = stream;
-                localVideo.srcObject = stream;
-                localAudio.srcObject = stream;
-                stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
-            });
+        <!-- Input Area -->
+        <div class="input-area flex items-center">
+            <input type="text" id="message-input" class="flex-1 p-2 border rounded-l-lg focus:outline-none" placeholder="Type a message..." required>
+            <button type="button" onclick="sendMessage()" class="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600">Send</button>
+        </div>
 
-        peerConnection.ontrack = event => {
-            remoteVideo.srcObject = event.streams[0];
-            remoteAudio.srcObject = event.streams[0];
+        <!-- Video and Audio Controls -->
+        <div class="p-4 border-t flex justify-end">
+            <button onclick="toggleVideoCall()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 mr-2 video-call-btn">Start/Stop Video Call</button>
+            <button onclick="toggleAudio()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 audio-btn" id="audio-btn">Start/Stop Audio</button>
+        </div>
+
+        <!-- Video and Audio Containers -->
+        <div class="video-container" id="video-container">
+            <video id="localVideo" autoplay playsinline muted></video>
+            <video id="remoteVideo" autoplay playsinline></video>
+            <audio id="localAudio" autoplay playsinline muted></audio>
+            <audio id="remoteAudio" autoplay playsinline></audio>
+        </div>
+    </div>
+
+    <script>
+        // Auto-scroll to the latest message
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        // Real-time message handling with WebSocket
+        const roomName = "{{ room_name }}";
+        const userEmail = "{{ request.user.email }}";
+        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const wsPath = `${wsScheme}://${window.location.host}/ws/chat/${roomName}/`;
+        const ws = new WebSocket(wsPath, null, { withCredentials: true });
+        let videoSocket = null;
+        let peerConnection = null;
+        let localStream = null;
+
+        ws.onopen = () => {
+            console.log('WebSocket connected to room:', roomName);
         };
 
-        videoSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            if (data.signal) {
-                if (data.sender !== '{{ user.email }}') {
-                    peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal))
-                        .then(() => peerConnection.createAnswer())
-                        .then(answer => peerConnection.setLocalDescription(answer))
-                        .then(() => videoSocket.send(JSON.stringify({
-                            signal: peerConnection.localDescription,
-                            sender: '{{ user.email }}'
-                        })));
-                }
-            }
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const messageList = document.getElementById('message-list');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', data.sender === userEmail ? 'sent' : 'received');
+            messageElement.innerHTML = `<p>${data.message}</p><div class="message-time">${new Date(data.timestamp).toLocaleTimeString()}</div>`;
+            messageList.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
             if (data.audio_data) {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const audioData = base64ToArrayBuffer(data.audio_data);
@@ -185,61 +141,148 @@
             }
         };
 
-        peerConnection.createOffer()
-            .then(offer => peerConnection.setLocalDescription(offer))
-            .then(() => videoSocket.send(JSON.stringify({
-                signal: peerConnection.localDescription,
-                sender: '{{ user.email }}'
-            })));
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
 
-        videoContainer.style.display = 'flex';
-    }
+        ws.onclose = () => {
+            console.log('WebSocket disconnected');
+        };
 
-    function sendAudioStream() {
-        if (localStream) {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const mediaStreamSource = audioContext.createMediaStreamSource(localStream);
-            const processor = audioContext.createScriptProcessor(4096, 1, 1);
+        // Send message
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            if (message && ws.readyState === WebSocket.OPEN) {
+                const data = {
+                    'message': message,
+                    'timestamp': new Date().toISOString()
+                };
+                ws.send(JSON.stringify(data));
+                messageInput.value = '';
+            } else if (ws.readyState !== WebSocket.OPEN) {
+                alert('WebSocket is not connected. Please try again.');
+            }
+        }
 
-            mediaStreamSource.connect(processor);
-            processor.connect(audioContext.destination);
+        // Video Call Functions
+        function toggleVideoCall() {
+            const videoContainer = document.getElementById('video-container');
+            if (videoContainer.style.display === 'none') {
+                startVideoCall();
+            } else {
+                endCall();
+            }
+        }
 
-            processor.onaudioprocess = function(e) {
-                const left = e.inputBuffer.getChannelData(0);
-                const audioData = arrayBufferToBase64(left);
-                chatSocket.send(JSON.stringify({'audio_data': audioData}));
+        function startVideoCall() {
+            const videoContainer = document.getElementById('video-container');
+            const localVideo = document.getElementById('localVideo');
+            const remoteVideo = document.getElementById('remoteVideo');
+            videoSocket = new WebSocket('ws://' + window.location.host + '/ws/video/' + roomName + '/');
+            peerConnection = new RTCPeerConnection();
+
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(stream => {
+                    localStream = stream;
+                    localVideo.srcObject = stream;
+                    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+                });
+
+            peerConnection.ontrack = event => {
+                remoteVideo.srcObject = event.streams[0];
             };
-        }
-    }
 
-    function endCall() {
-        if (peerConnection) peerConnection.close();
-        if (videoSocket) videoSocket.close();
-        if (localStream) localStream.getTracks().forEach(track => track.stop());
-        document.getElementById('video-container').style.display = 'none';
-        document.getElementById('localVideo').srcObject = null;
-        document.getElementById('remoteVideo').srcObject = null;
-        document.getElementById('localAudio').srcObject = null;
-        document.getElementById('remoteAudio').srcObject = null;
-    }
+            videoSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                if (data.signal) {
+                    if (data.sender !== userEmail) {
+                        peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal))
+                            .then(() => peerConnection.createAnswer())
+                            .then(answer => peerConnection.setLocalDescription(answer))
+                            .then(() => videoSocket.send(JSON.stringify({
+                                signal: peerConnection.localDescription,
+                                sender: userEmail
+                            })));
+                    }
+                }
+            };
 
-    function arrayBufferToBase64(buffer) {
-        let binary = '';
-        const bytes = new Uint8Array(buffer);
-        for (let i = 0; i < bytes.byteLength; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        return btoa(binary);
-    }
+            peerConnection.createOffer()
+                .then(offer => peerConnection.setLocalDescription(offer))
+                .then(() => videoSocket.send(JSON.stringify({
+                    signal: peerConnection.localDescription,
+                    sender: userEmail
+                })));
 
-    function base64ToArrayBuffer(base64) {
-        const binaryString = atob(base64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
+            videoContainer.style.display = 'flex';
         }
-        return bytes.buffer;
-    }
-</script>
-{% endblock %}
+
+        function endCall() {
+            if (peerConnection) peerConnection.close();
+            if (videoSocket) videoSocket.close();
+            if (localStream) localStream.getTracks().forEach(track => track.stop());
+            document.getElementById('video-container').style.display = 'none';
+            document.getElementById('localVideo').srcObject = null;
+            document.getElementById('remoteVideo').srcObject = null;
+        }
+
+        // Audio Functions
+        function toggleAudio() {
+            const audioBtn = document.getElementById('audio-btn');
+            if (!localStream) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        localStream = stream;
+                        sendAudioStream();
+                        audioBtn.textContent = 'Stop Audio';
+                    })
+                    .catch(err => console.error('Audio error:', err));
+            } else {
+                localStream.getAudioTracks().forEach(track => track.stop());
+                localStream = null;
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({'audio_data': null}));
+                }
+                audioBtn.textContent = 'Start Audio';
+            }
+        }
+
+        function sendAudioStream() {
+            if (localStream && ws && ws.readyState === WebSocket.OPEN) {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const mediaStreamSource = audioContext.createMediaStreamSource(localStream);
+                const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+                mediaStreamSource.connect(processor);
+                processor.connect(audioContext.destination);
+
+                processor.onaudioprocess = function(e) {
+                    const left = e.inputBuffer.getChannelData(0);
+                    const audioData = arrayBufferToBase64(left);
+                    ws.send(JSON.stringify({'audio_data': audioData}));
+                };
+            }
+        }
+
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+    </script>
+</body>
+</html>
