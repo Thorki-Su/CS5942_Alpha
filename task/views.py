@@ -238,13 +238,6 @@ def approve_application(request, application_id):
     
     application.status = 'accepted'
     application.save()
-
-    # if approved_count + 1 >= task.vol_number:
-    #     TaskApplication.objects.filter(task=task, status='pending').update(status='unselected')
-    #     task.status = 'selected'
-    #     task.save()
-    application.status = 'accepted'
-    application.save()
     task.update_status_if_full()
     return redirect('task:task_application', task.id)
 
