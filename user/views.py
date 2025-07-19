@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
@@ -35,8 +35,11 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            # print("登录成功，用户 role 是：", user.role)
             if user.role == 'admin':
-                return redirect('/admin/')
+                # print("管理员身份，准备跳转后台")
+                return redirect('adminpanel:dashboard')
+            # print("普通用户身份，准备跳转 user:home")
             return redirect('user:home')
         else:
             messages.error(request, "Wrong email or password.")
@@ -62,11 +65,6 @@ def client_register(request):
                 form.add_error('location', 'Please enter a valid postcode within Aberdeen')
             else:
                 user = form.save()
-                # login(request, user)
-                # return redirect('user:home')
-                # print("EMAIL_HOST:", settings.EMAIL_HOST)
-                # print("EMAIL_HOST_USER:", settings.EMAIL_HOST_USER)
-                # print("DEFAULT_FROM_EMAIL:", settings.DEFAULT_FROM_EMAIL)
                 send_activation_email(user, request)
                 return render(request, 'user/please_check_email.html')
         else:
@@ -84,8 +82,6 @@ def volunteer_register(request):
                 form.add_error('location', 'Please enter a valid postcode within Aberdeen')
             else:
                 user = form.save()
-                # login(request, user)
-                # return redirect('user:home')
                 send_activation_email(user, request)
                 return render(request, 'user/please_check_email.html')
         else:
@@ -120,15 +116,6 @@ def client_profile_edit(request):
         form = ClientProfileForm(request.POST, request.FILES, instance=client_profile)
         if form.is_valid():
             form.save()
-            # user_profile = request.user.userprofile
-            # user_profile.first_name = form.cleaned_data.get('first_name') or user_profile.first_name
-            # user_profile.last_name = form.cleaned_data.get('last_name') or user_profile.last_name
-            # user_profile.phone_number = form.cleaned_data.get('phone_number') or user_profile.phone_number
-            # user_profile.location = form.cleaned_data.get('location') or user_profile.location
-            # user_profile.age = form.cleaned_data.get('age') or user_profile.age
-            # user_profile.gender = form.cleaned_data.get('gender') or user_profile.gender
-            # user_profile.emergency_contact = form.cleaned_data.get('emergency_contact') or user_profile.emergency_contact
-            # user_profile.save()
             return redirect('user:profile_detail')
         else:
             print(form.errors)
@@ -157,19 +144,6 @@ def volunteer_profile_edit(request):
         form = VolunteerProfileForm(request.POST, request.FILES, instance=volunteer_profile)
         if form.is_valid():
             form.save()
-            # user_profile = request.user.userprofile
-            # user_age = form.cleaned_data.get('age')
-            # user_gender = form.cleaned_data.get('gender')
-            # user_emergency_contact = form.cleaned_data.get('emergency_contact')
-            # if user_age:
-            #     user_profile.age = user_age
-            #     user_profile.save()
-            # if user_gender:
-            #     user_profile.gender = user_gender
-            #     user_profile.save()
-            # if user_emergency_contact:
-            #     user_profile.emergency_contact = user_emergency_contact
-            #     user_profile.save()
             return redirect('user:profile_detail')
         else:
             print(form.errors)

@@ -1,8 +1,14 @@
 # CS5942: MSC PROJECT IN INFORMATION TECHNOLOGY
 # Team Alpha
 In this file we will introduce each parts in the project.
+Our application has been deployed on Render: https://cs5942-alpha.onrender.com
 
-# How to run
+# How to run(local)
+use this code:
+```bash
+$env:DJANGO_DEVELOPMENT=1
+python manage.py runserver
+```
 
 # Project Structure
 Our project's name is '**final_project**'.  

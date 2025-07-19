@@ -1,0 +1,26 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}User details{% endblock %}
+
+{% block content %}
+    <div style="margin: 50px;">
+        <h1>User details</h1>
+        <p><strong>ID:</strong> {{ user.id }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Name:</strong> {{ user.userprofile.get_full_name }}</p>
+        <p><strong>Role:</strong> {{ user.role }}</p>
+        <p><strong>Activated or not:</strong> {{ user.is_active }}</p>
+        <p><strong>Age:</strong> {{ user.userprofile.age|default:"unfilled" }}</p>
+        <p><strong>Gender:</strong> {{ user.userprofile.gender|default:"unfilled" }}</p>
+        <p><strong>Phone Number:</strong> {{ user.userprofile.phone_number|default:"unfilled" }}</p>
+        <p><strong>Location:</strong> {{ user.userprofile.location }}</p>
+        <p><strong>Photo:</strong></p>
+        {% if user.userprofile.profile_photo %}
+            <p><img src="{{ user.userprofile.profile_photo.url }}" alt="Profile Photo" width="200"></p>
+        {% else %}
+            <p>No photos</p>
+        {% endif %}
+        <p><strong>Emergency Contact:</strong> {{ user.userprofile.emergency_contact|default:"unfilled" }}</p>
+    </div>
+{% endblock %}
