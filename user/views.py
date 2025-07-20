@@ -18,6 +18,7 @@ from django.core.files.storage import default_storage
 from storages.backends.s3boto3 import S3Boto3Storage
 from task.models import Task
 from user.utils import geocode_address, is_valid_aberdeen_postcode, send_activation_email
+from volunteer.utils import calculate_volunteer_duration, format_volunteer_duration
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
@@ -217,6 +218,10 @@ def profile_detail(request):
             except json.JSONDecodeError:
                 preferred_times = {}
 
+        # Calculate volunteer duration
+        total_hours = calculate_volunteer_duration(user)
+        formatted_duration = format_volunteer_duration(total_hours)
+
         context = {
             'user': user,
             'user_profile': user_profile,
@@ -226,6 +231,8 @@ def profile_detail(request):
             'days': days,
             'time_slots': time_slots,
             'preferred_times': preferred_times,
+            'volunteer_duration': formatted_duration,
+            'volunteer_duration_hours': total_hours,
         }
     else:
         context = {
