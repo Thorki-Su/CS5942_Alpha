@@ -87,6 +87,12 @@
 <div style='margin:50px;margin-left:200px;'>
     <h3>Your Volunteer Statistics:</h3>
     <p><strong>Total Volunteer Duration:</strong> {{ volunteer_duration }}</p>
+    {% if volunteer_duration_hours > 0 %}
+        <p><em>You have contributed {{ volunteer_duration_hours|floatformat:1 }} hours of volunteer service!</em></p>
+        <p><a href="{% url 'volunteer:service_certificate' %}" class="btn btn-success">Get Volunteer Service Certificate</a></p>
+    {% else %}
+        <p><em>Complete your first task to start tracking your volunteer hours!</em></p>
+    {% endif %}
 </div>
 {% endif %}
 
