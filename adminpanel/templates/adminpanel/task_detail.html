@@ -1,0 +1,63 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Task Detail{% endblock %}
+
+{% block content %}
+    <div style="margin: 50px;">
+        <div>
+            <h1>Task details</h1>
+            <p><strong>ID:</strong> {{ task.id }}</p>
+            <p><strong>Title:</strong> {{ task.title }}</p>
+            <p><strong>Description:</strong> {{ task.description }}</p>
+            <p><strong>Work Area:</strong> {{ task.work_area }}</p>
+            <p><strong>Start Time:</strong> {{ task.start_time }}</p>
+            <p><strong>End Time:</strong> {{ task.end_time }}</p>
+            <p><strong>Needed Volunteer:</strong> {{ task.vol_number }}</p>
+            <p><strong>Status:</strong> {{ task.status }}</p>
+            <p><strong>Creater:</strong> {{ task.client }} [{{ task.client.userprofile.get_full_name }}]</p>
+            <p><strong>Created At:</strong> {{ task.created_at }}</p>
+            <p><strong>Closed At:</strong> {{ task.closed_at }}</p>
+        </div>
+        <div>
+            {% if applications %}
+            <h2>Applications for this task.</h2>
+                {% for app in applications %}
+                    <p><strong>Applicant:</strong> {{ app.volunteer }} [{{ app.volunteer.userprofile.get_full_name }}]</p>
+                    <p><strong>Status:</strong> {{ app.status }}</p>
+                    <p><strong>Apply At:</strong> {{ app.applied_at }}</p>
+                    {% if app.completed_at %}
+                        <p><strong>Completed At:</strong> {{ app.completed_at }}</p>
+                    {% elif app.cancelled_at %}
+                        <p><strong>Cancelled At:</strong> {{ app.cancelled_at }}</p>
+                    {% endif %}
+                    <p><strong>Auto-match or not:</strong> {{ app.is_auto_matched }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div>
+            {% if records %}
+                <h2>Records for this task.</h2>
+                {% for record in records %}
+                    <p><strong>Volunteer:</strong> {{ record.volunteer }} [{{ record.volunteer.userprofile.get_full_name }}]</p>
+                    <p><strong>Records:</strong> {{ record.records }}</p>
+                    <p><strong>Submitted At:</strong> {{ record.submitted_at }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div>
+            {% if feedbacks %}
+                <h2>Feedbacks for this task.</h2>
+                {% for feedback in feedbacks %}
+                    <p><strong>From:</strong> {{ feedback.from_user }} [{{ feedback.from_user.userprofile.get_full_name }}]</p>
+                    <p><strong>To:</strong> {{ feedback.to_user }} [{{ feedback.to_user.userprofile.get_full_name }}]</p>
+                    <p><strong>Satisfied or not:</strong> {{ feedback.is_satisfied }}</p>
+                    {% if feedback.comment %}
+                        <p><strong>Comments:</strong> {{ feedback.comment }}</p>
+                    {% endif %}
+                    <p><strong>Submitted At:</strong> {{ feedback.submitted_at }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
