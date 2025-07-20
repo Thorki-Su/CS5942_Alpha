@@ -7,60 +7,22 @@
     {% load static %}
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        .chat-container {
-            height: 80vh;
-            overflow-y: auto;
-            padding: 20px;
-        }
-        .message {
-            max-width: 70%;
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            border-radius: 10px;
-            display: inline-block;
-        }
-        .sent {
-            background-color: #0084ff;
-            color: white;
-            margin-left: auto;
-            text-align: right;
-        }
-        .received {
-            background-color: #e9ecef;
-            color: black;
-            margin-right: auto;
-            text-align: left;
-        }
-        .message-time {
-            font-size: 0.75rem;
-            color: #666;
-        }
-        .input-area {
-            padding: 10px;
-            border-top: 1px solid #ddd;
-            background-color: #fff;
-        }
-        .video-container, .audio-container {
-            display: none;
-            width: 80%;
-            margin: 20px auto;
-            justify-content: space-between;
-        }
-        video, audio {
-            width: 45%;
-            border: 1px solid #ccc;
-        }
+        .chat-container { height: 80vh; overflow-y: auto; padding: 20px; }
+        .message { max-width: 70%; margin-bottom: 15px; padding: 10px 15px; border-radius: 10px; display: inline-block; }
+        .sent { background-color: #0084ff; color: white; margin-left: auto; text-align: right; }
+        .received { background-color: #e9ecef; color: black; margin-right: auto; text-align: left; }
+        .message-time { font-size: 0.75rem; color: #666; }
+        .input-area { padding: 10px; border-top: 1px solid #ddd; background-color: #fff; }
+        .video-container, .audio-container { display: none; width: 80%; margin: 20px auto; justify-content: space-between; }
+        video, audio { width: 45%; border: 1px solid #ccc; }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center">
     <div class="w-full max-w-2xl bg-white shadow-lg rounded-lg flex flex-col h-screen">
-        <!-- Header -->
         <div class="p-4 border-b flex justify-between items-center">
             <h2 class="text-xl font-bold">Chat with {{ user2_email }}</h2>
             <span class="text-gray-600">You: {{ request.user.email }}</span>
         </div>
-
-        <!-- Chat Container -->
         <div class="chat-container" id="chat-container">
             {% for message in messages %}
                 {% if message.sender.email == request.user.email %}
@@ -77,22 +39,16 @@
             {% empty %}
                 <p class="text-center text-gray-500">No messages yet. Start the conversation!</p>
             {% endfor %}
-            <div id="message-list"></div> <!-- 保留动态消息区域 -->
+            <div id="message-list"></div>
         </div>
-
-        <!-- Input Area -->
         <div class="input-area flex items-center">
             <input type="text" id="message-input" class="flex-1 p-2 border rounded-l-lg focus:outline-none" placeholder="Type a message..." required>
             <button type="button" onclick="sendMessage()" class="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600">Send</button>
         </div>
-
-        <!-- Video and Audio Controls -->
         <div class="p-4 border-t flex justify-end">
             <button onclick="toggleVideoCall()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 mr-2 video-call-btn">Start/Stop Video Call</button>
             <button onclick="toggleAudio()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 audio-btn" id="audio-btn">Start/Stop Audio</button>
         </div>
-
-        <!-- Video and Audio Containers -->
         <div class="video-container" id="video-container">
             <video id="localVideo" autoplay playsinline muted></video>
             <video id="remoteVideo" autoplay playsinline></video>
@@ -102,54 +58,80 @@
     </div>
 
     <script>
-        // Auto-scroll to the latest message
         const chatContainer = document.getElementById('chat-container');
         chatContainer.scrollTop = chatContainer.scrollHeight;
 
-        // Real-time message handling with WebSocket
         const roomName = "{{ room_name }}";
         const userEmail = "{{ request.user.email }}";
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
         const wsPath = `${wsScheme}://${window.location.host}/ws/chat/${roomName}/`;
-        const ws = new WebSocket(wsPath, null, { withCredentials: true });
+        let ws = new WebSocket(wsPath, null, { withCredentials: true });
         let videoSocket = null;
         let peerConnection = null;
         let localStream = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectInterval = 2000; // 2秒重连间隔
 
-        ws.onopen = () => {
-            console.log('WebSocket connected to room:', roomName);
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            const messageList = document.getElementById('message-list');
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message', data.sender === userEmail ? 'sent' : 'received');
-            messageElement.innerHTML = `<p>${data.message}</p><div class="message-time">${new Date(data.timestamp).toLocaleTimeString()}</div>`;
-            messageList.appendChild(messageElement);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-
-            if (data.audio_data) {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const audioData = base64ToArrayBuffer(data.audio_data);
-                audioContext.decodeAudioData(audioData, function(buffer) {
-                    const source = audioContext.createBufferSource();
-                    source.buffer = buffer;
-                    source.connect(audioContext.destination);
-                    source.start(0);
-                });
+        function reconnect() {
+            if (reconnectAttempts < maxReconnectAttempts) {
+                setTimeout(() => {
+                    console.log(`Attempting to reconnect (${reconnectAttempts + 1}/${maxReconnectAttempts})...`);
+                    ws = new WebSocket(wsPath, null, { withCredentials: true });
+                    setupWebSocket();
+                    reconnectAttempts++;
+                }, reconnectInterval);
+            } else {
+                console.error("Max reconnect attempts reached. Please refresh the page.");
+                alert("Failed to reconnect to WebSocket. Please refresh the page.");
             }
-        };
+        }
 
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
+        function setupWebSocket() {
+            ws.onopen = () => {
+                console.log('WebSocket connected to room:', roomName);
+                reconnectAttempts = 0; // 重置重连计数
+            };
 
-        ws.onclose = () => {
-            console.log('WebSocket disconnected');
-        };
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    const messageList = document.getElementById('message-list');
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('message', data.sender === userEmail ? 'sent' : 'received');
+                    messageElement.innerHTML = `<p>${data.message}</p><div class="message-time">${new Date(data.timestamp).toLocaleTimeString()}</div>`;
+                    messageList.appendChild(messageElement);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
 
-        // Send message
+                    if (data.audio_data) {
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const audioData = base64ToArrayBuffer(data.audio_data);
+                        audioContext.decodeAudioData(audioData, function(buffer) {
+                            const source = audioContext.createBufferSource();
+                            source.buffer = buffer;
+                            source.connect(audioContext.destination);
+                            source.start(0);
+                        }, function(e) {
+                            console.error("Audio decode error:", e);
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error processing message:", e);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                reconnect();
+            };
+        }
+
+        setupWebSocket();
+
         function sendMessage() {
             const messageInput = document.getElementById('message-input');
             const message = messageInput.value.trim();
@@ -161,11 +143,10 @@
                 ws.send(JSON.stringify(data));
                 messageInput.value = '';
             } else if (ws.readyState !== WebSocket.OPEN) {
-                alert('WebSocket is not connected. Please try again.');
+                alert('WebSocket is not connected. Please try again or wait for reconnection.');
             }
         }
 
-        // Video Call Functions
         function toggleVideoCall() {
             const videoContainer = document.getElementById('video-container');
             if (videoContainer.style.display === 'none') {
@@ -187,24 +168,30 @@
                     localStream = stream;
                     localVideo.srcObject = stream;
                     stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
-                });
+                })
+                .catch(err => console.error('Media access error:', err));
 
-            peerConnection.ontrack = event => {
+            peerConnection.ontrack = (event) => {
                 remoteVideo.srcObject = event.streams[0];
             };
 
             videoSocket.onmessage = function(e) {
-                const data = JSON.parse(e.data);
-                if (data.signal) {
-                    if (data.sender !== userEmail) {
-                        peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal))
-                            .then(() => peerConnection.createAnswer())
-                            .then(answer => peerConnection.setLocalDescription(answer))
-                            .then(() => videoSocket.send(JSON.stringify({
-                                signal: peerConnection.localDescription,
-                                sender: userEmail
-                            })));
+                try {
+                    const data = JSON.parse(e.data);
+                    if (data.signal) {
+                        if (data.sender !== userEmail) {
+                            peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal))
+                                .then(() => peerConnection.createAnswer())
+                                .then(answer => peerConnection.setLocalDescription(answer))
+                                .then(() => videoSocket.send(JSON.stringify({
+                                    signal: peerConnection.localDescription,
+                                    sender: userEmail
+                                })))
+                                .catch(err => console.error('SDP error:', err));
+                        }
                     }
+                } catch (e) {
+                    console.error("Video signal error:", e);
                 }
             };
 
@@ -213,7 +200,8 @@
                 .then(() => videoSocket.send(JSON.stringify({
                     signal: peerConnection.localDescription,
                     sender: userEmail
-                })));
+                })))
+                .catch(err => console.error('Offer error:', err));
 
             videoContainer.style.display = 'flex';
         }
@@ -227,7 +215,6 @@
             document.getElementById('remoteVideo').srcObject = null;
         }
 
-        // Audio Functions
         function toggleAudio() {
             const audioBtn = document.getElementById('audio-btn');
             if (!localStream) {
@@ -253,10 +240,8 @@
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const mediaStreamSource = audioContext.createMediaStreamSource(localStream);
                 const processor = audioContext.createScriptProcessor(4096, 1, 1);
-
                 mediaStreamSource.connect(processor);
                 processor.connect(audioContext.destination);
-
                 processor.onaudioprocess = function(e) {
                     const left = e.inputBuffer.getChannelData(0);
                     const audioData = arrayBufferToBase64(left);

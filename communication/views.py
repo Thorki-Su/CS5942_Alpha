@@ -6,6 +6,7 @@ from task.models import Task, TaskApplication
 from .models import OneToOneChatSession
 from asgiref.sync import sync_to_async, async_to_sync
 from django.urls import reverse
+from django.core.paginator import Paginator
 import asyncio
 import logging
 
@@ -53,8 +54,18 @@ def message_selection_view(request):
 @login_required
 def one_to_one_chat_selection_view(request):
     User = get_user_model()
+    # 获取搜索关键字
+    search_query = request.GET.get('q', '').strip()
     users = User.objects.exclude(email=request.user.email).filter(is_active=True)
-    return render(request, 'communication/one_to_one_chat_selection.html', {'users': users})
+    if search_query:
+        users = users.filter(email__icontains=search_query)
+    
+    # 分页处理，每页 10 人
+    paginator = Paginator(users, 10)
+    page_number = request.GET.get('page')
+    users_page = paginator.get_page(page_number)
+    
+    return render(request, 'communication/one_to_one_chat_selection.html', {'users': users_page})
 
 @login_required
 def task_communication_view(request, task_id):
@@ -73,7 +84,20 @@ def group_chats_view(request):
 
 @login_required
 def one_to_one_communication_view(request, room_name):
-    return render(request, 'communication/communication.html', {'room_name': room_name})
+    from .models import ChatMessage, OneToOneChatSession
+    # 获取聊天记录
+    session = OneToOneChatSession.objects.get(room_name=room_name)
+    users = [session.user1.email, session.user2.email]
+    user2_email = users[0] if users[0] != request.user.email else users[1]
+    messages = ChatMessage.objects.filter(
+        sender__email__in=users,
+        receiver__email__in=users
+    ).order_by('timestamp')
+    return render(request, 'communication/communication.html', {
+        'room_name': room_name,
+        'messages': messages,
+        'user2_email': user2_email
+    })
 
 @login_required
 def create_one_to_one_room(request):
