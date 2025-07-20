@@ -92,6 +92,9 @@
                     <a href="{% url 'task:mytask' %}">My Task</a>
                 {% endif %}
                 <a href="{% url 'task:task_ongoing' %}">Ongoing Task</a>
+                {% if user.role == 'admin' %}
+                    <a href="{% url 'adminpanel:dashboard' %}">Admin Dashboard</a>
+                {% endif %}
                 <form action="{% url 'user:logout' %}" method="post" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-link">Log Out</button>

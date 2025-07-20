@@ -1,0 +1,29 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Task List{% endblock %}
+
+{% block content %}
+    <div style="margin: 50px;">
+        <h2>Task List</h2>
+
+        <table border="1" cellpadding="8" cellspacing="0">
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Creater</th>
+                <th>Status</th>
+                <th>Detail</th>
+            </tr>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.id }}</td>
+                <td>{{ task.title }}</td>
+                <td>{{ task.client }}</td>
+                <td>{{ task.status }}</td>
+                <td><a href="{% url 'adminpanel:task_detail' task.id %}">check out</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
