@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import get_user_model
-from task.models import Task, TaskApplication, TaskRecord, Feedback
+from task.models import Task, TaskApplication, TaskRecord, Feedback, StarRelation
 from django.utils import timezone
 
 User = get_user_model()
@@ -38,7 +38,31 @@ def user_list(request):
 @staff_required
 def user_detail(request, user_id):
     user = get_object_or_404(User, id=user_id)
-    return render(request, 'adminpanel/user_detail.html', {'user': user})
+    give_stars = StarRelation.objects.filter(from_user=user)
+    have_stars = StarRelation.objects.filter(to_user=user)
+    if user.role == 'client':
+        tasks = Task.objects.filter(client=user)
+        context = {
+            'user': user,
+            'tasks':tasks,
+            'give_stars':give_stars,
+            'have_stars':have_stars,
+        }
+    elif user.role == 'volunteer':
+        applications = TaskApplication.objects.filter(volunteer=user)
+        context = {
+            'user': user,
+            'applications':applications,
+            'give_stars':give_stars,
+            'have_stars':have_stars,
+        }
+    else:
+        context = {
+            'user': user,
+            'give_stars':give_stars,
+            'have_stars':have_stars,
+        }
+    return render(request, 'adminpanel/user_detail.html', context)
 
 @staff_required
 def task_list(request):
