@@ -84,7 +84,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')],  # 修改：使用 Render 的 REDIS_URL
+            "hosts": [os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')],  # 修改：优先使用 REDIS_URL，fallback 到本地仅用于开发
         },
         'expire': 120,
         'retry_attempts': 5,
