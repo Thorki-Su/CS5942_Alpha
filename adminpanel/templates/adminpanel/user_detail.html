@@ -7,6 +7,9 @@
     <div style="margin: 50px;">
         <div>
             <h1>User details</h1>
+            <div>
+                <p><a href="{% url 'adminpanel:user_file' user.id %}">User's file</a></p>
+            </div>
             <p><strong>ID:</strong> {{ user.id }}</p>
             <p><strong>Email:</strong> {{ user.email }}</p>
             <p><strong>Name:</strong> {{ user.userprofile.get_full_name }}</p>
@@ -31,14 +34,14 @@
                     <p><strong>Title:</strong> {{ task.title }}</p>
                     <p><strong>Status:</strong> {{ task.status }}</p>
                     <p><strong>Created At:</strong> {{ task.created_at }}</p>
-                    <p><strong>Detail:</strong> <a href="{% url 'adminpanel:task_detail' task.id %}">check out</a></p>
+                    <p><strong>Detail:</strong> <a href="{% url 'adminpanel:task_detail' task.id %}">check out</a></p><br><br>
                 {% endfor %}
             {% elif user.role == 'volunteer' %}
                 <h2>User's Application</h2>
                 {% for app in applications %}
                     <p><strong>Task:</strong> <a href="{% url 'adminpanel:task_detail' app.task.id %}">{{ app.task.title }}</a></p>
                     <p><strong>Status:</strong> {{ app.status }}</p>
-                    <p><strong>Apply At:</strong> {{ app.applied_at }}</p>
+                    <p><strong>Apply At:</strong> {{ app.applied_at }}</p><br><br>
                 {% endfor %}
             {% endif %}
         </div>
@@ -47,7 +50,7 @@
             <h3>Stars Given</h3>
             {% if give_stars %}
                 {% for star in give_stars %}
-                    <p><strong>To:</strong> {{star.to_user}} -- <strong>Time:</strong> {{star.starred_at}}</p>
+                    <p><strong>To:</strong> {{star.to_user}} -- <strong>Time:</strong> {{star.starred_at}}</p><br>
                 {% endfor %}
             {% else  %}
                 <p>This user has not given any stars.</p>
@@ -55,7 +58,7 @@
             <h3>Stars Received</h3>
             {% if have_stars %}
                 {% for star in have_stars %}
-                    <p><strong>From:</strong> {{star.from_user}} -- <strong>Time:</strong> {{star.starred_at}}</p>
+                    <p><strong>From:</strong> {{star.from_user}} -- <strong>Time:</strong> {{star.starred_at}}</p><br>
                 {% endfor %}
             {% else  %}
                 <p>This user has not received any stars.</p>
