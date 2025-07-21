@@ -20,6 +20,7 @@ load_dotenv()
 if not os.getenv('DATABASE_URL'):
     raise ValueError("DATABASE_URL environment variable not set. Please check .env file.")
 print("DEBUG: Loaded DATABASE_URL =", os.environ.get('DATABASE_URL'))  # 调试
+print("DEBUG: Loaded REDIS_URL =", os.environ.get('REDIS_URL'))  # 调试
 
     
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
@@ -84,7 +85,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')],  # 修改：优先使用 REDIS_URL，fallback 到本地仅用于开发
+            "hosts": [os.environ.get('REDIS_URL')],  # 修改：直接使用 REDIS_URL，无本地回退
         },
         'expire': 120,
         'retry_attempts': 5,
