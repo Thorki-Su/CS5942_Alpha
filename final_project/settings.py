@@ -49,7 +49,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-i!o^^a8m_sz=(_5e_c07nyutwzr(fdu+uihy5=gpr^lwvwpotb'
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'mangoairport-artistbanana-8000.codio-box.uk', 'cs5942-alpha.onrender.com']
+ALLOWED_HOSTS = ['*']  # 修改：允许所有主机，或指定 ['cs5942-alpha.onrender.com'] 以提高安全性
 
 CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
@@ -57,6 +57,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     'http://127.0.0.1',
+    'wss://cs5942-alpha.onrender.com',  # 修改：添加 wss:// 支持 WebSocket
 ]
 
 INSTALLED_APPS = [
@@ -83,9 +84,9 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')],  # 修改：使用 Render 的 REDIS_URL
         },
-        'expire': 120,  # 消息过期时间，替换无效的 timeout
+        'expire': 120,
         'retry_attempts': 5,
         'capacity': 1000,
         'channel_capacity': {
@@ -142,7 +143,7 @@ else:
         'default': dj_database_url.config(
             default=os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3'),
             conn_max_age=600,
-            ssl_require=os.environ.get('RENDER') == 'true'
+            ssl_require=os.environ.get('RENDER') == 'true'  # 修改：Render 上启用 SSL
         )
     }
 
@@ -166,8 +167,8 @@ USE_TZ = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 1209600  # 两周
 SESSION_SAVE_EVERY_REQUEST = True  # 每次请求保存 Session
-CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = True  # 修改：Render 上启用 secure cookie
+SESSION_COOKIE_SECURE = True  # 修改：Render 上启用 secure session
 
 LOGIN_URL = '/login/'
 
@@ -179,3 +180,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# 修改：Render HTTPS 支持
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = False  # Render 已处理 HTTPS
+USE_X_FORWARDED_HOST = True
