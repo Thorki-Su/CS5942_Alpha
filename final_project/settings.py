@@ -14,9 +14,13 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
-# 本地开发时加载 .env 文件
-if os.environ.get('DJANGO_DEVELOPMENT'):
-    load_dotenv() # 读取根目录的 .env 文件
+
+# 强制加载 .env 文件
+load_dotenv()
+if not os.getenv('DATABASE_URL'):
+    raise ValueError("DATABASE_URL environment variable not set. Please check .env file.")
+print("DEBUG: Loaded DATABASE_URL =", os.environ.get('DATABASE_URL'))  # 调试
+
     
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 EMAIL_HOST = os.getenv("EMAIL_HOST")
@@ -28,6 +32,7 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "shallion9527@gmail.com")
 
 # print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
 # print("DEBUG: DATABASE_URL =", os.environ.get('DATABASE_URL'))
+
 
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
@@ -51,6 +56,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://mangoairport-artistbanana-8000.codio-box.uk',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'http://127.0.0.1',
 ]
 
 INSTALLED_APPS = [
@@ -78,6 +84,12 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             "hosts": [('127.0.0.1', 6379)],
+        },
+        'expire': 120,  # 消息过期时间，替换无效的 timeout
+        'retry_attempts': 5,
+        'capacity': 1000,
+        'channel_capacity': {
+            'default': 1000,
         },
     },
 }
@@ -107,6 +119,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.static',
             ],
         },
     },
@@ -117,30 +130,21 @@ WSGI_APPLICATION = 'final_project.wsgi.application'
 IS_TESTING = 'test' in os.sys.argv
 IS_DEVELOPMENT = os.environ.get('DJANGO_DEVELOPMENT') == '1'
 
-#if IS_TESTING or IS_DEVELOPMENT:
 if IS_TESTING:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': ':memory:',
         }
     }
 else:
     DATABASES = {
         'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL'),
+            default=os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3'),
             conn_max_age=600,
-            ssl_require=os.getenv('RENDER') == 'true'
+            ssl_require=os.environ.get('RENDER') == 'true'
         )
     }
-
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default='postgresql://alphapostgresql_user:nIJaP1LsDUpC35jxatw8icIiMykfzA0H@dpg-d1e9oceuk2gs73afl2hg-a.oregon-postgres.render.com/alphapostgresql',
-#         conn_max_age=600,
-#         ssl_require=False
-#     )
-# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -158,15 +162,20 @@ TIME_ZONE = 'Europe/London'
 USE_I18N = True
 USE_TZ = True
 
+# 增强 Session 配置
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 1209600  # 两周
+SESSION_SAVE_EVERY_REQUEST = True  # 每次请求保存 Session
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+
 LOGIN_URL = '/login/'
 
-STATIC_URL = '/static/'
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

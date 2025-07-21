@@ -82,8 +82,7 @@
             <a href="{% url 'user:home' %}">Home</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'user:profile_detail' %}">Profile</a>
-                <a href="{% url 'communication:communication_view' %}">1v1 Chat</a>
-                <a href="{% url 'communication:group_chats' %}">Group Chat</a> <!-- 单一入口 -->
+                <a href="{% url 'communication:message_selection' %}">Message</a> <!-- 合并为 Message -->
                 {% if user.role == 'volunteer' %}
                     <a href="{% url 'matching:shift' %}">Join Shift</a>
                     <a href="{% url 'task:tasklist' %}">Task List</a>

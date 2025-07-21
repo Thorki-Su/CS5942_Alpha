@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1v1 Chat Selection</title>
+    {% load static %} <!-- 加载 static 标签 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            padding: 10px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .navbar a, .navbar button {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            white-space: nowrap;
+            transition: color 0.3s;
+        }
+        .navbar a:hover, .navbar button:hover {
+            color: #007bff;
+        }
+        .navbar a.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .logo {
+            height: 40px;
+            vertical-align: middle;
+        }
+        .content-wrapper {
+            margin-top: 60px;
+            padding: 20px;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            background-color: #fff;
+            font-size: 14px;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .messages {
+            margin-top: 80px;
+            margin-left: 20px;
+        }
+        .chat-user-list {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+        }
+        .pagination {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="navbar">
+            <img src="{% static 'images/ShallionLogoTransparent.png' %}" alt="Shallion Logo" class="logo">
+            <a href="{% url 'user:home' %}">Home</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'user:profile_detail' %}">Profile</a>
+                <a href="{% url 'communication:message_selection' %}">Message</a>
+                {% if user.role == 'volunteer' %}
+                    <a href="{% url 'matching:shift' %}">Join Shift</a>
+                    <a href="{% url 'task:tasklist' %}">Task List</a>
+                    <a href="{% url 'task:myapplication' %}">My Application</a>
+                {% elif user.role == 'client' %}
+                    <a href="{% url 'task:mytask' %}">My Task</a>
+                {% endif %}
+                <a href="{% url 'task:task_ongoing' %}">Ongoing Task</a>
+                <form action="{% url 'user:logout' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link">Log Out</button>
+                </form>
+            {% else %}
+                <a href="{% url 'user:login' %}">Login</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="content-wrapper">
+        <div class="container mt-5">
+            <h1>Select a User for 1v1 Chat</h1>
+            <!-- Search Bar -->
+            <div class="search-bar">
+                <input type="text" id="user-search" class="form-control" placeholder="Search by email..." onkeyup="searchUsers()">
+            </div>
+            <!-- User List -->
+            <div class="chat-user-list list-group" id="user-list">
+                {% for user in users %}
+                    <a href="#" class="list-group-item list-group-item-action" onclick="createOneToOneRoom('{{ user.email }}')">
+                        Chat with {{ user.email }}
+                    </a>
+                {% empty %}
+                    <div class="list-group-item">No other users available.</div>
+                {% endfor %}
+            </div>
+            <!-- Pagination -->
+            {% if users.has_other_pages %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if users.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">« First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ users.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+                        {% for num in users.paginator.page_range %}
+                            <li class="page-item {% if users.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if users.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ users.next_page_number }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ users.paginator.num_pages }}">Last »</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+            <a href="{% url 'communication:message_selection' %}" class="btn btn-secondary mt-3">Back to Messages</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2025 Shallion
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // CSRF 令牌
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        function createOneToOneRoom(user2Email) {
+            if (!csrftoken) {
+                console.error('CSRF token not found');
+                alert('CSRF token missing. Please reload the page.');
+                return;
+            }
+
+            const url = '/communication/create-1v1-room/';
+            const params = new URLSearchParams({
+                'user2_email': user2Email
+            }).toString();
+
+            console.log('Fetch URL:', url);
+            console.log('Fetch Params:', params);
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken,
+                },
+                credentials: 'same-origin', // 确保携带认证 Cookie
+                body: params
+            })
+            .then(response => {
+                console.log('Fetch response status:', response.status);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Fetch response data:', data);
+                if (data.room_name) {
+                    window.location.href = data.url;
+                } else {
+                    alert(data.error || 'Failed to create room');
+                }
+            })
+            .catch(error => {
+                console.error('Error creating room:', error);
+                alert('An error occurred. Check the console for details.');
+            });
+        }
+
+        // 搜索功能
+        function searchUsers() {
+            const input = document.getElementById('user-search').value.toLowerCase();
+            const userList = document.getElementById('user-list');
+            const items = userList.getElementsByTagName('a');
+
+            for (let i = 0; i < items.length; i++) {
+                const text = items[i].textContent.toLowerCase();
+                items[i].style.display = text.includes(input) ? '' : 'none';
+            }
+        }
+    </script>
+</body>
+</html>

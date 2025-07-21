@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Message Selection{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Messages</h1>
+    <div class="list-group">
+        <a href="{% url 'communication:one_to_one_chat_selection' %}" class="list-group-item list-group-item-action">1v1 Chat</a>
+        <a href="{% url 'communication:group_chats' %}" class="list-group-item list-group-item-action">Task Chat</a>
+    </div>
+    <a href="{% url 'communication:message_selection' %}" class="btn btn-secondary mt-3">Back to Messages</a> <!-- 修正为 communication:message_selection -->
+</div>
+{% endblock %}
