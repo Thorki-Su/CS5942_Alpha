@@ -4,7 +4,6 @@
 
 {% block content %}
     <div style='margin:50px;'>
-        <p>任务详情，病人和志愿者会看到不同的按钮</p>
         <h2>{{ task.title }}</h2>
         <p>{{ task.description }}</p>
         <p>Creater: {{ task.client.userprofile.get_full_name }}</p>

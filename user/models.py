@@ -25,7 +25,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('volunteer', 'Volunteer'),
         ('admin', 'Admin'),
     ])
-    is_active = models.BooleanField(default=True) #控制账户是否激活（考虑是否需要）
+    is_active = models.BooleanField(default=False) #控制账户是否激活（考虑是否需要）
     is_staff = models.BooleanField(default=False) #控制账号访问管理后台的权限
 
     USERNAME_FIELD = 'email'                      #指定email为登录的标识（取代username）
@@ -60,8 +60,12 @@ class UserProfile(models.Model):
     location_lng = models.FloatField(null=True, blank=True)
     profile_photo = models.ImageField(upload_to=user_directory_path, null=True, blank=True) #个人照片，用作头像和匹配时的展示
     emergency_contact = models.CharField(max_length=255, null=True, blank=True)             #紧急联系人（姓名+联系方式）
+    eligibility_confirmed = models.BooleanField(default=False)                              #审核通过后改为True
     consent_safeguard = models.BooleanField(default=False)                                  #是否同意数据使用和安全协议（不确定是否有必要）
 
+    def __str__(self):
+        return f"{self.get_full_name} [{self.user.email}]"
+    
     def save(self, *args, **kwargs):
         if self.location and (self.location_lat is None or self.location_lng is None):
             lat, lng = geocode_address(self.location)
@@ -101,7 +105,6 @@ class ClientProfile(models.Model):
     lwc_certificate = models.FileField(upload_to='certificates/lwc/', null=True, blank=True)
     nhs_certificate = models.FileField(upload_to='certificates/nhs/', null=True, blank=True)
     diagnosis = models.FileField(upload_to='certificates/diagnosis/', null=True, blank=True)
-    eligibility_confirmed = models.BooleanField(default=False)                               #审核通过后改为True
     preferred_contact_method = models.CharField(max_length=20, choices=[('phone', 'Phone'), ('email', 'Email')])
     conditions = models.ManyToManyField(ConditionType, blank=True)
     other_conditions = models.CharField(max_length=255, null=True, blank=True)
@@ -112,6 +115,9 @@ class ClientProfile(models.Model):
     dietary_needs = models.TextField(null=True, blank=True)             #饮食需求（素食之类的？）
     has_pets = models.BooleanField(default=False)                       #是否有宠物
     pets_type = models.CharField(max_length=100, null=True, blank=True) #有的话宠物类型
+
+    def __str__(self):
+        return f"{self.user_profile.get_full_name} [{self.user_profile.user.email}]"
 
 #Volunteer独有的信息
 class VolunteerProfile(models.Model):
@@ -137,6 +143,9 @@ class VolunteerProfile(models.Model):
     available_end_time = models.TimeField(null=True, blank=True)
     preferred_distance_km = models.PositiveIntegerField(default=10)   #意向距离
     accept_pets = models.BooleanField(default=True)                   #能否接受宠物
+    
+    def __str__(self):
+        return f"{self.user_profile.get_full_name} [{self.user_profile.user.email}]"
 
 class AdminProfile(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)

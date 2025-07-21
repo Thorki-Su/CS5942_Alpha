@@ -7,8 +7,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(('user.urls', 'user'), namespace='user')),
     path('communication/', include(('communication.urls', 'communication'), namespace='communication')),
-    path('', include(('task.urls', 'task'), namespace='task')),
-    path('', include(('matching.urls', 'matching'), namespace='matching')),
+    path('task/', include(('task.urls', 'task'), namespace='task')),
+    path('matching', include(('matching.urls', 'matching'), namespace='matching')),
+    path('adminpanel/', include(('adminpanel.urls', 'adminpanel'), namespace='adminpanel')),
+    path('volunteer/', include(('volunteer.urls', 'volunteer'), namespace='volunteer')),
 ]
 
 if settings.DEBUG:

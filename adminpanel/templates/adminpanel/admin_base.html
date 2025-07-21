@@ -65,10 +65,6 @@
             font-size: 14px;
             box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
         }
-        .messages {
-            margin-top: 80px;
-            margin-left: 20px;
-        }
     </style>
     {% block style %}
     {% endblock %}
@@ -79,41 +75,12 @@
     <div class="header">
         <div class="navbar">
             <img src="{% static 'images/ShallionLogoTransparent.png' %}" alt="Shallion Logo" class="logo">
-            <a href="{% url 'user:home' %}">Home</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'user:profile_detail' %}">Profile</a>
-                <a href="{% url 'communication:message_selection' %}">Message</a> <!-- 合并为 Message -->
-                {% if user.role == 'volunteer' %}
-                    <a href="{% url 'matching:shift' %}">Join Shift</a>
-                    <a href="{% url 'task:tasklist' %}">Task List</a>
-                    <a href="{% url 'task:myapplication' %}">My Application</a>
-                {% elif user.role == 'client' %}
-                    <a href="{% url 'task:mytask' %}">My Task</a>
-                {% endif %}
-                <a href="{% url 'task:task_ongoing' %}">Ongoing Task</a>
-                {% if user.role == 'admin' %}
-                    <a href="{% url 'adminpanel:dashboard' %}">Admin Dashboard</a>
-                {% endif %}
-                <form action="{% url 'user:logout' %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-link">Log Out</button>
-                </form>
-            {% else %}
-                <a href="{% url 'user:login' %}">Login</a>
-            {% endif %}
+            <a href="{% url 'adminpanel:dashboard' %}">Admin Home</a>
+            <a href="{% url 'adminpanel:user_list' %}">User Control</a>
+            <a href="{% url 'adminpanel:task_list' %}">Task Control</a>
+            <a href="{% url 'user:home' %}">Website</a>
         </div>
     </div>
-
-    {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
 
     <div class="content-wrapper">
         {% block content %}

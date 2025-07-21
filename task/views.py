@@ -10,6 +10,7 @@ from django.utils import timezone
 from datetime import timedelta, time
 from django.db.models import Q
 from matching.utils import match_volunteers_for_task
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 def client_required(view_func):
@@ -237,13 +238,6 @@ def approve_application(request, application_id):
     
     application.status = 'accepted'
     application.save()
-
-    # if approved_count + 1 >= task.vol_number:
-    #     TaskApplication.objects.filter(task=task, status='pending').update(status='unselected')
-    #     task.status = 'selected'
-    #     task.save()
-    application.status = 'accepted'
-    application.save()
     task.update_status_if_full()
     return redirect('task:task_application', task.id)
 
@@ -299,6 +293,8 @@ def task_confirm(request, task_id):
     task.update_status_by_time()
 
     if request.user != task.client or not task.volunteer_submitted:
+        print("Current user:", request.user, request.user.role)
+        print("task creater:", task.client)
         return redirect('task:task_detail', task_id=task.id)
     
     record = getattr(task, 'record', None)

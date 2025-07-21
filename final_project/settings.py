@@ -14,11 +14,25 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
+
 # 强制加载 .env 文件
 load_dotenv()
 if not os.getenv('DATABASE_URL'):
     raise ValueError("DATABASE_URL environment variable not set. Please check .env file.")
 print("DEBUG: Loaded DATABASE_URL =", os.environ.get('DATABASE_URL'))  # 调试
+
+    
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "shallion9527@gmail.com")
+
+# print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
+# print("DEBUG: DATABASE_URL =", os.environ.get('DATABASE_URL'))
+
 
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
@@ -140,6 +154,10 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# 本地测试用
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com'
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Europe/London'
 USE_I18N = True
@@ -151,6 +169,9 @@ SESSION_COOKIE_AGE = 1209600  # 两周
 SESSION_SAVE_EVERY_REQUEST = True  # 每次请求保存 Session
 CSRF_COOKIE_SECURE = True  # 修改：Render 上启用 secure cookie
 SESSION_COOKIE_SECURE = True  # 修改：Render 上启用 secure session
+
+LOGIN_URL = '/login/'
+
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]

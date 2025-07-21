@@ -17,12 +17,14 @@ class CustomUserModelTests(TestCase):
         self.client_user = self.user_manager.create_user(
             email='client@test.com',
             password='testpass123',
-            role='client'
+            role='client',
+            is_active=True
         )
         self.volunteer_user = self.user_manager.create_user(
             email='volunteer@test.com',
             password='testpass123',
-            role='volunteer'
+            role='volunteer',
+            is_active=True
         )
         self.user_profile_client = UserProfile.objects.create(
             user=self.client_user,
@@ -61,7 +63,8 @@ class CustomUserModelTests(TestCase):
         user = self.user_manager.create_user(
             email='testuser@test.com',
             password='testpass123',
-            role='client'
+            role='client',
+            is_active=True
         )
         self.assertEqual(user.email, 'testuser@test.com')
         self.assertTrue(user.check_password('testpass123'))
@@ -111,7 +114,7 @@ class ClientRegisterFormTests(TestCase):
             'last_name': 'Client',
             'phone_number': '1234567890',
             'contact_method': 'email',
-            'location': 'Test City',
+            'location': 'AB25 3DD',
             'certifications': [self.cert_type.id],
             'consent_safeguard': True
         }
@@ -144,7 +147,7 @@ class VolunteerRegisterFormTests(TestCase):
             'first_name': 'New',
             'last_name': 'Volunteer',
             'phone_number': '0987654321',
-            'location': 'Test City',
+            'location': 'AB25 3DD',
             'university_course': 'Biology',
             'profession': 'Student',
             'is_for_credit': False,
@@ -174,14 +177,15 @@ class ClientProfileFormTests(TestCase):
         self.user = CustomUser.objects.create_user(
             email='client@test.com',
             password='testpass123',
-            role='client'
+            role='client',
+            is_active=True
         )
         self.user_profile = UserProfile.objects.create(
             user=self.user,
             first_name='Client',
             last_name='Test',
             phone_number='1234567890',
-            location='Test City'
+            location='AB25 3DD'
         )
         self.cert_type = CertificationType.objects.create(name='PIP')
         self.condition_type = ConditionType.objects.create(name='Diabetes')
@@ -235,14 +239,15 @@ class VolunteerProfileFormTests(TestCase):
         self.user = CustomUser.objects.create_user(
             email='volunteer@test.com',
             password='testpass123',
-            role='volunteer'
+            role='volunteer',
+            is_active=True
         )
         self.user_profile = UserProfile.objects.create(
             user=self.user,
             first_name='Volunteer',
             last_name='Test',
             phone_number='0987654321',
-            location='Test City'
+            location='AB25 3DD'
         )
         self.support_type = SupportType.objects.create(name='Medical Assistance')
         self.volunteer_profile = VolunteerProfile.objects.create(
@@ -287,14 +292,15 @@ class UserViewsTests(TestCase):
         self.user = CustomUser.objects.create_user(
             email='testuser@test.com',
             password='testpass123',
-            role='client'
+            role='client',
+            is_active=True
         )
         self.client_user_profile = UserProfile.objects.create(
             user=self.user,
             first_name='Test',
             last_name='User',
             phone_number='1234567890',
-            location='Test City'
+            location='AB25 3DD'
         )
         self.client_profile = ClientProfile.objects.create(
             user_profile=self.client_user_profile,
@@ -303,14 +309,15 @@ class UserViewsTests(TestCase):
         self.volunteer_user = CustomUser.objects.create_user(
             email='volunteer@test.com',
             password='testpass123',
-            role='volunteer'
+            role='volunteer',
+            is_active=True
         )
         self.volunteer_user_profile = UserProfile.objects.create(
             user=self.volunteer_user,
             first_name='Volunteer',
             last_name='User',
             phone_number='0987654321',
-            location='Test City'
+            location='AB25 3DD'
         )
         self.volunteer_profile = VolunteerProfile.objects.create(
             user_profile=self.volunteer_user_profile,
@@ -369,7 +376,9 @@ class UserViewsTests(TestCase):
             'certifications': [cert_type.id],
             'consent_safeguard': True
         })
-        self.assertRedirects(response, reverse('user:home'))
+        #self.assertRedirects(response, reverse('user:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "check your email")
         self.assertTrue(CustomUser.objects.filter(email='newclient@test.com').exists())
 
     def test_volunteer_register_view_get(self):
@@ -391,7 +400,9 @@ class UserViewsTests(TestCase):
             'is_for_credit': False,
             'consent_safeguard': True
         })
-        self.assertRedirects(response, reverse('user:home'))
+        #self.assertRedirects(response, reverse('user:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "check your email")
         self.assertTrue(CustomUser.objects.filter(email='newvolunteer@test.com').exists())
 
     def test_client_profile_edit_view_get(self):
