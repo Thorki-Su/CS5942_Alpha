@@ -50,16 +50,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-i!o^^a8m_sz=(_5e_c07nyutwzr(fdu+uihy5=gpr^lwvwpotb'
 DEBUG = True
-ALLOWED_HOSTS = ['*']  # 修改：允许所有主机，或指定 ['cs5942-alpha.onrender.com'] 以提高安全性
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # 恢复本地主机，注释 Render 特定主机
+# ALLOWED_HOSTS = ['*']  # Render: 允许所有主机，或指定 ['cs5942-alpha.onrender.com'] 以提高安全性
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://cs5942-alpha.onrender.com',
-    'https://mangoairport-artistbanana-8000.codio-box.uk',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     'http://127.0.0.1',
-    'wss://cs5942-alpha.onrender.com',  # 修改：添加 wss:// 支持 WebSocket
 ]
+# CSRF_TRUSTED_ORIGINS = [  # Render: 添加 wss:// 支持 WebSocket
+#     'https://cs5942-alpha.onrender.com',
+#     'https://mangoairport-artistbanana-8000.codio-box.uk',
+#     'http://localhost:8000',
+#     'http://127.0.0.1:8000',
+#     'http://127.0.0.1',
+#     'wss://cs5942-alpha.onrender.com',
+# ]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -85,7 +91,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [os.environ.get('REDIS_URL', '')],  # 修改：使用 REDIS_URL，空值避免无效连接
+            "hosts": ['redis://127.0.0.1:6379'],  # 恢复本地 Redis
         },
         'expire': 120,
         'retry_attempts': 5,
@@ -95,6 +101,20 @@ CHANNEL_LAYERS = {
         },
     },
 }
+# CHANNEL_LAYERS = {  # Render: 使用 REDIS_URL 环境变量
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [os.environ.get('REDIS_URL', '')],
+#         },
+#         'expire': 120,
+#         'retry_attempts': 5,
+#         'capacity': 1000,
+#         'channel_capacity': {
+#             'default': 1000,
+#         },
+#     },
+# }
 
 AUTH_USER_MODEL = 'user.CustomUser'
 
@@ -141,12 +161,18 @@ if IS_TESTING:
     }
 else:
     DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3'),
-            conn_max_age=600,
-            ssl_require=os.environ.get('RENDER') == 'true'  # 修改：Render 上启用 SSL
-        )
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',  # 恢复本地 SQLite
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
+# DATABASES = {  # Render: 使用 dj_database_url 并启用 SSL
+#     'default': dj_database_url.config(
+#         default=os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3'),
+#         conn_max_age=600,
+#         ssl_require=os.environ.get('RENDER') == 'true'
+#     )
+# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -168,8 +194,8 @@ USE_TZ = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 1209600  # 两周
 SESSION_SAVE_EVERY_REQUEST = True  # 每次请求保存 Session
-CSRF_COOKIE_SECURE = True  # 修改：Render 上启用 secure cookie
-SESSION_COOKIE_SECURE = True  # 修改：Render 上启用 secure session
+# CSRF_COOKIE_SECURE = True  # Render: 启用 secure cookie
+# SESSION_COOKIE_SECURE = True  # Render: 启用 secure session
 
 LOGIN_URL = '/login/'
 
@@ -182,7 +208,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-# 修改：Render HTTPS 支持
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = False  # Render 已处理 HTTPS
-USE_X_FORWARDED_HOST = True
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Render: HTTPS 支持
+# SECURE_SSL_REDIRECT = False  # Render: Render 已处理 HTTPS
+# USE_X_FORWARDED_HOST = True  # Render: 支持代理主机
