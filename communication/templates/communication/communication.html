@@ -65,7 +65,7 @@
         const userEmail = "{{ request.user.email }}";
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
         const wsPath = `${wsScheme}://${window.location.host}/ws/chat/${roomName}/`;
-        let ws = new WebSocket(wsPath, null, { withCredentials: true });
+        let ws = new WebSocket(wsPath); // 修改：移除 null 参数，保持 withCredentials
         let videoSocket = null;
         let peerConnection = null;
         let localStream = null;
@@ -77,7 +77,7 @@
             if (reconnectAttempts < maxReconnectAttempts) {
                 setTimeout(() => {
                     console.log(`Attempting to reconnect (${reconnectAttempts + 1}/${maxReconnectAttempts})...`);
-                    ws = new WebSocket(wsPath, null, { withCredentials: true });
+                    ws = new WebSocket(wsPath); // 修改：移除 null 参数
                     setupWebSocket();
                     reconnectAttempts++;
                 }, reconnectInterval);

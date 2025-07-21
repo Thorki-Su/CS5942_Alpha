@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Client Registeration{% endblock %}
+{% block title %}Client Registration{% endblock %}
 
 {% block content %}
     <div style='margin:50px;'>
@@ -15,11 +15,9 @@
         <form method="POST">
             {% csrf_token %}
             <label>Email:</label><br>
-            <input type="text" name="username" required><br><br>
-
+            <input type="email" name="username" required><br><br> <!-- 改为 username 字段 -->
             <label>Password:</label><br>
             <input type="password" name="password" required><br><br>
-
             <button type="submit">Login</button>
         </form>
 

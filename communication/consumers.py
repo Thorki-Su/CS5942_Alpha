@@ -68,8 +68,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         elif room_name.startswith('1v1_'):
             users = room_name.replace('1v1_', '').split('_')
             return ChatMessage.objects.filter(
-                sender__email__in=users,
-                receiver__email__in=users
+                sender__id__in=users,
+                receiver__id__in=users
             ).order_by('timestamp')[:10]
         return []
 
@@ -82,13 +82,38 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 return
             print(f"Channel layer status: {hasattr(self, 'channel_layer') and self.channel_layer is not None}")
 
-            # 增强认证调试
+            print(f"Full scope: {self.scope}")  # 打印完整 scope
             self.user = self.scope.get('user')
             if not self.user:
                 print(f"Error in connect: No user in scope, headers={dict(self.scope.get('headers', []))}")
                 print(f"Session data: {self.scope.get('session', 'No session')}")
+                print(f"CSRF cookie: {self.scope.get('cookies', {}).get('csrftoken')}")
+                print(f"Cookies: {self.scope.get('cookies', {})}")
+                session_data = self.scope.get('session')
+                if session_data and '_auth_user_id' in session_data:
+                    from django.contrib.auth import get_user_model
+                    User = get_user_model()
+                    self.user = await sync_to_async(User.objects.get)(id=session_data['_auth_user_id'])
+                    print(f"Recovered user from session: {self.user}")
+                else:
+                    print(f"Session data invalid or missing: {session_data}")
                 await self.close()
                 return
+            # 强制初始化 UserLazyObject 并添加更多调试
+            if hasattr(self.user, '_wrapped') and self.user._wrapped is None:
+                print(f"UserLazyObject not initialized, attempting to force evaluation")
+                session_data = self.scope.get('session')
+                if session_data and '_auth_user_id' in session_data:
+                    from django.contrib.auth import get_user_model
+                    User = get_user_model()
+                    self.user = await sync_to_async(User.objects.get)(id=session_data['_auth_user_id'])
+                    print(f"Forced recovered user: {self.user}")
+                else:
+                    print(f"Failed to force user initialization, session_data={session_data}, scope_session={self.scope.get('session')}")
+                if not self.user:
+                    print(f"User still not resolved after forcing: {self.user}")
+                    await self.close()
+                    return
             if not self.user.is_authenticated:
                 print(f"Error in connect: User not authenticated, user={self.user}, headers={dict(self.scope.get('headers', []))}")
                 print(f"Session data: {self.scope.get('session', 'No session')}")
@@ -122,17 +147,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     return
             elif self.is_one_to_one:
                 users = self.room_name.replace('1v1_', '').split('_')
-                if self.user.email not in users:
+                print(f"Checking permission for users: {users}, current user id: {self.user.id}")
+                if str(self.user.id) not in users:
+                    print(f"User {self.user.id} not in room {self.room_name} users")
                     await self.close()
                     return
 
-            # 尝试清理现有组并添加新组
+            # 直接添加组（移除对现有组的检查和discard，Channels会自动处理）
             try:
-                # 检查组是否存在并清理
-                groups = await self.channel_layer.groups()
-                if self.room_group_name in groups:
-                    print(f"Clearing existing group {self.room_group_name}")
-                    await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
                 await self.channel_layer.group_add(self.room_group_name, self.channel_name)
                 print(f"Group add successful for {self.room_group_name}")
             except Exception as e:
@@ -311,15 +333,12 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
                     return
             elif self.is_one_to_one:
                 users = self.room_name.replace('1v1_', '').split('_')
-                if self.user.email not in users:
+                if str(self.user.id) not in users:
                     await self.close()
                     return
 
+            # 直接添加组（移除对现有组的检查和discard）
             try:
-                groups = await self.channel_layer.groups()
-                if self.room_group_name in groups:
-                    print(f"Clearing existing group {self.room_group_name}")
-                    await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
                 await self.channel_layer.group_add(self.room_group_name, self.channel_name)
                 print(f"Group add successful for {self.room_group_name}")
             except Exception as e:
