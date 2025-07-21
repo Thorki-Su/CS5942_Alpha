@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load static %}  <!-- 加载 static 标签 -->
+{% block title %}Task Chats{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Available Task Chats</h1>
+    {% if tasks %}
+        <ul class="list-group">
+            {% for task in tasks %}
+                <li class="list-group-item">
+                    <a href="{% url 'communication:task_communication_view' task.id %}?mode=chat" class="btn btn-primary">Task Chat (Task {{ task.id }}: {{ task.title }})</a>
+                    <a href="{% url 'communication:task_communication_view' task.id %}?mode=video" class="btn btn-secondary ms-3">Task Video</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No active tasks available for Task Chat.</p>
+    {% endif %}
+    <a href="{% url 'communication:message_selection' %}" class="btn btn-secondary mt-3">Back to Messages</a>
+</div>
+{% endblock %}
