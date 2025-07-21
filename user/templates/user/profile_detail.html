@@ -12,22 +12,22 @@
 </div>
 <div style='margin:50px;margin-left:200px;'>
     {% if user_profile.profile_photo %}
-    <p><strong>Your Profile Photo:</strong></p>
-    <p><img src="{{ user_profile.profile_photo.url }}" alt="Your Profile Photo" width="200"></p>
-    <p><a href="{% url 'user:photo_edit' %}">Change Your Photo</a></p>
+        <p><strong>Your Profile Photo:</strong></p>
+        <p><img src="{{ user_profile.profile_photo.url }}" alt="Your Profile Photo" width="200"></p>
+        <p><a href="{% url 'user:photo_edit' %}">Change Your Photo</a></p>
     {% else %}
-    <p><strong>Your Profile Photo:</strong></p>
-    <p>You have not uploaded any photos yet!</p>
-    <p><a href="{% url 'user:photo_edit' %}">Upload Your Photo</a></p>
+        <p><strong>Your Profile Photo:</strong></p>
+        <p>You have not uploaded any photos yet!</p>
+        <p><a href="{% url 'user:photo_edit' %}">Upload Your Photo</a></p>
     {% endif %}
 </div>
 <div style='margin:50px;margin-left:200px;'>
     <h3>Your Basis Personal Information:</h3>
     <p><strong>email:</strong> {{ user.email }}</p>
     {% for key, value in user_fields.items %}
-    {% if key != 'id' and key != 'user' and key != 'profile_photo' and key != 'consent_safeguard'%}
-    <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
-    {% endif %}
+        {% if key != 'id' and key != 'user' and key != 'profile_photo' and key != 'consent_safeguard'%}
+            <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+        {% endif %}
     {% endfor %}
 </div>
 <div style='margin:50px;margin-left:200px;'>

@@ -83,3 +83,8 @@ def task_detail(request, task_id):
         'feedbacks':feedbacks,
     }
     return render(request, 'adminpanel/task_detail.html', context)
+
+@staff_required
+def user_file(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    return render(request, 'adminpanel/user_file.html', {'user':user})

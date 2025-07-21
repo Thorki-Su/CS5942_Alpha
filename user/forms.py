@@ -55,6 +55,11 @@ class ClientRegisterForm(UserCreationForm):
         return user
 
 class ClientProfileForm(forms.ModelForm):
+    pip_certificate = forms.FileField(required=False, label='PIP Certificate')
+    adp_certificate = forms.FileField(required=False, label='ADP Certificate')
+    lwc_certificate = forms.FileField(required=False, label='LWC Certificate')
+    nhs_certificate = forms.FileField(required=False, label='NHS Certificate')
+    diagnosis = forms.FileField(required=False, label='Diagnosis from a Doctor')
     first_name = forms.CharField(max_length=100, label='First Name')
     last_name = forms.CharField(max_length=100, label='Last Name')
     phone_number = forms.CharField(max_length=20, label='Phone Number')
@@ -75,6 +80,20 @@ class ClientProfileForm(forms.ModelForm):
     pets_type = forms.CharField(max_length=255, required=False, label='Pets Type')
     emergency_contact = forms.CharField(max_length=255)
 
+    class Meta:
+        model = ClientProfile
+        fields = [
+            'conditions', 'support_areas', 'preferred_times', 'allergies',
+            'has_pets', 'pets_type', 'dietary_needs', 'other_conditions',
+            'other_support', 'pip_certificate', 'adp_certificate',
+            'lwc_certificate', 'nhs_certificate', 'diagnosis'
+        ]
+        widgets = {
+            'preferred_times': forms.Textarea(attrs={'rows': 4, 'placeholder': 'e.g. {"Monday": ["09:00-11:00"], "Friday": ["14:00-16:00"]}'}),
+            'allergies': forms.Textarea(attrs={'rows': 2}),
+            'dietary_needs': forms.Textarea(attrs={'rows': 2}),
+        }
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance:
@@ -86,58 +105,46 @@ class ClientProfileForm(forms.ModelForm):
             self.fields['phone_number'].initial = user_profile.phone_number
             self.fields['location'].initial = user_profile.location
             self.fields['emergency_contact'].initial = user_profile.emergency_contact
-
-        if self.instance and self.instance.certifications.exists():
+        
+        # 只在认证存在时才显示这些字段
             cert_names = list(self.instance.certifications.values_list('name', flat=True))
-            if 'PIP' in cert_names:
-                self.fields['pip_certificate'] = forms.FileField(
-                    required=False,
-                    label='PIP Certificate',
-                    initial=self.instance.pip_certificate if self.instance else None
-                )
-            if 'ADP' in cert_names:
-                self.fields['adp_certificate'] = forms.FileField(
-                    required=False,
-                    label='ADP Certificate',
-                    initial=self.instance.adp_certificate if self.instance else None
-                )
-            if 'LWC' in cert_names:
-                self.fields['lwc_certificate'] = forms.FileField(
-                    required=False,
-                    label='LWC Certificate',
-                    initial=self.instance.lwc_certificate if self.instance else None
-                )
-            if 'NHS' in cert_names:
-                self.fields['nhs_certificate'] = forms.FileField(
-                    required=False,
-                    label='NHS Certificate',
-                    initial=self.instance.nhs_certificate if self.instance else None
-                )
-            if 'Diagnosis' in cert_names:
-                self.fields['diagnosis'] = forms.FileField(
-                    required=False,
-                    label='Diagnosis from a Doctor',
-                    initial=self.instance.diagnosis if self.instance else None
-                )
+            for cert in ['PIP', 'ADP', 'LWC', 'NHS', 'Diagnosis']:
+                field_key = cert.lower() + '_certificate' if cert != 'Diagnosis' else 'diagnosis'
+                if cert not in cert_names:
+                    self.fields.pop(field_key, None)
 
-    class Meta:
-        model = ClientProfile
-        fields = [
-            'conditions',
-            'support_areas',
-            'preferred_times',
-            'allergies',
-            'has_pets',
-            'pets_type',
-            'dietary_needs',
-            'other_conditions',
-            'other_support',
-        ]
-        widgets = {
-            'preferred_times': forms.Textarea(attrs={'rows': 4, 'placeholder': 'e.g. {"Monday": ["09:00-11:00"], "Friday": ["14:00-16:00"]}'}),
-            'allergies': forms.Textarea(attrs={'rows': 2}),
-            'dietary_needs': forms.Textarea(attrs={'rows': 2}),
-        }
+        # if self.instance and self.instance.certifications.exists():
+        #     cert_names = list(self.instance.certifications.values_list('name', flat=True))
+        #     if 'PIP' in cert_names:
+        #         self.fields['pip_certificate'] = forms.FileField(
+        #             required=False,
+        #             label='PIP Certificate',
+        #             initial=self.instance.pip_certificate if self.instance else None
+        #         )
+        #     if 'ADP' in cert_names:
+        #         self.fields['adp_certificate'] = forms.FileField(
+        #             required=False,
+        #             label='ADP Certificate',
+        #             initial=self.instance.adp_certificate if self.instance else None
+        #         )
+        #     if 'LWC' in cert_names:
+        #         self.fields['lwc_certificate'] = forms.FileField(
+        #             required=False,
+        #             label='LWC Certificate',
+        #             initial=self.instance.lwc_certificate if self.instance else None
+        #         )
+        #     if 'NHS' in cert_names:
+        #         self.fields['nhs_certificate'] = forms.FileField(
+        #             required=False,
+        #             label='NHS Certificate',
+        #             initial=self.instance.nhs_certificate if self.instance else None
+        #         )
+        #     if 'Diagnosis' in cert_names:
+        #         self.fields['diagnosis'] = forms.FileField(
+        #             required=False,
+        #             label='Diagnosis from a Doctor',
+        #             initial=self.instance.diagnosis if self.instance else None
+        #         )
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -152,9 +159,15 @@ class ClientProfileForm(forms.ModelForm):
         user_profile.save()
         if commit:
             instance.save()
-            for field_name, field_value in self.cleaned_data.items():
-                if field_name in ['pip_certificate', 'adp_certificate', 'lwc_certificate', 'nhs_certificate', 'diagnosis']:
-                    setattr(instance, field_name, field_value)
+            # 保存上传的文件
+            for field in ['pip_certificate', 'adp_certificate', 'lwc_certificate', 'nhs_certificate', 'diagnosis']:
+                if field in self.cleaned_data:
+                    file = self.cleaned_data.get(field)
+                    if file and hasattr(file, 'name'):
+                        setattr(instance, field, file)
+            # for field_name, field_value in self.cleaned_data.items():
+            #     if field_name in ['pip_certificate', 'adp_certificate', 'lwc_certificate', 'nhs_certificate', 'diagnosis']:
+            #         setattr(instance, field_name, field_value)
             instance.save()
             self.save_m2m()
         return instance

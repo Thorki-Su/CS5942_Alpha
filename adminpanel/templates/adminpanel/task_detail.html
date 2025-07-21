@@ -21,7 +21,7 @@
         </div>
         <div>
             {% if applications %}
-            <h2>Applications for this task.</h2>
+            <h2>Applications for this task.</h2><br>
                 {% for app in applications %}
                     <p><strong>Applicant:</strong> {{ app.volunteer }} [{{ app.volunteer.userprofile.get_full_name }}]</p>
                     <p><strong>Status:</strong> {{ app.status }}</p>
@@ -31,23 +31,28 @@
                     {% elif app.cancelled_at %}
                         <p><strong>Cancelled At:</strong> {{ app.cancelled_at }}</p>
                     {% endif %}
-                    <p><strong>Auto-match or not:</strong> {{ app.is_auto_matched }}</p>
+                    <p><strong>Auto-match or not:</strong> {{ app.is_auto_matched }}</p><br><br>
                 {% endfor %}
             {% endif %}
         </div>
         <div>
             {% if records %}
-                <h2>Records for this task.</h2>
+                <h2>Records for this task.</h2><br>
                 {% for record in records %}
                     <p><strong>Volunteer:</strong> {{ record.volunteer }} [{{ record.volunteer.userprofile.get_full_name }}]</p>
-                    <p><strong>Records:</strong> {{ record.records }}</p>
-                    <p><strong>Submitted At:</strong> {{ record.submitted_at }}</p>
+                    <p><strong>Records:</strong></p>
+                    <ul>
+                        {% for item in record.records %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    <p><strong>Submitted At:</strong> {{ record.submitted_at }}</p><br><br>
                 {% endfor %}
             {% endif %}
         </div>
         <div>
             {% if feedbacks %}
-                <h2>Feedbacks for this task.</h2>
+                <h2>Feedbacks for this task.</h2><br>
                 {% for feedback in feedbacks %}
                     <p><strong>From:</strong> {{ feedback.from_user }} [{{ feedback.from_user.userprofile.get_full_name }}]</p>
                     <p><strong>To:</strong> {{ feedback.to_user }} [{{ feedback.to_user.userprofile.get_full_name }}]</p>
@@ -55,7 +60,7 @@
                     {% if feedback.comment %}
                         <p><strong>Comments:</strong> {{ feedback.comment }}</p>
                     {% endif %}
-                    <p><strong>Submitted At:</strong> {{ feedback.submitted_at }}</p>
+                    <p><strong>Submitted At:</strong> {{ feedback.submitted_at }}</p><br><br>
                 {% endfor %}
             {% endif %}
         </div>
