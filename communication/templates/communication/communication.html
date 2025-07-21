@@ -13,19 +13,19 @@
             margin-bottom: 15px; 
             padding: 10px 15px; 
             border-radius: 10px; 
-            display: block; /* 修改：从 inline-block 改为 block 以垂直排列 */
-            width: fit-content; /* 修改：自适应内容宽度，避免满宽 */
+            display: block; 
+            width: fit-content; 
         }
         .sent { 
             background-color: #0084ff; 
             color: white; 
-            margin-left: auto; /* 右对齐 */
+            margin-left: auto; 
             text-align: right; 
         }
         .received { 
             background-color: #e9ecef; 
             color: black; 
-            margin-right: auto; /* 左对齐 */
+            margin-right: auto; 
             text-align: left; 
         }
         .message-time { font-size: 0.75rem; color: #666; }
@@ -113,9 +113,9 @@
             ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
+                    if (data.type === 'ping') return; // 忽略心跳响应
                     const messageList = document.getElementById('message-list');
                     const messageElement = document.createElement('div');
-                    // 修改：添加调试日志以确认类添加
                     console.log('Received message from:', data.sender, 'Current user:', userEmail);
                     messageElement.classList.add('message', data.sender === userEmail ? 'sent' : 'received');
                     messageElement.innerHTML = `<p>${data.message}</p><div class="message-time">${new Date(data.timestamp).toLocaleTimeString()}</div>`;
@@ -149,6 +149,13 @@
             };
         }
 
+        // 添加心跳机制
+        setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'ping' }));
+            }
+        }, 30000); // 每 30 秒发送一次
+
         setupWebSocket();
 
         function sendMessage() {
@@ -179,7 +186,7 @@
             const videoContainer = document.getElementById('video-container');
             const localVideo = document.getElementById('localVideo');
             const remoteVideo = document.getElementById('remoteVideo');
-            videoSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/video/${roomName}/`); // 修改：使用 wsScheme
+            videoSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/video/${roomName}/`);
             peerConnection = new RTCPeerConnection();
 
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
