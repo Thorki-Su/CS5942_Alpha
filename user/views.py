@@ -1,11 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import CustomUser, UserProfile, ClientProfile, VolunteerProfile
 from .forms import ClientRegisterForm, ClientProfileForm, VolunteerRegisterForm, VolunteerProfileForm, ProfilePhotoForm
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.forms.models import model_to_dict
 from django.core.files.base import ContentFile
 import base64
@@ -17,7 +17,14 @@ from django.utils.safestring import mark_safe
 from django.core.files.storage import default_storage
 from storages.backends.s3boto3 import S3Boto3Storage
 from task.models import Task
-from user.utils import geocode_address, is_valid_aberdeen_postcode
+from user.utils import geocode_address, is_valid_aberdeen_postcode, send_activation_email
+from volunteer.utils import calculate_volunteer_duration, format_volunteer_duration
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 def home_view(request):
     tasks = Task.objects.filter(client=request.user) if request.user.is_authenticated and request.user.role == 'client' else []
@@ -31,8 +38,11 @@ def login_view(request):
             email = form.cleaned_data.get('username')  # 映射 email
             password = form.cleaned_data.get('password')
             user = authenticate(request, username=email, password=password)
+      
             if user is not None:
                 login(request, user)
+                if user.role == 'admin':
+                    return redirect('adminpanel:dashboard')
                 return redirect('user:home')
             else:
                 messages.error(request, "Invalid email or password.")
@@ -60,8 +70,8 @@ def client_register(request):
                 form.add_error('location', 'Please enter a valid postcode within Aberdeen')
             else:
                 user = form.save()
-                login(request, user)
-                return redirect('user:home')
+                send_activation_email(user, request)
+                return render(request, 'user/please_check_email.html')
         else:
             print(form.errors)
     else:
@@ -77,13 +87,28 @@ def volunteer_register(request):
                 form.add_error('location', 'Please enter a valid postcode within Aberdeen')
             else:
                 user = form.save()
-                login(request, user)
-                return redirect('user:home')
+                send_activation_email(user, request)
+                return render(request, 'user/please_check_email.html')
         else:
             print(form.errors)
     else:
         form = VolunteerRegisterForm()
     return render(request, 'user/volunteer_register.html', {'form': form})
+
+def activate_account(request, uidb64, token):
+    User = get_user_model()
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (User.DoesNotExist, ValueError, TypeError):
+        user = None
+
+    if user and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return render(request, 'user/activation_success.html')
+    else:
+        return render(request, 'user/activation_failed.html')
 
 @login_required
 def client_profile_edit(request):
@@ -91,23 +116,11 @@ def client_profile_edit(request):
         client_profile = request.user.userprofile.clientprofile
     except ClientProfile.DoesNotExist:
         return redirect('user:choose_role')
+    
     if request.method == 'POST':
         form = ClientProfileForm(request.POST, request.FILES, instance=client_profile)
         if form.is_valid():
             form.save()
-            user_profile = request.user.userprofile
-            user_age = form.cleaned_data.get('age')
-            user_gender = form.cleaned_data.get('gender')
-            user_emergency_contact = form.cleaned_data.get('emergency_contact')
-            if user_age:
-                user_profile.age = user_age
-                user_profile.save()
-            if user_gender:
-                user_profile.gender = user_gender
-                user_profile.save()
-            if user_emergency_contact:
-                user_profile.emergency_contact = user_emergency_contact
-                user_profile.save()
             return redirect('user:profile_detail')
         else:
             print(form.errors)
@@ -115,6 +128,10 @@ def client_profile_edit(request):
         form = ClientProfileForm(
             instance=client_profile,
             initial={
+                'first_name': request.user.userprofile.first_name,
+                'last_name': request.user.userprofile.last_name,
+                'phone_number': request.user.userprofile.phone_number,
+                'location': request.user.userprofile.location,
                 'age': request.user.userprofile.age,
                 'gender': request.user.userprofile.gender,
                 'emergency_contact': request.user.userprofile.emergency_contact
@@ -132,19 +149,6 @@ def volunteer_profile_edit(request):
         form = VolunteerProfileForm(request.POST, request.FILES, instance=volunteer_profile)
         if form.is_valid():
             form.save()
-            user_profile = request.user.userprofile
-            user_age = form.cleaned_data.get('age')
-            user_gender = form.cleaned_data.get('gender')
-            user_emergency_contact = form.cleaned_data.get('emergency_contact')
-            if user_age:
-                user_profile.age = user_age
-                user_profile.save()
-            if user_gender:
-                user_profile.gender = user_gender
-                user_profile.save()
-            if user_emergency_contact:
-                user_profile.emergency_contact = user_emergency_contact
-                user_profile.save()
             return redirect('user:profile_detail')
         else:
             print(form.errors)
@@ -152,6 +156,10 @@ def volunteer_profile_edit(request):
         form = VolunteerProfileForm(
             instance=volunteer_profile,
             initial={
+                'first_name': request.user.userprofile.first_name,
+                'last_name': request.user.userprofile.last_name,
+                'phone_number': request.user.userprofile.phone_number,
+                'location': request.user.userprofile.location,
                 'age': request.user.userprofile.age,
                 'gender': request.user.userprofile.gender,
                 'emergency_contact': request.user.userprofile.emergency_contact
@@ -214,6 +222,10 @@ def profile_detail(request):
             except json.JSONDecodeError:
                 preferred_times = {}
 
+        # Calculate volunteer duration
+        total_hours = calculate_volunteer_duration(user)
+        formatted_duration = format_volunteer_duration(total_hours)
+
         context = {
             'user': user,
             'user_profile': user_profile,
@@ -223,6 +235,8 @@ def profile_detail(request):
             'days': days,
             'time_slots': time_slots,
             'preferred_times': preferred_times,
+            'volunteer_duration': formatted_duration,
+            'volunteer_duration_hours': total_hours,
         }
     else:
         context = {
@@ -286,3 +300,8 @@ def save_preferred_times(request):
             volunteer_profile.save()
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
+
+class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    form_class = PasswordChangeForm
+    template_name = 'user/password_change.html'
+    success_url = reverse_lazy('user:password_change_done')

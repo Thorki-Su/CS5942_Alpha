@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Volunteer Service Certificate{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="certificate-container" style="border: 3px solid #2E8B57; padding: 40px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <h1 style="color: #2E8B57; font-size: 2.5rem; font-weight: bold; margin-bottom: 10px;">
+                        VOLUNTEER SERVICE CERTIFICATE
+                    </h1>
+                    <h3 style="color: #4682B4; font-size: 1.5rem; margin-bottom: 30px;">
+                        Certificate of Appreciation
+                    </h3>
+                </div>
+
+                <!-- Decorative line -->
+                <div style="height: 3px; background: linear-gradient(to right, #2E8B57, #4682B4, #2E8B57); margin: 20px 0;"></div>
+
+                <!-- Main content -->
+                <div class="text-center" style="line-height: 1.8; font-size: 1.1rem;">
+                    <p style="margin-bottom: 20px;">This is to certify that</p>
+                    
+                    <h2 style="color: #2E8B57; font-weight: bold; text-decoration: underline; margin: 20px 0; font-size: 2rem;">
+                        {{ user_profile.get_full_name }}
+                    </h2>
+                    
+                    <p style="margin-bottom: 15px;">has successfully completed volunteer service with</p>
+                    <h4 style="color: #4682B4; font-weight: bold; margin-bottom: 30px;">Shallion Support</h4>
+                    
+                    <div style="background: rgba(46, 139, 87, 0.1); padding: 20px; border-radius: 10px; margin: 30px 0;">
+                        <p style="font-size: 1.3rem; margin-bottom: 10px;">
+                            <strong>Total Service Hours: {{ formatted_duration }}</strong>
+                        </p>
+                        <p style="color: #666; font-size: 1rem;">({{ total_hours|floatformat:1 }} hours)</p>
+                    </div>
+                    
+                    <div style="margin: 30px 0; padding: 20px;">
+                        <p style="margin-bottom: 15px;">We deeply appreciate your dedication, compassion, and commitment</p>
+                        <p style="margin-bottom: 15px;">to supporting our community members in need.</p>
+                        <p style="margin-bottom: 15px;">Your volunteer service has made a meaningful difference</p>
+                        <p style="margin-bottom: 30px;">in the lives of those you have helped.</p>
+                        
+                        <p style="font-weight: bold; color: #2E8B57; margin-bottom: 15px;">
+                            Thank you for your invaluable contribution to our mission
+                        </p>
+                        <p style="font-weight: bold; color: #2E8B57;">
+                            of building a stronger, more supportive community.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Decorative line -->
+                <div style="height: 2px; background: linear-gradient(to right, #2E8B57, #4682B4, #2E8B57); margin: 30px 0;"></div>
+
+                <!-- Footer -->
+                <div class="row mt-4">
+                    <div class="col-md-6 text-center">
+                        <p style="color: #666; font-size: 0.9rem;">
+                            <strong>Issued on:</strong><br>
+                            {{ current_date }}
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <p style="color: #666; font-size: 0.9rem;">
+                            <strong>Authorized by:</strong><br>
+                            Shallion Support<br>
+                            <em>Community Volunteer Program</em>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Download button -->
+                <div class="text-center mt-4">
+                    <a href="{% url 'volunteer:download_certificate' %}" 
+                       class="btn btn-success btn-lg" 
+                       style="padding: 12px 30px; font-size: 1.1rem; border-radius: 25px;">
+                        <i class="fas fa-download"></i> Download Certificate (PDF)
+                    </a>
+                </div>
+
+                <!-- Back button -->
+                <div class="text-center mt-3">
+                    <a href="{% url 'user:profile_detail' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .certificate-container {
+        position: relative;
+    }
+    
+    .certificate-container::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        pointer-events: none;
+    }
+    
+    @media print {
+        .btn {
+            display: none !important;
+        }
+        .certificate-container {
+            border: 2px solid #000 !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+{% endblock %}

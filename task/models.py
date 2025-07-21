@@ -45,8 +45,8 @@ class Task(models.Model):
         now = timezone.now()
         if self.status in ['cancelled', 'completed']:
             return
-        if now >= self.start_time and now <= self.end_time:
-            approved_count = self.applications.filter(status='accepted').count()
+        approved_count = self.applications.filter(status='accepted').count()
+        if now >= self.start_time and now <= self.end_time + timedelta(hours=2):
             if approved_count == 0:
                 self.status = 'cancelled'
                 self.closed_at = now
@@ -57,10 +57,17 @@ class Task(models.Model):
                     self.status = 'ongoing'
                     self.applications.filter(status='pending').update(status='unselected')
         elif now > self.end_time + timedelta(hours=2):
-            if not self.confirmed_by_client:
+            if approved_count == 0:
+                self.status = 'cancel'
+                self.closed_at = now
+                for application in self.applications.all():
+                    application.cancel()
+            elif not self.confirmed_by_client:
                 self.status = 'timeout'
             else:
                 self.status = 'completed'
+            for application in self.applications.all():
+                application.complete()
             self.closed_at = now
         elif now < self.start_time and self.status not in ['selected', 'timeout']:
             self.status = 'open'
@@ -86,7 +93,7 @@ class Task(models.Model):
     
     @property
     def is_ongoing(self):
-        return self.status in ['ongoing']
+        return self.status in ['ongoing', 'timeout']
 
 class TaskApplication(models.Model):
     STATUS_CHOICES = [
@@ -95,12 +102,14 @@ class TaskApplication(models.Model):
         ('unselected', 'unselected'),
         ('rejected', 'rejected'),
         ('cancelled', 'cancelled'),
+        ('completed', 'completed'),
     ]
 
     task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='applications')
     volunteer = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='applications')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     applied_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
     is_auto_matched = models.BooleanField(default=False)
 
@@ -116,6 +125,12 @@ class TaskApplication(models.Model):
         self.save()
         self.task.update_status_if_full()
 
+    def complete(self):
+        self.status = 'completed'
+        self.completed_at = timezone.now()
+        self.save()
+        self.task.update_status_if_full()
+
     def can_be_cancelled(self):
         return not self.task.is_within_24h()
     
@@ -125,7 +140,7 @@ class TaskApplication(models.Model):
     
     @property
     def is_closed(self):
-        return self.status in ['unselected', 'rejected', 'cancelled']
+        return self.status in ['unselected', 'rejected', 'cancelled', 'completed']
 
 class TaskTemplate(models.Model):
     name = models.CharField(max_length=100)
