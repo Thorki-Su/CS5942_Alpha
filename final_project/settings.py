@@ -85,7 +85,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [os.environ.get('REDIS_URL')],  # 修改：直接使用 REDIS_URL，无本地回退
+            "hosts": [os.environ.get('REDIS_URL', '')],  # 修改：使用 REDIS_URL，空值避免无效连接
         },
         'expire': 120,
         'retry_attempts': 5,
