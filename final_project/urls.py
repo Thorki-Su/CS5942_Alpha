@@ -11,6 +11,7 @@ urlpatterns = [
     path('matching', include(('matching.urls', 'matching'), namespace='matching')),
     path('adminpanel/', include(('adminpanel.urls', 'adminpanel'), namespace='adminpanel')),
     path('volunteer/', include(('volunteer.urls', 'volunteer'), namespace='volunteer')),
+    path('payment/', include(('payment.urls', 'payment'), namespace='payment')),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Community Donations - Shallion Support{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h1 class="display-4 mb-3"><i class="fas fa-heart"></i> Community Support</h1>
+                    <p class="lead">Thanks to our generous donors, we can continue supporting our community members in need.</p>
+                    
+                    <!-- Statistics -->
+                    <div class="row mt-4">
+                        <div class="col-md-4">
+                            <h3 class="display-6">£{{ total_donated|floatformat:0 }}</h3>
+                            <p>Total Donated</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="display-6">{{ total_donors }}</h3>
+                            <p>Generous Donors</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="display-6">{{ donations.count }}</h3>
+                            <p>Total Donations</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{% url 'payment:donation_page' %}" class="btn btn-light btn-lg">
+                            <i class="fas fa-plus"></i> Make a Donation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Donations List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h3 class="mb-0"><i class="fas fa-list"></i> Recent Donations</h3>
+                </div>
+                <div class="card-body">
+                    {% if donations %}
+                        <div class="row">
+                            {% for donation in donations %}
+                                <div class="col-lg-6 mb-3">
+                                    <div class="card h-100 border-left-success">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <h5 class="card-title text-success">
+                                                        {{ donation.display_name }}
+                                                        <span class="badge bg-success ms-2">£{{ donation.amount }}</span>
+                                                    </h5>
+                                                    
+                                                    {% if donation.message and not donation.is_anonymous %}
+                                                        <blockquote class="blockquote-footer mt-2">
+                                                            <small class="text-muted">"{{ donation.message }}"</small>
+                                                        </blockquote>
+                                                    {% endif %}
+                                                    
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-calendar"></i> 
+                                                        {{ donation.completed_at|date:"F d, Y" }}
+                                                    </small>
+                                                </div>
+                                                
+                                                <div class="text-end">
+                                                    <i class="fas fa-heart text-danger"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {% if forloop.counter|divisibleby:2 %}
+                                    </div><div class="row">
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Pagination would go here if needed -->
+                        {% if donations.count > 20 %}
+                            <div class="text-center mt-4">
+                                <p class="text-muted">Showing recent donations. More donations available.</p>
+                            </div>
+                        {% endif %}
+                        
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-heart text-muted" style="font-size: 3rem;"></i>
+                            <h4 class="mt-3 text-muted">No donations yet</h4>
+                            <p class="text-muted">Be the first to support our community!</p>
+                            <a href="{% url 'payment:donation_page' %}" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Make the First Donation
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Call to Action -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h4><i class="fas fa-hands-helping text-primary"></i> Want to Help in Other Ways?</h4>
+                    <p class="mb-3">Your time and skills can make a huge difference too!</p>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a href="{% url 'user:volunteer_register' %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i> Become a Volunteer
+                        </a>
+                        <a href="{% url 'user:home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-info-circle"></i> Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom CSS -->
+<style>
+    .border-left-success {
+        border-left: 4px solid #28a745 !important;
+    }
+    
+    .card-title .badge {
+        font-size: 0.8rem;
+    }
+    
+    .blockquote-footer {
+        font-style: italic;
+    }
+</style>
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

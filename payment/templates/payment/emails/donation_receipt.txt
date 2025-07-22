@@ -1,0 +1,44 @@
+DONATION RECEIPT - SHALLION SUPPORT
+=====================================
+
+Dear {{ donation.donor_name }},
+
+Thank you so much for your generous donation to Shallion Support. Your contribution helps us continue providing essential support services to community members in need.
+
+DONATION DETAILS:
+-----------------
+Donation Amount: £{{ donation.amount }}
+Date: {{ donation.completed_at|date:"F d, Y" }}
+Transaction ID: {{ donation.stripe_payment_intent_id }}
+Donor: {{ donation.donor_name }}
+Email: {{ donation.donor_email }}
+
+{% if donation.message %}
+YOUR MESSAGE:
+-------------
+"{{ donation.message }}"
+{% endif %}
+
+YOUR IMPACT:
+------------
+Your donation will help us:
+• Provide essential support services to vulnerable community members
+• Train and support our dedicated volunteers  
+• Maintain and improve our technology platform
+• Expand our reach to help more people in need
+
+We are incredibly grateful for your support and trust in our mission. Together, we are building stronger, more supportive communities.
+
+TAX INFORMATION:
+----------------
+Please keep this receipt for your records. If you need additional documentation for tax purposes, please contact us at support@shallion.org.
+
+With heartfelt gratitude,
+The Shallion Support Team
+
+---
+Shallion Support
+Email: support@shallion.org
+This is an automated receipt. Please do not reply to this email.
+
+Want to help in other ways? Visit our website to become a volunteer and make an even bigger impact!
