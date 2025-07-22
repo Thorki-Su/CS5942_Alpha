@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Donation Cancelled - Shallion Support{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow border-0">
+                <div class="card-body text-center p-5">
+                    <!-- Cancel Icon -->
+                    <div class="mb-4">
+                        <i class="fas fa-times-circle text-warning" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <!-- Cancel Message -->
+                    <h2 class="text-warning mb-4">Donation Cancelled</h2>
+                    <p class="lead mb-4">Your donation was cancelled. No charges have been made to your payment method.</p>
+                    
+                    <!-- Information -->
+                    <div class="alert alert-info">
+                        <p class="mb-0">If you experienced any issues during the donation process, please don't hesitate to contact us. We're here to help!</p>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'payment:donation_page' %}" class="btn btn-success btn-lg me-md-2">
+                            <i class="fas fa-heart"></i> Try Again
+                        </a>
+                        <a href="{% url 'user:home' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-home"></i> Return Home
+                        </a>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div class="mt-4">
+                        <p class="text-muted">Need help? Contact us at:</p>
+                        <p><i class="fas fa-envelope"></i> support@shallion.org</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

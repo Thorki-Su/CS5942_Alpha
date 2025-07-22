@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Thank You for Your Donation - Shallion Support{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-body text-center p-5">
+                    <!-- Success Icon -->
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <!-- Thank You Message -->
+                    <h1 class="display-4 text-success mb-4">Thank You!</h1>
+                    <p class="lead mb-4">Your generous donation of <strong>£{{ donation.amount }}</strong> has been successfully processed.</p>
+                    
+                    <!-- Donation Details -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Donation Details</h5>
+                            <div class="row">
+                                <div class="col-md-6 text-start">
+                                    <p><strong>Amount:</strong> £{{ donation.amount }}</p>
+                                    <p><strong>Date:</strong> {{ donation.completed_at|date:"F d, Y" }}</p>
+                                    <p><strong>Donor:</strong> {{ donation.display_name }}</p>
+                                </div>
+                                <div class="col-md-6 text-start">
+                                    <p><strong>Transaction ID:</strong> {{ donation.stripe_payment_intent_id|truncatechars:20 }}</p>
+                                    <p><strong>Status:</strong> <span class="badge bg-success">Completed</span></p>
+                                    <p><strong>Receipt:</strong> Sent to {{ donation.donor_email }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Message Display -->
+                    {% if donation.message %}
+                    <div class="card bg-primary text-white mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title">Your Message:</h6>
+                            <p class="card-text">"{{ donation.message }}"</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Impact Message -->
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-heart text-danger"></i> Your Impact</h5>
+                        <p class="mb-0">Your donation will help us continue providing essential support services to community members in need. Thank you for making a difference in people's lives!</p>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'user:home' %}" class="btn btn-primary btn-lg me-md-2">
+                            <i class="fas fa-home"></i> Return Home
+                        </a>
+                        <a href="{% url 'payment:donation_list' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-list"></i> View All Donations
+                        </a>
+                    </div>
+                    
+                    <!-- Social Sharing -->
+                    <div class="mt-4">
+                        <p class="text-muted">Help us spread the word:</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="https://twitter.com/intent/tweet?text=I%20just%20donated%20to%20Shallion%20Support%20to%20help%20our%20community!%20Join%20me%20in%20making%20a%20difference." 
+                               target="_blank" class="btn btn-outline-info btn-sm">
+                                <i class="fab fa-twitter"></i> Share on Twitter
+                            </a>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" 
+                               target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fab fa-facebook"></i> Share on Facebook
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Information -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-envelope text-primary"></i> Receipt & Tax Information</h5>
+                            <p class="card-text">A receipt has been sent to your email address. Please keep this for your records. If you need a tax receipt, please contact us.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-users text-success"></i> Join Our Community</h5>
+                            <p class="card-text">Consider becoming a volunteer to directly help community members. Your time and skills can make an even bigger impact!</p>
+                            <a href="{% url 'user:volunteer_register' %}" class="btn btn-sm btn-outline-success">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
