@@ -25,5 +25,27 @@
                 <p style="font-size: 2em; font-weight: bold;">{{ today_task_count }}</p>
             </div>
         </div>
+        <div>
+            <h2>Record of recent operations</h2>
+            <a href="{% url 'adminpanel:records' %}">See all records</a><br>
+            <table>
+                <thead>
+                    <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Operation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                    <td>{{ log.timestamp|date:"Y-m-d H:i" }}</td>
+                    <td>{{ log.user.email }}</td>
+                    <td>{{ log.action|safe }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 {% endblock %}

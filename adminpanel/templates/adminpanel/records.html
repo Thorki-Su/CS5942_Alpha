@@ -1,0 +1,28 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Operations Records{% endblock %}
+
+{% block content %}
+    <div style="margin: 50px;">
+        <h2>Record of all operations</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Time</th>
+                <th>User</th>
+                <th>Operation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                <td>{{ log.timestamp|date:"Y-m-d H:i" }}</td>
+                <td>{{ log.user.email }}</td>
+                <td>{{ log.action|safe }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

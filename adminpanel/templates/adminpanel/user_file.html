@@ -5,37 +5,54 @@
 
 {% block content %}
     <div style="margin: 50px;">
-        {% if user.role == 'client' %}
-            <p><strong>Certification Types:</strong> 
-                {{ user.userprofile.clientprofile.certifications.all|join:", " }}
-            </p>
-            {% if user.userprofile.clientprofile.pip_certificate %}
-                <p><strong>PIP File</strong>:</p>
-                <embed src="{{ user.userprofile.clientprofile.pip_certificate.url }}" width="600px" height="500px" type="application/pdf">
+        <div>
+            {% if user.role == 'client' %}
+                <p><strong>Certification Types:</strong> 
+                    {{ user.userprofile.clientprofile.certifications.all|join:", " }}
+                </p>
+                {% if user.userprofile.clientprofile.pip_certificate %}
+                    <p><strong>PIP File</strong>:</p>
+                    <embed src="{{ user.userprofile.clientprofile.pip_certificate.url }}" width="600px" height="500px" type="application/pdf">
+                {% endif %}
+                {% if user.userprofile.clientprofile.adp_certificate %}
+                    <p><strong>ADP File</strong>:</p>
+                    <embed src="{{ user.userprofile.clientprofile.adp_certificate.url }}" width="600px" height="500px" type="application/pdf">
+                {% endif %}
+                {% if user.userprofile.clientprofile.lwc_certificate %}
+                    <p><strong>LWC File</strong>:</p>
+                    <embed src="{{ user.userprofile.clientprofile.lwc_certificate.url }}" width="600px" height="500px" type="application/pdf">
+                {% endif %}
+                {% if user.userprofile.clientprofile.nhs_certificate %}
+                    <p><strong>NHS File</strong>:</p>
+                    <embed src="{{ user.userprofile.clientprofile.nhs_certificate.url }}" width="600px" height="500px" type="application/pdf">
+                {% endif %}
+                {% if user.userprofile.clientprofile.diagnosis %}
+                    <p><strong>Diagnosi File</strong>:</p>
+                    <embed src="{{ user.userprofile.clientprofile.diagnosis.url }}" width="600px" height="500px" type="application/pdf">
+                {% endif %}
             {% endif %}
-            {% if user.userprofile.clientprofile.adp_certificate %}
-                <p><strong>ADP File</strong>:</p>
-                <embed src="{{ user.userprofile.clientprofile.adp_certificate.url }}" width="600px" height="500px" type="application/pdf">
+            {% if user.role == 'volunteer' %}
+                <p><strong>PVG Level</strong>: {{ user.userprofile.volunteerprofile.pvg_level }}</p>
+                {% if user.userprofile.volunteerprofile.pvg_file %}
+                    <p><strong>PVG File</strong>:</p>
+                    <embed src="{{ user.userprofile.volunteerprofile.pvg_file.url }}" width="600px" height="500px" type="application/pdf">
+                {% endif %}
             {% endif %}
-            {% if user.userprofile.clientprofile.lwc_certificate %}
-                <p><strong>LWC File</strong>:</p>
-                <embed src="{{ user.userprofile.clientprofile.lwc_certificate.url }}" width="600px" height="500px" type="application/pdf">
-            {% endif %}
-            {% if user.userprofile.clientprofile.nhs_certificate %}
-                <p><strong>NHS File</strong>:</p>
-                <embed src="{{ user.userprofile.clientprofile.nhs_certificate.url }}" width="600px" height="500px" type="application/pdf">
-            {% endif %}
-            {% if user.userprofile.clientprofile.diagnosis %}
-                <p><strong>Diagnosi File</strong>:</p>
-                <embed src="{{ user.userprofile.clientprofile.diagnosis.url }}" width="600px" height="500px" type="application/pdf">
-            {% endif %}
-        {% endif %}
-        {% if user.role == 'volunteer' %}
-            <p><strong>PVG Level</strong>: {{ user.userprofile.volunteerprofile.pvg_level }}</p>
-            {% if user.userprofile.volunteerprofile.pvg_file %}
-                <p><strong>PVG File</strong>:</p>
-                <embed src="{{ user.userprofile.volunteerprofile.pvg_file.url }}" width="600px" height="500px" type="application/pdf">
-            {% endif %}
-        {% endif %}
+        </div>
+        <div>
+            <p><strong>Eligibility Confirmed:</strong> {{ user.userprofile.eligibility_confirmed }}</p>
+
+            <form method="post" action="{% url 'adminpanel:update_eligibility' user.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="eligibility" value="true">
+                <button type="submit">Confirm the eligibility</button>
+            </form><br>
+
+            <form method="post" action="{% url 'adminpanel:update_eligibility' user.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="eligibility" value="false">
+                <button type="submit">Cancell the eligibility</button>
+            </form>
+        </div>
     </div>
 {% endblock %}

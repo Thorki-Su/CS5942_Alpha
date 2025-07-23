@@ -11,6 +11,8 @@ from datetime import timedelta, time
 from django.db.models import Q
 from matching.utils import match_volunteers_for_task
 from django.views.decorators.csrf import csrf_exempt
+from adminpanel.models import OperationLog
+from django.urls import reverse
 
 # Create your views here.
 def client_required(view_func):
@@ -51,6 +53,11 @@ def task_create(request):
             task.status = 'open'
             task.save()
             form.save_m2m()
+            url = reverse('adminpanel:task_detail', args=[task.id])
+            OperationLog.objects.create(
+                user=request.user,
+                action=f'User created a new task: <a href="{url}">Task #{task.id}</a>'
+            )
 
             # 调用自动匹配逻辑
             matched_count = match_volunteers_for_task(task)
@@ -220,6 +227,12 @@ def task_apply(request, task_id):
         TaskApplication.objects.create(task=task, volunteer=request.user, status='pending')
         messages.success(request, "Application successful, please wait for review")
 
+        url = reverse('adminpanel:task_detail', args=[task.id])
+        OperationLog.objects.create(
+            user=user,
+            action=f'User created a new application for the task: <a href="{url}">Task #{task.id}</a>',
+        )
+
     return redirect('task:task_detail', task_id=task.id)
 
 @login_required
@@ -265,6 +278,11 @@ def cancel_task(request, task_id):
             messages.error(request, "Cannot cancel a task less than 24 hours before it starts.")
         else:
             task.cancel()
+            url = reverse('adminpanel:task_detail', args=[task.id])
+            OperationLog.objects.create(
+                user=request.user,
+                action=f'User cancelled the task: <a href="{url}">Task #{task.id}</a>',
+            )
         return redirect('task:mytask')
 
     return redirect('task:task_detail', task_id=task.id)
@@ -282,6 +300,11 @@ def cancel_application(request, task_id):
             messages.error(request, "You cannot cancel this application within 24 hours of task start.")
         else:
             application.cancel()
+            url = reverse('adminpanel:task_detail', args=[task.id])
+            OperationLog.objects.create(
+                user=request.user,
+                action=f'User cancelled the application for the task: <a href="{url}">Task #{task.id}</a>',
+            )
         return redirect('task:myapplication')
     
     return redirect('task:task_detail', task_id=task.id)
@@ -366,6 +389,11 @@ def task_feedback(request, task_id, to_user_id):
                 StarRelation.objects.filter(from_user=from_user, to_user=to_user).delete()
 
             messages.success(request, "Feedback submitted successfully.")
+            url = reverse('adminpanel:task_detail', args=[task.id])
+            OperationLog.objects.create(
+                user=request.user,
+                action=f'User sent a feedback for the task: <a href="{url}">Task #{task.id}</a>',
+            )
             return redirect('task:task_detail', task_id=task_id)
     else:
         initial_data = {
