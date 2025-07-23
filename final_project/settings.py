@@ -10,13 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
 # 本地开发时加载 .env 文件
-if os.environ.get('DJANGO_DEVELOPMENT'):
-    load_dotenv() # 读取根目录的 .env 文件
+load_dotenv() # 读取根目录的 .env 文件
     
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 EMAIL_HOST = os.getenv("EMAIL_HOST")
@@ -26,7 +26,7 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "shallion9527@gmail.com")
 
-# print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
+print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
 # print("DEBUG: DATABASE_URL =", os.environ.get('DATABASE_URL'))
 
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
@@ -44,13 +44,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-i!o^^a8m_sz=(_5e_c07nyutwzr(fdu+uihy5=gpr^lwvwpotb'
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'mangoairport-artistbanana-8000.codio-box.uk', 'cs5942-alpha.onrender.com']
+ALLOWED_HOSTS = ['localhost', '10.18.2.217', '127.0.0.1', 'mangoairport-artistbanana-8000.codio-box.uk', 'cs5942-alpha.onrender.com']
 
+CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
     'https://mangoairport-artistbanana-8000.codio-box.uk',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    # add for mobile
+    'http://10.0.2.2:8000',
 ]
 
 INSTALLED_APPS = [
@@ -69,6 +72,10 @@ INSTALLED_APPS = [
     'channels',
     'task',
     'storages',
+    # add for mobile
+    'corsheaders',
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 ASGI_APPLICATION = 'final_project.asgi.application'
@@ -92,9 +99,18 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # add for mobile
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'final_project.urls'
+
+# Add for mobile
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
 
 TEMPLATES = [
     {
@@ -118,7 +134,8 @@ IS_TESTING = 'test' in os.sys.argv
 IS_DEVELOPMENT = os.environ.get('DJANGO_DEVELOPMENT') == '1'
 
 #if IS_TESTING or IS_DEVELOPMENT:
-if IS_TESTING:
+if IS_TESTING or IS_DEVELOPMENT:
+    print("⚠ 使用 SQLite 本地数据库")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -126,6 +143,7 @@ if IS_TESTING:
         }
     }
 else:
+    print("🌐 使用远程 PostgreSQL 数据库")
     DATABASES = {
         'default': dj_database_url.config(
             default=os.getenv('DATABASE_URL'),
@@ -170,3 +188,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# add for mobile
+LOGIN_URL = '/login/'
+print(DATABASES)

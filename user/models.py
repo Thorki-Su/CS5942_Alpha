@@ -155,3 +155,17 @@ class AdminProfile(models.Model):
     supervisor_contact = models.CharField(max_length=255, null=True, blank=True)
     consent_data_use = models.BooleanField(default=False)
     agreement_ethics = models.BooleanField(default=False)
+
+# 专供移动端使用的选项类型（不影响已有逻辑）
+class TaskType(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class PVGLevelType(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=255)
+    
+    def __str__(self):
+        return self.name

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth import authenticate, login, logout,get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import CustomUser, UserProfile, ClientProfile, VolunteerProfile
@@ -12,6 +12,7 @@ import base64
 import re
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt
 import json
 from django.utils.safestring import mark_safe
 from django.core.files.storage import default_storage

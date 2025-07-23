@@ -1,7 +1,9 @@
-from django.urls import path
+from django.urls import path,include
 from . import views
 from .views import CustomPasswordChangeView
 from django.contrib.auth.views import PasswordChangeDoneView
+
+from .mobile import mobile_urls
 
 urlpatterns = [
     path('', views.home_view, name='home'),
@@ -19,4 +21,6 @@ urlpatterns = [
     path('change-password/', CustomPasswordChangeView.as_view(), name='change_password'),
     path('change-password/done/', PasswordChangeDoneView.as_view(
         template_name='user/password_change_done.html'), name='password_change_done'),
+    # 移动端视图：统一挂载到 /api/mobile/
+    path('api/mobile/', include('user.mobile.mobile_urls')),
 ]
