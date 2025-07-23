@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser, UserProfile, ClientProfile, CertificationType, ConditionType, VolunteerProfile, SupportType
+from storages.backends.s3boto3 import S3Boto3Storage
+from django.core.files.base import ContentFile
 
 true_and_false = [
     (True, 'Yes'),
@@ -160,14 +162,19 @@ class ClientProfileForm(forms.ModelForm):
         if commit:
             instance.save()
             # 保存上传的文件
+            # for field in ['pip_certificate', 'adp_certificate', 'lwc_certificate', 'nhs_certificate', 'diagnosis']:
+            #     if field in self.cleaned_data:
+            #         file = self.cleaned_data.get(field)
+            #         if file and hasattr(file, 'name'):
+            #             setattr(instance, field, file)
+            s3_storage = S3Boto3Storage()
+            email_prefix = instance.user_profile.user.email
+
             for field in ['pip_certificate', 'adp_certificate', 'lwc_certificate', 'nhs_certificate', 'diagnosis']:
-                if field in self.cleaned_data:
-                    file = self.cleaned_data.get(field)
-                    if file and hasattr(file, 'name'):
-                        setattr(instance, field, file)
-            # for field_name, field_value in self.cleaned_data.items():
-            #     if field_name in ['pip_certificate', 'adp_certificate', 'lwc_certificate', 'nhs_certificate', 'diagnosis']:
-            #         setattr(instance, field_name, field_value)
+                file = self.cleaned_data.get(field)
+                if file and hasattr(file, 'name'):
+                    filename = s3_storage.save(f'certificates/{email_prefix}/{field}/{file.name}', file)
+                    setattr(instance, field, filename)
             instance.save()
             self.save_m2m()
         return instance

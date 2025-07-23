@@ -19,8 +19,8 @@ import dj_database_url
 load_dotenv()
 if not os.getenv('DATABASE_URL'):
     raise ValueError("DATABASE_URL environment variable not set. Please check .env file.")
-print("DEBUG: Loaded DATABASE_URL =", os.environ.get('DATABASE_URL'))  # 调试
-print("DEBUG: Loaded REDIS_URL =", os.environ.get('REDIS_URL'))  # 调试
+# print("DEBUG: Loaded DATABASE_URL =", os.environ.get('DATABASE_URL'))
+# print("DEBUG: Loaded REDIS_URL =", os.environ.get('REDIS_URL'))
 
     
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")

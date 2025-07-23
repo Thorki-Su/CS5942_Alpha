@@ -5,6 +5,9 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import get_user_model
 from task.models import Task, TaskApplication, TaskRecord, Feedback, StarRelation
 from django.utils import timezone
+from django.views.decorators.http import require_POST
+from django.db.models import Q
+from .models import OperationLog
 
 User = get_user_model()
 
@@ -21,18 +24,21 @@ def admin_dashboard(request):
     volunteer_count = User.objects.filter(role='volunteer').count()
     task_count = Task.objects.count()
     today_task_count = Task.objects.filter(created_at__date=today).count()
+    logs = OperationLog.objects.all().order_by('-timestamp')[:20]
     
     context = {
         'client_count': client_count,
         'volunteer_count': volunteer_count,
         'task_count': task_count,
         'today_task_count': today_task_count,
+        'logs':logs,
     }
     return render(request, 'adminpanel/admin_dashboard.html', context)
 
 @staff_required
 def user_list(request):
-    users = User.objects.all().order_by('id')
+    # users = User.objects.all().order_by('id')
+    users = User.objects.filter(Q(role='client') | Q(role='volunteer')).order_by('id')
     return render(request, 'adminpanel/user_list.html', {'users': users})
 
 @staff_required
@@ -88,3 +94,25 @@ def task_detail(request, task_id):
 def user_file(request, user_id):
     user = get_object_or_404(User, id=user_id)
     return render(request, 'adminpanel/user_file.html', {'user':user})
+
+@require_POST
+@staff_required
+def update_eligibility(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    profile = user.userprofile
+
+    eligibility = request.POST.get("eligibility")
+
+    if eligibility in ["true", "false"]:
+        profile.eligibility_confirmed = (eligibility == "true")
+        profile.save()
+        messages.success(request, f"{user.email} is updated to {eligibility}.")
+    else:
+        messages.error(request, "Invalid eligibility status parameter.")
+
+    return redirect("adminpanel: user_file", user_id=user.id)
+
+@staff_required
+def records(request):
+    logs = OperationLog.objects.all().order_by('-timestamp')
+    return render(request, 'adminpanel/records.html', {'logs':logs})

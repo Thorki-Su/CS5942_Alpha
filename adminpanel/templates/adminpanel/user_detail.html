@@ -19,6 +19,9 @@
             <p><strong>Gender:</strong> {{ user.userprofile.gender|default:"unfilled" }}</p>
             <p><strong>Phone Number:</strong> {{ user.userprofile.phone_number|default:"unfilled" }}</p>
             <p><strong>Location:</strong> {{ user.userprofile.location }}</p>
+            {% if user.role == 'volunteer' %}
+                <p><strong>In scheduling or not:</strong> {{ user.userprofile.volunteerprofile.is_scheduled }}</p>
+            {% endif %}
             <p><strong>Photo:</strong></p>
             {% if user.userprofile.profile_photo %}
                 <p><img src="{{ user.userprofile.profile_photo.url }}" alt="Profile Photo" width="200"></p>
