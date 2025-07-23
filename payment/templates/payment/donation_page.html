@@ -20,7 +20,7 @@
 
                         <!-- Amount Selection -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold">{{ form.amount_choice.label }}</label>
+                            <label class="form-label fw-bold">Select Amount</label>
                             <div class="row">
                                 {% for choice in form.amount_choice %}
                                 <div class="col-6 col-md-3 mb-2">
@@ -38,8 +38,7 @@
 
                         <!-- Custom Amount -->
                         <div class="mb-4" id="custom-amount-section" style="display: none;">
-                            <label for="{{ form.custom_amount.id_for_label }}" class="form-label fw-bold">{{
-                                form.custom_amount.label }}</label>
+                            <label for="{{ form.custom_amount.id_for_label }}" class="form-label fw-bold">Custom Amount (£)</label>
                             {{ form.custom_amount }}
                             {% if form.custom_amount.errors %}
                             <div class="text-danger">{{ form.custom_amount.errors }}</div>
@@ -49,16 +48,14 @@
                         <!-- Donor Information -->
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="{{ form.donor_name.id_for_label }}" class="form-label fw-bold">{{
-                                    form.donor_name.label }}</label>
+                                <label for="{{ form.donor_name.id_for_label }}" class="form-label fw-bold">Full Name</label>
                                 {{ form.donor_name }}
                                 {% if form.donor_name.errors %}
                                 <div class="text-danger">{{ form.donor_name.errors }}</div>
                                 {% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.donor_email.id_for_label }}" class="form-label fw-bold">{{
-                                    form.donor_email.label }}</label>
+                                <label for="{{ form.donor_email.id_for_label }}" class="form-label fw-bold">Email Address</label>
                                 {{ form.donor_email }}
                                 {% if form.donor_email.errors %}
                                 <div class="text-danger">{{ form.donor_email.errors }}</div>
@@ -68,8 +65,7 @@
 
                         <!-- Message -->
                         <div class="mb-3">
-                            <label for="{{ form.message.id_for_label }}" class="form-label fw-bold">{{
-                                form.message.label }}</label>
+                            <label for="{{ form.message.id_for_label }}" class="form-label fw-bold">Message (Optional)</label>
                             {{ form.message }}
                             {% if form.message.errors %}
                             <div class="text-danger">{{ form.message.errors }}</div>
@@ -81,7 +77,7 @@
                             <div class="form-check">
                                 {{ form.is_anonymous }}
                                 <label class="form-check-label" for="{{ form.is_anonymous.id_for_label }}">
-                                    {{ form.is_anonymous.label }}
+                                    Make this donation anonymous
                                 </label>
                             </div>
                             <small class="text-muted">Your name will not be displayed publicly if checked</small>
@@ -105,10 +101,13 @@
                         </div>
 
                         <!-- Submit Button -->
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" id="submit-button" class="btn btn-success btn-lg">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                            <button type="submit" id="submit-button" class="btn btn-success btn-lg me-md-2">
                                 <i class="fas fa-heart"></i> Complete Donation
                             </button>
+                            <a href="{% url 'payment:donation_cancel' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
                         </div>
 
                         <!-- Loading Spinner -->
@@ -145,7 +144,7 @@
             </div>
 
             <!-- How Your Money Helps -->
-            <div class="card shadow-sm mb-4">
+            <!-- <div class="card shadow-sm mb-4">
                 <div class="card-header bg-warning text-dark">
                     <h5 class="mb-0"><i class="fas fa-hands-helping"></i> How Your Money Helps</h5>
                 </div>
@@ -161,7 +160,7 @@
                             platform for one month</li>
                     </ul>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Recent Donations -->
             {% if recent_donations %}
