@@ -6,27 +6,27 @@
 {% block content %}
     <div style="margin: 50px;">
         {% if user.role == 'client' %}
-            <p><strong>Certification Types</strong>: {{ user.userprofile.clientprofile.certifications }}</p>
+            <p><strong>Certification Types:</strong> 
+                {{ user.userprofile.clientprofile.certifications.all|join:", " }}
+            </p>
             {% if user.userprofile.clientprofile.pip_certificate %}
-                <p><strong>PIP</strong>:</p>
-                <embed src="https://shallion-support-files.s3.us-east-1.amazonaws.com/certificates/pip/THE+APP.pdf" width="600" height="500" type="application/pdf">
-
-                {% comment %} <embed src="{{ user.userprofile.clientprofile.pip_certificate.url }}" width="600px" height="500px" type="application/pdf"> {% endcomment %}
+                <p><strong>PIP File</strong>:</p>
+                <embed src="{{ user.userprofile.clientprofile.pip_certificate.url }}" width="600px" height="500px" type="application/pdf">
             {% endif %}
             {% if user.userprofile.clientprofile.adp_certificate %}
-                <p><strong>ADP</strong>:</p>
+                <p><strong>ADP File</strong>:</p>
                 <embed src="{{ user.userprofile.clientprofile.adp_certificate.url }}" width="600px" height="500px" type="application/pdf">
             {% endif %}
             {% if user.userprofile.clientprofile.lwc_certificate %}
-                <p><strong>LWC</strong>:</p>
+                <p><strong>LWC File</strong>:</p>
                 <embed src="{{ user.userprofile.clientprofile.lwc_certificate.url }}" width="600px" height="500px" type="application/pdf">
             {% endif %}
             {% if user.userprofile.clientprofile.nhs_certificate %}
-                <p><strong>NHS</strong>:</p>
+                <p><strong>NHS File</strong>:</p>
                 <embed src="{{ user.userprofile.clientprofile.nhs_certificate.url }}" width="600px" height="500px" type="application/pdf">
             {% endif %}
             {% if user.userprofile.clientprofile.diagnosis %}
-                <p><strong>Diagnosi</strong>:</p>
+                <p><strong>Diagnosi File</strong>:</p>
                 <embed src="{{ user.userprofile.clientprofile.diagnosis.url }}" width="600px" height="500px" type="application/pdf">
             {% endif %}
         {% endif %}
