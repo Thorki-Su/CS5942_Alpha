@@ -44,10 +44,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-i!o^^a8m_sz=(_5e_c07nyutwzr(fdu+uihy5=gpr^lwvwpotb'
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'mangoairport-artistbanana-8000.codio-box.uk', 'cs5942-alpha.onrender.com','cs5942-alpha-test.onrender.com']
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1', 
+    'mangoairport-artistbanana-8000.codio-box.uk', 
+    'cs5942-alpha.onrender.com',
+    'cs5942-alpha-test.onrender.com',
+    ]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
+    'https://cs5942-alpha-test.onrender.com',
     'https://mangoairport-artistbanana-8000.codio-box.uk',
     'http://localhost',
     'http://localhost:8000',
