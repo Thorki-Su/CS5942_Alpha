@@ -14,10 +14,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
-# 本地开发时加载 .env 文件
-if os.environ.get('DJANGO_DEVELOPMENT'):
-    load_dotenv() # 读取根目录的 .env 文件
-    
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(os.path.join(BASE_DIR, '.env'))  # 总是加载 .env 文件
+
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
@@ -26,8 +25,9 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "shallion9527@gmail.com")
 
-# print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
-# print("DEBUG: DATABASE_URL =", os.environ.get('DATABASE_URL'))
+# 调试输出（可选，用于验证环境变量）
+print("DATABASE_URL:", os.getenv('DATABASE_URL'))
+print("DJANGO_DEVELOPMENT:", os.getenv('DJANGO_DEVELOPMENT'))
 
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
@@ -49,8 +49,10 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'mangoairport-artistbanana-8000.codio
 CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
     'https://mangoairport-artistbanana-8000.codio-box.uk',
+    'http://localhost',
     'http://localhost:8000',
-    'http://127.0.0.1:8000',
+    'http://127.0.0.1',
+    'http://127.0.0.1:8000',  # 添加以解决 403 Forbidden 错误
 ]
 
 INSTALLED_APPS = [
@@ -73,11 +75,12 @@ INSTALLED_APPS = [
 
 ASGI_APPLICATION = 'final_project.asgi.application'
 
+
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.environ.get("REDIS_URL")],
         },
     },
 }
@@ -117,8 +120,8 @@ WSGI_APPLICATION = 'final_project.wsgi.application'
 IS_TESTING = 'test' in os.sys.argv
 IS_DEVELOPMENT = os.environ.get('DJANGO_DEVELOPMENT') == '1'
 
-#if IS_TESTING or IS_DEVELOPMENT:
-if IS_TESTING:
+# 修改 DATABASES 配置，添加默认 SQLite
+if IS_TESTING or not os.getenv('DATABASE_URL'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -134,24 +137,12 @@ else:
         )
     }
 
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default='postgresql://alphapostgresql_user:nIJaP1LsDUpC35jxatw8icIiMykfzA0H@dpg-d1e9oceuk2gs73afl2hg-a.oregon-postgres.render.com/alphapostgresql',
-#         conn_max_age=600,
-#         ssl_require=False
-#     )
-# }
-
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
-# 本地测试用
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com'
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Europe/London'

@@ -3,35 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1v1 Chat Room</title>
+    <title>Chat Room</title>
     {% load static %}
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         .chat-container { height: 80vh; overflow-y: auto; padding: 20px; }
-        .message { 
-            max-width: 70%; 
-            margin-bottom: 15px; 
-            padding: 10px 15px; 
-            border-radius: 10px; 
-            display: block; 
-            width: fit-content; 
-        }
-        .sent { 
-            background-color: #0084ff; 
-            color: white; 
-            margin-left: auto; 
-            text-align: right; 
-        }
-        .received { 
-            background-color: #e9ecef; 
-            color: black; 
-            margin-right: auto; 
-            text-align: left; 
-        }
+        .message { max-width: 70%; margin-bottom: 15px; padding: 10px 15px; border-radius: 10px; display: block; width: fit-content; }
+        .sent { background-color: #0084ff; color: white; margin-left: auto; text-align: right; }
+        .received { background-color: #e9ecef; color: black; margin-right: auto; text-align: left; }
         .message-time { font-size: 0.75rem; color: #666; }
         .input-area { padding: 10px; border-top: 1px solid #ddd; background-color: #fff; }
-        .video-container, .audio-container { display: none; width: 80%; margin: 20px auto; justify-content: space-between; }
-        video, audio { width: 45%; border: 1px solid #ccc; }
+        .video-container { display: none; width: 80%; margin: 20px auto; justify-content: space-between; flex-wrap: wrap; }
+        video, audio { width: 45%; border: 1px solid #ccc; margin: 5px; }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center">
@@ -63,16 +46,18 @@
             <button type="button" onclick="sendMessage()" class="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600">Send</button>
         </div>
         <div class="p-4 border-t flex justify-end">
-            <button onclick="toggleVideoCall()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 mr-2 video-call-btn">Start/Stop Video Call</button>
-            <button onclick="toggleAudio()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 audio-btn" id="audio-btn">Start/Stop Audio</button>
+            <button onclick="toggleVideoCall()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 mr-2">Start/Stop Video Call</button>
+            <button onclick="toggleAudio()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600" id="audio-btn">Start/Stop Audio</button>
         </div>
-        <div class="video-container" id="video-container">
+        <div class="video-container" id="video-container" style="display: none;">
             <video id="localVideo" autoplay playsinline muted></video>
-            <video id="remoteVideo" autoplay playsinline></video>
-            <audio id="localAudio" autoplay playsinline muted></audio>
-            <audio id="remoteAudio" autoplay playsinline></audio>
+            <div id="remoteVideos"></div>
+            <audio id="localAudio" autoplay playsinline muted hidden></audio>
+            <div id="remoteAudios" hidden></div>
         </div>
     </div>
+
+    {{ participants|json_script:"participants-data" }}  <!-- 修复：用json_script输出 -->
 
     <script>
         const chatContainer = document.getElementById('chat-container');
@@ -80,81 +65,100 @@
 
         const roomName = "{{ room_name }}";
         const userEmail = "{{ request.user.email }}";
+        const participantsData = document.getElementById('participants-data');
+        let participants = [];
+        if (participantsData) {
+            participants = JSON.parse(participantsData.textContent).filter(email => email !== userEmail);
+        } else {
+            participants = [];  // 默认空，避免报错
+        }
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
         const wsPath = `${wsScheme}://${window.location.host}/ws/chat/${roomName}/`;
         let ws = new WebSocket(wsPath);
-        let videoSocket = null;
-        let peerConnection = null;
+        let peerConnections = {};
         let localStream = null;
+        let recorder = null;
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
-        const reconnectInterval = 2000; // 2秒重连间隔
+        const reconnectInterval = 2000;
 
         function reconnect() {
             if (reconnectAttempts < maxReconnectAttempts) {
                 setTimeout(() => {
-                    console.log(`Attempting to reconnect (${reconnectAttempts + 1}/${maxReconnectAttempts})...`);
+                    console.log(`Reconnecting (${reconnectAttempts + 1}/${maxReconnectAttempts})...`);
                     ws = new WebSocket(wsPath);
                     setupWebSocket();
                     reconnectAttempts++;
                 }, reconnectInterval);
             } else {
-                console.error("Max reconnect attempts reached. Please refresh the page.");
-                alert("Failed to reconnect to WebSocket. Please refresh the page.");
+                alert("Failed to reconnect. Refresh page.");
             }
         }
 
         function setupWebSocket() {
             ws.onopen = () => {
-                console.log('WebSocket connected to room:', roomName);
-                reconnectAttempts = 0; // 重置重连计数
-            };
+        console.log('WebSocket opened, sending auth...');
+        const authMsg = {
+            type: 'auth',
+            user_email : userEmail
+        };
+        console.log('Sending auth:', authMsg);
+        ws.send(JSON.stringify(authMsg));
+        
+        authTimeout = setTimeout(() => {
+            console.error('Authentication timeout');
+            ws.close();
+        }, 30000);
+    };
 
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'ping') return; // 忽略心跳响应
+    ws.onmessage = (event) => {
+        console.log('Raaw message:', event.data); // 调试接收
+        const data = JSON.parse(event.data);
+        if (data.type === 'auth_ack') {
+            clearTimeout(authTimeout);
+            console.log('Authentication confirmed');
+            return;
+        }
+
+                if (data.message) {
                     const messageList = document.getElementById('message-list');
                     const messageElement = document.createElement('div');
-                    console.log('Received message from:', data.sender, 'Current user:', userEmail);
                     messageElement.classList.add('message', data.sender === userEmail ? 'sent' : 'received');
                     messageElement.innerHTML = `<p>${data.message}</p><div class="message-time">${new Date(data.timestamp).toLocaleTimeString()}</div>`;
                     messageList.appendChild(messageElement);
                     chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
 
-                    if (data.audio_data) {
-                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        const audioData = base64ToArrayBuffer(data.audio_data);
-                        audioContext.decodeAudioData(audioData, function(buffer) {
-                            const source = audioContext.createBufferSource();
-                            source.buffer = buffer;
-                            source.connect(audioContext.destination);
-                            source.start(0);
-                        }, function(e) {
-                            console.error("Audio decode error:", e);
-                        });
-                    }
-                } catch (e) {
-                    console.error("Error processing message:", e);
+                if (data.audio_data) {
+                    const audioBlob = new Blob([base64ToArrayBuffer(data.audio_data)], { type: 'audio/webm' });
+                    const audio = new Audio(URL.createObjectURL(audioBlob));
+                    audio.play();
+                }
+
+                if (data.signal && data.sender !== userEmail && data.to === userEmail) {
+                    const pc = peerConnections[data.sender] || createPeerConnection(data.sender, localStream);
+                    pc.setRemoteDescription(new RTCSessionDescription(data.signal))
+                        .then(() => data.signal.type === 'offer' ? pc.createAnswer() : null)
+                        .then(answer => {
+                            if (answer) {
+                                pc.setLocalDescription(answer);
+                                ws.send(JSON.stringify({ signal: answer, to: data.sender }));
+                            }
+                        })
+                        .catch(err => console.error('SDP error:', err));
+                } else if (data.type === 'candidate' && data.to === userEmail) {
+                    const pc = peerConnections[data.sender];
+                    if (pc) pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(err => console.error('ICE error:', err));
                 }
             };
 
-            ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-            };
-
-            ws.onclose = () => {
-                console.log('WebSocket disconnected');
-                reconnect();
-            };
+            ws.onerror = (error) => console.error('WebSocket error:', error);
+            ws.onclose = () => reconnect();
         }
 
-        // 添加心跳机制
         setInterval(() => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'ping' }));
-            }
-        }, 30000); // 每 30 秒发送一次
+            if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'ping' }));
+        }, 30000);
 
         setupWebSocket();
 
@@ -162,14 +166,14 @@
             const messageInput = document.getElementById('message-input');
             const message = messageInput.value.trim();
             if (message && ws.readyState === WebSocket.OPEN) {
-                const data = {
-                    'message': message,
-                    'timestamp': new Date().toISOString()
-                };
+                const data = { 'message': message, 'timestamp': new Date().toISOString() };
+                if (roomName.startsWith('1v1_')) {
+                    data['receiver'] = participants[0];  // 1v1只有一个peer
+                }
                 ws.send(JSON.stringify(data));
                 messageInput.value = '';
             } else if (ws.readyState !== WebSocket.OPEN) {
-                alert('WebSocket is not connected. Please try again or wait for reconnection.');
+                alert('WebSocket not connected. Wait for reconnection.');
             }
         }
 
@@ -183,96 +187,70 @@
         }
 
         function startVideoCall() {
-            const videoContainer = document.getElementById('video-container');
-            const localVideo = document.getElementById('localVideo');
-            const remoteVideo = document.getElementById('remoteVideo');
-            videoSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/video/${roomName}/`);
-            peerConnection = new RTCPeerConnection();
-
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
                 .then(stream => {
                     localStream = stream;
-                    localVideo.srcObject = stream;
-                    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+                    document.getElementById('localVideo').srcObject = stream;
+                    participants.forEach(peerEmail => createPeerConnection(peerEmail, stream));
+                    document.getElementById('video-container').style.display = 'flex';
                 })
                 .catch(err => console.error('Media access error:', err));
+        }
 
-            peerConnection.ontrack = (event) => {
+        function createPeerConnection(peerEmail, stream) {
+            const pc = new RTCPeerConnection();
+            peerConnections[peerEmail] = pc;
+            stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+            pc.ontrack = (event) => {
+                const remoteVideo = document.createElement('video');
+                remoteVideo.id = `remote_${peerEmail}`;
                 remoteVideo.srcObject = event.streams[0];
+                remoteVideo.autoplay = true;
+                remoteVideo.playsInline = true;
+                document.getElementById('remoteVideos').appendChild(remoteVideo);
             };
 
-            videoSocket.onmessage = function(e) {
-                try {
-                    const data = JSON.parse(e.data);
-                    if (data.signal) {
-                        if (data.sender !== userEmail) {
-                            peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal))
-                                .then(() => peerConnection.createAnswer())
-                                .then(answer => peerConnection.setLocalDescription(answer))
-                                .then(() => videoSocket.send(JSON.stringify({
-                                    signal: peerConnection.localDescription,
-                                    sender: userEmail
-                                })))
-                                .catch(err => console.error('SDP error:', err));
-                        }
-                    }
-                } catch (e) {
-                    console.error("Video signal error:", e);
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate, to: peerEmail }));
                 }
             };
 
-            peerConnection.createOffer()
-                .then(offer => peerConnection.setLocalDescription(offer))
-                .then(() => videoSocket.send(JSON.stringify({
-                    signal: peerConnection.localDescription,
-                    sender: userEmail
-                })))
+            pc.createOffer()
+                .then(offer => pc.setLocalDescription(offer))
+                .then(() => ws.send(JSON.stringify({ signal: pc.localDescription, to: peerEmail })))
                 .catch(err => console.error('Offer error:', err));
-
-            videoContainer.style.display = 'flex';
+            return pc;
         }
 
         function endCall() {
-            if (peerConnection) peerConnection.close();
-            if (videoSocket) videoSocket.close();
+            Object.values(peerConnections).forEach(pc => pc.close());
+            peerConnections = {};
             if (localStream) localStream.getTracks().forEach(track => track.stop());
             document.getElementById('video-container').style.display = 'none';
             document.getElementById('localVideo').srcObject = null;
-            document.getElementById('remoteVideo').srcObject = null;
+            document.getElementById('remoteVideos').innerHTML = '';
         }
 
         function toggleAudio() {
-            const audioBtn = document.getElementById('audio-btn');
             if (!localStream) {
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(stream => {
                         localStream = stream;
-                        sendAudioStream();
-                        audioBtn.textContent = 'Stop Audio';
+                        recorder = new MediaRecorder(stream);
+                        recorder.ondataavailable = e => e.data.arrayBuffer().then(buffer => {
+                            ws.send(JSON.stringify({ audio_data: arrayBufferToBase64(buffer) }));
+                        });
+                        recorder.start(500);
+                        document.getElementById('audio-btn').textContent = 'Stop Audio';
                     })
                     .catch(err => console.error('Audio error:', err));
             } else {
+                if (recorder) recorder.stop();
                 localStream.getAudioTracks().forEach(track => track.stop());
                 localStream = null;
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({'audio_data': null}));
-                }
-                audioBtn.textContent = 'Start Audio';
-            }
-        }
-
-        function sendAudioStream() {
-            if (localStream && ws && ws.readyState === WebSocket.OPEN) {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const mediaStreamSource = audioContext.createMediaStreamSource(localStream);
-                const processor = audioContext.createScriptProcessor(4096, 1, 1);
-                mediaStreamSource.connect(processor);
-                processor.connect(audioContext.destination);
-                processor.onaudioprocess = function(e) {
-                    const left = e.inputBuffer.getChannelData(0);
-                    const audioData = arrayBufferToBase64(left);
-                    ws.send(JSON.stringify({'audio_data': audioData}));
-                };
+                document.getElementById('audio-btn').textContent = 'Start Audio';
             }
         }
 
