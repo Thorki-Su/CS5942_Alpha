@@ -48,6 +48,7 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'mangoairport-artistbanana-8000.codio
 
 CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
+    'cs5942-alpha-test.onrender.com',
     'https://mangoairport-artistbanana-8000.codio-box.uk',
     'http://localhost',
     'http://localhost:8000',
