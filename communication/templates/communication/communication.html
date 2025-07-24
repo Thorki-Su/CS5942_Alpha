@@ -69,8 +69,10 @@
         let participants = [];
         if (participantsData) {
             participants = JSON.parse(participantsData.textContent).filter(email => email !== userEmail);
-        } else {
-            participants = [];  // 默认空，避免报错
+        }
+        if (participants.length === 0 && roomName.startsWith('1v1_')) {
+            console.warn('No participants found for 1v1 room, using fallback');
+            participants = ['fallback@example.com']; // 临时占位，需由视图提供
         }
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
         const wsPath = `${wsScheme}://${window.location.host}/ws/chat/${roomName}/`;
@@ -97,30 +99,32 @@
 
         function setupWebSocket() {
             ws.onopen = () => {
-        console.log('WebSocket opened, sending auth...');
-        const authMsg = {
-            type: 'auth',
-            user_email : userEmail
-        };
-        console.log('Sending auth:', authMsg);
-        ws.send(JSON.stringify(authMsg));
-        
-        authTimeout = setTimeout(() => {
-            console.error('Authentication timeout');
-            ws.close();
-        }, 30000);
-    };
+                console.log('WebSocket opened, sending auth...');
+                const authMsg = {
+                    type: 'auth',
+                    user_email: userEmail
+                };
+                console.log('Sending auth:', authMsg);
+                ws.send(JSON.stringify(authMsg));
+                authTimeout = setTimeout(() => {
+                    console.error('Authentication timeout');
+                    ws.close();
+                }, 30000);
+            };
 
-    ws.onmessage = (event) => {
-        console.log('Raaw message:', event.data); // 调试接收
-        const data = JSON.parse(event.data);
-        if (data.type === 'auth_ack') {
-            clearTimeout(authTimeout);
-            console.log('Authentication confirmed');
-            return;
-        }
-
-                if (data.message) {
+            ws.onmessage = (event) => {
+                console.log('Raw message:', event.data);
+                const data = JSON.parse(event.data);
+                if (data.type === 'auth_ack') {
+                    clearTimeout(authTimeout);
+                    console.log('Authentication confirmed');
+                    return;
+                }
+                if (data.type === 'ping') {
+                    console.log('Received ping');
+                    return; // 忽略 ping 响应
+                }
+                if (data.message && data.sender !== userEmail) { // 只渲染他人消息
                     const messageList = document.getElementById('message-list');
                     const messageElement = document.createElement('div');
                     messageElement.classList.add('message', data.sender === userEmail ? 'sent' : 'received');
@@ -128,13 +132,11 @@
                     messageList.appendChild(messageElement);
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                 }
-
                 if (data.audio_data) {
                     const audioBlob = new Blob([base64ToArrayBuffer(data.audio_data)], { type: 'audio/webm' });
                     const audio = new Audio(URL.createObjectURL(audioBlob));
                     audio.play();
                 }
-
                 if (data.signal && data.sender !== userEmail && data.to === userEmail) {
                     const pc = peerConnections[data.sender] || createPeerConnection(data.sender, localStream);
                     pc.setRemoteDescription(new RTCSessionDescription(data.signal))
@@ -157,8 +159,10 @@
         }
 
         setInterval(() => {
-            if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'ping' }));
-        }, 30000);
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'ping' }));
+            }
+        }, 30000); // 每 30 秒发送 ping
 
         setupWebSocket();
 
@@ -168,9 +172,16 @@
             if (message && ws.readyState === WebSocket.OPEN) {
                 const data = { 'message': message, 'timestamp': new Date().toISOString() };
                 if (roomName.startsWith('1v1_')) {
-                    data['receiver'] = participants[0];  // 1v1只有一个peer
+                    data['receiver'] = participants[0]; // 1v1 只有一个 peer
                 }
                 ws.send(JSON.stringify(data));
+                // 渲染自己发送的消息
+                const messageList = document.getElementById('message-list');
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', 'sent');
+                messageElement.innerHTML = `<p>${message}</p><div class="message-time">${new Date().toLocaleTimeString()}</div>`;
+                messageList.appendChild(messageElement);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
                 messageInput.value = '';
             } else if (ws.readyState !== WebSocket.OPEN) {
                 alert('WebSocket not connected. Wait for reconnection.');

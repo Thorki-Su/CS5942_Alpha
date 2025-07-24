@@ -50,6 +50,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             text_data_json = json.loads(text_data)
             logger.debug(f"Received raw data: {text_data}")
+            if text_data_json.get('type') == 'ping':
+                return  # 忽略 ping 消息
             if not self.user_email and text_data_json.get('type') == 'auth':
                 self.user_email = text_data_json.get('user_email')
                 if not self.user_email:
@@ -86,7 +88,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'is_group': self.is_task_group
                 }
                 try:
-                    await self.send(text_data=json.dumps(data))
+                    await self.send(text_data=json.dumps(data))  # 直接发送给当前客户端
                     await self.channel_layer.group_send(self.room_group_name, {
                         'type': 'chat_message',
                         'message': message,
@@ -169,15 +171,39 @@ class ChatConsumer(AsyncWebsocketConsumer):
             receiver = event.get('receiver')
             is_group = event.get('is_group', False)
             await self.save_message(sender, receiver, message, is_group)
-            await self.send(text_data=json.dumps({
-                'message': message,
-                'sender': sender,
-                'receiver': receiver,
-                'timestamp': timezone.now().isoformat(),
-                'is_group': is_group
-            }))
+            # 只对其他客户端发送，排除发送者
+            if self.user_email != sender:
+                await self.send(text_data=json.dumps({
+                    'message': message,
+                    'sender': sender,
+                    'receiver': receiver,
+                    'timestamp': timezone.now().isoformat(),
+                    'is_group': is_group
+                }))
         except Exception as e:
             logger.error(f"Error in chat_message: {e}")
+
+    @database_sync_to_async
+    def save_message(self, sender_email, receiver_email, message, is_group):
+        try:
+            User = get_user_model()
+            sender = User.objects.get(email=sender_email)
+            receiver = User.objects.filter(email=receiver_email).first() if receiver_email else None
+            task = None
+            if is_group and self.is_task_group:
+                task_id = int(self.room_name.split('_')[2])
+                task = Task.objects.get(id=task_id)
+            ChatMessage.objects.create(
+                sender=sender,
+                receiver=receiver,
+                content=message,
+                task=task,
+                timestamp=timezone.now(),
+                is_group=is_group,
+                is_read=False  # 确保设置
+            )
+        except Exception as e:
+            logger.error(f"Error in save_message: {e}")
 
     async def audio_message(self, event):
         try:
@@ -223,27 +249,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             logger.error(f"Error in close_room: {e}")
 
-    @database_sync_to_async
-    def save_message(self, sender_email, receiver_email, message, is_group):
-        try:
-            User = get_user_model()
-            sender = User.objects.get(email=sender_email)
-            receiver = User.objects.get(email=receiver_email) if receiver_email else None
-            task = None
-            if is_group and self.is_task_group:
-                task_id = int(self.room_name.split('_')[2])
-                task = Task.objects.get(id=task_id)
-            ChatMessage.objects.create(
-                sender=sender,
-                receiver=receiver,
-                content=message,
-                task=task,
-                timestamp=timezone.now(),
-                is_group=is_group
-            )
-        except Exception as e:
-            logger.error(f"Error in save_message: {e}")
-
 class VideoCallConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         try:
@@ -282,6 +287,8 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
             text_data_json = json.loads(text_data)
             logger.debug(f"Received raw data: {text_data}")
 
+            if text_data_json.get('type') == 'ping':
+                return  # 忽略 ping 消息
             if not self.user_email and text_data_json.get('type') == 'auth':
                 self.user_email = text_data_json.get('user_email')
                 if not self.user_email:

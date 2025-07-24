@@ -10,6 +10,7 @@ class ChatMessage(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     task = models.ForeignKey('task.Task', on_delete=models.CASCADE, null=True, blank=True)
     is_group = models.BooleanField(default=False)
+    is_read = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.sender.email} to {self.receiver.email if self.receiver else 'group'}: {self.content[:20]}"
