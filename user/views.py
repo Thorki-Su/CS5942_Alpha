@@ -11,7 +11,7 @@ from django.core.files.base import ContentFile
 import base64
 import re
 from django.http import JsonResponse
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.views.decorators.csrf import ensure_csrf_cookie
 import json
 from django.utils.safestring import mark_safe
 from django.core.files.storage import default_storage
@@ -30,25 +30,21 @@ def home_view(request):
     tasks = Task.objects.filter(client=request.user) if request.user.is_authenticated and request.user.role == 'client' else []
     return render(request, 'user/home.html', {'tasks': tasks})
 
-@csrf_protect
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            email = form.cleaned_data.get('username')  # 映射 email
-            password = form.cleaned_data.get('password')
-            user = authenticate(request, username=email, password=password)
-      
-            if user is not None:
-                login(request, user)
-                if user.role == 'admin':
-                    return redirect('adminpanel:dashboard')
-                return redirect('user:home')
-            else:
-                messages.error(request, "Invalid email or password.")
+            user = form.get_user()
+            login(request, user)
+            # print("登录成功，用户 role 是：", user.role)
+            if user.role == 'admin':
+                # print("管理员身份，准备跳转后台")
+                return redirect('adminpanel:dashboard')
+            # print("普通用户身份，准备跳转 user:home")
+            return redirect('user:home')
         else:
-            messages.error(request, "Invalid form data or CSRF token.")
-            print(form.errors)  # 调试 CSRF 错误
+            messages.error(request, "Wrong email or password.")
+            return redirect('user:login')
     else:
         form = AuthenticationForm()
     return render(request, 'user/login.html', {'form': form})
@@ -268,6 +264,8 @@ def photo_edit(request):
             filename = s3_storage.save(f'profile_photos/{request.user.email}/{img_data.name}', img_data)
             user_profile.profile_photo.name = filename
             user_profile.save()
+            # print("保存路径：", user_profile.profile_photo.name)
+            # print("完整 URL：", user_profile.profile_photo.url)
             return redirect('user:profile_detail')
         elif form.is_valid():
             if 'profile_photo' in request.FILES:
