@@ -23,8 +23,9 @@ from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.contrib.auth.views import PasswordChangeView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
+from adminpanel.models import OperationLog
 
 def home_view(request):
     tasks = Task.objects.filter(client=request.user) if request.user.is_authenticated and request.user.role == 'client' else []
@@ -102,6 +103,11 @@ def activate_account(request, uidb64, token):
     if user and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
+        url = reverse('adminpanel:user_detail', args=[user.id])
+        OperationLog.objects.create(
+            user=user,
+            action=f'User activated account: <a href="{url}">{user.email}</a>',
+        )
         return render(request, 'user/activation_success.html')
     else:
         return render(request, 'user/activation_failed.html')
@@ -117,6 +123,12 @@ def client_profile_edit(request):
         form = ClientProfileForm(request.POST, request.FILES, instance=client_profile)
         if form.is_valid():
             form.save()
+            user=request.user
+            url = reverse('adminpanel:user_detail', args=[user.id])
+            OperationLog.objects.create(
+                user=user,
+                action=f'User changed personal information: <a href="{url}">{user.email}</a>',
+            )
             return redirect('user:profile_detail')
         else:
             print(form.errors)
@@ -145,6 +157,12 @@ def volunteer_profile_edit(request):
         form = VolunteerProfileForm(request.POST, request.FILES, instance=volunteer_profile)
         if form.is_valid():
             form.save()
+            user=request.user
+            url = reverse('adminpanel:user_detail', args=[user.id])
+            OperationLog.objects.create(
+                user=user,
+                action=f'User changed personal information: <a href="{url}">{user.email}</a>',
+            )
             return redirect('user:profile_detail')
         else:
             print(form.errors)
@@ -275,6 +293,10 @@ def photo_edit(request):
                 user_profile.save()
             else:
                 form.save()
+                OperationLog.objects.create(
+                    user=request.user,
+                    action="User changed personal photo",
+                )
             return redirect('user:profile_detail')
         else:
             print(form.errors)

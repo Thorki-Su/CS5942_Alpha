@@ -4,6 +4,8 @@ from math import radians, cos, sin, asin, sqrt
 from task.models import TaskApplication, StarRelation
 from user.models import VolunteerProfile, ClientProfile
 from django.utils.timezone import localtime, timedelta
+from django.urls import reverse
+from adminpanel.models import OperationLog
 
 
 def haversine_distance(lat1, lon1, lat2, lon2):
@@ -122,6 +124,12 @@ def match_volunteers_for_task(task):
             status='pending',
             is_auto_matched=True,
         )
+
+        url = reverse('adminpanel:task_detail', args=[task.id])
+        OperationLog.objects.create(
+                user=volunteer,
+                action=f'Automatically created the application for the task: <a href="{url}">Task #{task.id}</a>',
+            )
         matched_count += 1
         print(f"[Match] {volunteer.email} Match successful → Task #{task.id} {task.title}")
 

@@ -40,17 +40,36 @@
             {{ form.emergency_contact }}<br>
             {{ form.emergency_contact.errors }}<br><br>
 
-            <label for="id_pip_certificate"><strong>{{ form.pip_certificate.label_tag }}</strong></label><br>
-            {{ form.pip_certificate }}<br>
-            {{ form.pip_certificate.errors }}<br><br>
 
-            <label for="id_adp_certificate"><strong>{{ form.adp_certificate.label_tag }}</strong></label><br>
-            {{ form.adp_certificate }}<br>
-            {{ form.adp_certificate.errors }}<br><br>
+            {% if form.pip_certificate %}
+                <label for="id_pip_certificate"><strong>{{ form.pip_certificate.label_tag }}</strong></label><br>
+                {{ form.pip_certificate }}<br>
+                {{ form.pip_certificate.errors }}<br><br>
+            {% endif %}
 
-            <label for="id_lwc_certificate"><strong>{{ form.lwc_certificate.label_tag }}</strong></label><br>
-            {{ form.lwc_certificate }}<br>
-            {{ form.lwc_certificate.errors }}<br><br>
+            {% if form.adp_certificate %}
+                <label for="id_adp_certificate"><strong>{{ form.adp_certificate.label_tag }}</strong></label><br>
+                {{ form.adp_certificate }}<br>
+                {{ form.adp_certificate.errors }}<br><br>
+            {% endif %}
+
+            {% if form.lwc_certificate %}
+                <label for="id_lwc_certificate"><strong>{{ form.lwc_certificate.label_tag }}</strong></label><br>
+                {{ form.lwc_certificate }}<br>
+                {{ form.lwc_certificate.errors }}<br><br>
+            {% endif %}
+
+            {% if form.nhs_certificate %}
+                <label for="id_nhs_certificate"><strong>{{ form.nhs_certificate.label_tag }}</strong></label><br>
+                {{ form.nhs_certificate }}<br>
+                {{ form.nhs_certificate.errors }}<br><br>
+            {% endif %}
+
+            {% if form.diagnosis %}
+                <label for="id_diagnosis"><strong>{{ form.diagnosis.label_tag }}</strong></label><br>
+                {{ form.diagnosis }}<br>
+                {{ form.diagnosis.errors }}<br><br>
+            {% endif %}
 
             <label for="id_conditions"><strong>{{ form.conditions.label_tag }}</strong></label><br>
             {{ form.conditions }}<br>
