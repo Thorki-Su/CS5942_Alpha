@@ -227,10 +227,10 @@ class VolunteerRegisterForm(UserCreationForm):
         return user
     
 class VolunteerProfileForm(forms.ModelForm):
-    first_name = forms.CharField(disabled=True, required=False, label='First Name')
-    last_name = forms.CharField(disabled=True, required=False, label='Last Name')
-    location = forms.CharField(disabled=True, required=False, label='Postcode')
-    phone_number = forms.CharField(disabled=True, required=False, label='Phone Number')
+    first_name = forms.CharField(max_length=100, label='First Name')
+    last_name = forms.CharField(max_length=100, label='Last Name')
+    phone_number = forms.CharField(max_length=20, label='Phone Number')
+    location = forms.CharField(max_length=255, label='Location / Postcode')
     age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
     gender = forms.ChoiceField(choices=[('male', 'Male'), ('female', 'Female')], label='Gender')
     emergency_contact = forms.CharField(max_length=255)
@@ -289,6 +289,15 @@ class VolunteerProfileForm(forms.ModelForm):
         user_profile.save()
 
         if commit:
+            instance.save()
+            s3_storage = S3Boto3Storage()
+            email_prefix = instance.user_profile.user.email
+
+            for field in ['pvg_file']:
+                file = self.cleaned_data.get(field)
+                if file and hasattr(file, 'name'):
+                    filename = s3_storage.save(f'certificates/{email_prefix}/pvg/{file.name}', file)
+                    setattr(instance, field, filename)
             instance.save()
             self.save_m2m()
         return instance

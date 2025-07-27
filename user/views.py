@@ -26,6 +26,15 @@ from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from adminpanel.models import OperationLog
+from functools import wraps
+
+def eligibility_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.userprofile.eligibility_confirmed:
+            return render(request, 'eligibility_required.html', status=403)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
 def home_view(request):
     tasks = Task.objects.filter(client=request.user) if request.user.is_authenticated and request.user.role == 'client' else []

@@ -133,7 +133,7 @@ class VolunteerProfile(models.Model):
         ('pending', 'Pending'),
         ('do_not_have', 'I do not have a PVG yet'),
     ]) #PVG等级
-    pvg_file = models.FileField(upload_to='pvg/', null=True, blank=True)
+    pvg_file = models.FileField(upload_to='certificates/pvg/', null=True, blank=True)
     availability = models.JSONField(default=dict, blank=True)         #可以做志愿的时间，考虑是否还需要
     motivation = models.TextField(null=True, blank=True)              #加入的动机
     preferred_tasks = models.ManyToManyField(SupportType, blank=True) #意向任务内容
@@ -143,6 +143,8 @@ class VolunteerProfile(models.Model):
     available_end_time = models.TimeField(null=True, blank=True)
     preferred_distance_km = models.PositiveIntegerField(default=10)   #意向距离
     accept_pets = models.BooleanField(default=True)                   #能否接受宠物
+    max_task_count = models.PositiveIntegerField(default=3)           #可接的最大任务数
+    assigned_tasks_count = models.PositiveIntegerField(default=0)     #当前已分配的任务数
     
     def __str__(self):
         return f"{self.user_profile.get_full_name} [{self.user_profile.user.email}]"

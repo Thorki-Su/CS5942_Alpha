@@ -82,34 +82,34 @@ def match_volunteers_for_task(task):
         # 1. 工作内容匹配
         volunteer_support_ids = set(profile.preferred_tasks.values_list('id', flat=True))
         if not task_support_ids & volunteer_support_ids:
-            # print(f"{user.email} 工作内容不匹配")
+            print(f"{user.email} 工作内容不匹配")
             continue
 
         # 2. 时间匹配
         if task_day not in profile.available_days:
-            # print(f"{user.email} 可用日期不匹配")
+            print(f"{user.email} 可用日期不匹配")
             continue
         if profile.available_start_time and (task_start_time  < profile.available_start_time):
-            # print(f"{user.email} 可用时间开始早于任务开始")
+            print(f"{user.email} 可用时间开始早于任务开始")
             continue
         if profile.available_end_time and (task_end_time  > profile.available_end_time):
-            # print(f"{user.email} 可用时间结束晚于任务结束")
+            print(f"{user.email} 可用时间结束晚于任务结束")
             continue
 
         # 3. 是否支持宠物
         if not profile.accept_pets and client_has_pets:
-            # print(f"{user.email} 不接受宠物，任务有宠物")
+            print(f"{user.email} 不接受宠物，任务有宠物")
             continue
 
         # 4. 距离匹配
         vol_lat = profile.user_profile.location_lat
         vol_lng = profile.user_profile.location_lng
         if None in [vol_lat, vol_lng, client_lat, client_lng]:
-            # print(f"{user.email} 缺少经纬度信息")
+            print(f"{user.email} 缺少经纬度信息")
             continue  # 跳过无位置信息者
         distance = haversine_distance(vol_lat, vol_lng, client_lat, client_lng)
         if distance > profile.preferred_distance_km:
-            # print(f"{user.email} 距离过远")
+            print(f"{user.email} 距离过远,距离{distance},大于{profile.preferred_distance_km}")
             continue
 
         star_score = get_star_score(user, client_user)
@@ -124,12 +124,18 @@ def match_volunteers_for_task(task):
             status='pending',
             is_auto_matched=True,
         )
+        profile = volunteer.userprofile.volunteerprofile
+        profile.assigned_tasks_count += 1
+        if profile.assigned_tasks_count >= profile.max_task_count:
+            profile.is_scheduled = False
+            print(f"{volunteer.email} 到达任务上限")
+        profile.save()
 
         url = reverse('adminpanel:task_detail', args=[task.id])
         OperationLog.objects.create(
-                user=volunteer,
-                action=f'Automatically created the application for the task: <a href="{url}">Task #{task.id}</a>',
-            )
+            user=volunteer,
+            action=f'Automatically created the application for the task: <a href="{url}">Task #{task.id}</a>',
+        )
         matched_count += 1
         print(f"[Match] {volunteer.email} Match successful → Task #{task.id} {task.title}")
 

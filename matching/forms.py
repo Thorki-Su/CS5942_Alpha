@@ -28,6 +28,7 @@ class VolunteerAvailabilityForm(forms.ModelForm):
             'preferred_tasks',
             'preferred_distance_km',
             'accept_pets',
+            'max_task_count',
         ]
         widgets = {
             'available_start_time': forms.TimeInput(attrs={'type': 'time'}),
