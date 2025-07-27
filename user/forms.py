@@ -66,11 +66,11 @@ class ClientProfileForm(forms.ModelForm):
     last_name = forms.CharField(max_length=100, label='Last Name')
     phone_number = forms.CharField(max_length=20, label='Phone Number')
     location = forms.CharField(max_length=255, label='Location / Postcode')
-    support_areas = forms.ModelMultipleChoiceField(
-        queryset=SupportType.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
-        label='Support Areas'
-    )
+    # support_areas = forms.ModelMultipleChoiceField(
+    #     queryset=SupportType.objects.all(),
+    #     widget=forms.CheckboxSelectMultiple,
+    #     label='Support Areas'
+    # )
     conditions = forms.ModelMultipleChoiceField(
         queryset=ConditionType.objects.all(),
         widget=forms.CheckboxSelectMultiple,
@@ -85,13 +85,12 @@ class ClientProfileForm(forms.ModelForm):
     class Meta:
         model = ClientProfile
         fields = [
-            'conditions', 'support_areas', 'preferred_times', 'allergies',
-            'has_pets', 'pets_type', 'dietary_needs', 'other_conditions',
-            'other_support', 'pip_certificate', 'adp_certificate',
+            'conditions', 'allergies','has_pets',
+            'pets_type', 'dietary_needs', 'other_conditions',
+            'pip_certificate', 'adp_certificate',
             'lwc_certificate', 'nhs_certificate', 'diagnosis'
         ]
         widgets = {
-            'preferred_times': forms.Textarea(attrs={'rows': 4, 'placeholder': 'e.g. {"Monday": ["09:00-11:00"], "Friday": ["14:00-16:00"]}'}),
             'allergies': forms.Textarea(attrs={'rows': 2}),
             'dietary_needs': forms.Textarea(attrs={'rows': 2}),
         }
@@ -251,14 +250,9 @@ class VolunteerProfileForm(forms.ModelForm):
             'preferred_tasks',
             'pvg_level',
             'pvg_file',
-            'availability',
             'motivation'
         ]
         widgets = {
-            'availability': forms.Textarea(attrs={
-                'rows': 4,
-                'placeholder': 'e.g. {"Monday": ["09:00-11:00"], "Friday": ["14:00-16:00"]}'
-            }),
             'motivation': forms.Textarea(attrs={'rows': 3}),
         }
     

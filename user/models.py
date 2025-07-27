@@ -108,9 +108,6 @@ class ClientProfile(models.Model):
     preferred_contact_method = models.CharField(max_length=20, choices=[('phone', 'Phone'), ('email', 'Email')])
     conditions = models.ManyToManyField(ConditionType, blank=True)
     other_conditions = models.CharField(max_length=255, null=True, blank=True)
-    support_areas = models.ManyToManyField(SupportType, blank=True)
-    other_support = models.CharField(max_length=255, null=True, blank=True)
-    preferred_times = models.JSONField(default=dict, blank=True)        #需要帮助的时间，待考虑是否还需要
     allergies = models.TextField(null=True, blank=True)                 #过敏源
     dietary_needs = models.TextField(null=True, blank=True)             #饮食需求（素食之类的？）
     has_pets = models.BooleanField(default=False)                       #是否有宠物
@@ -134,7 +131,6 @@ class VolunteerProfile(models.Model):
         ('do_not_have', 'I do not have a PVG yet'),
     ]) #PVG等级
     pvg_file = models.FileField(upload_to='certificates/pvg/', null=True, blank=True)
-    availability = models.JSONField(default=dict, blank=True)         #可以做志愿的时间，考虑是否还需要
     motivation = models.TextField(null=True, blank=True)              #加入的动机
     preferred_tasks = models.ManyToManyField(SupportType, blank=True) #意向任务内容
     is_scheduled = models.BooleanField(default=False)                 #是否排班（用于匹配）

@@ -212,13 +212,12 @@ def profile_detail(request):
         client_fields['conditions'] = ", ".join(
             [c.name for c in client_profile.conditions.all()]
         )
-        client_fields['support_areas'] = ", ".join(
-            [s.name for s in client_profile.support_areas.all()]
-        )
         cert_list = client_profile.certifications.all()
         has_pip_cert = any(c.name == 'PIP' for c in cert_list)
         has_adp_cert = any(c.name == 'ADP' for c in cert_list)
         has_lwc_cert = any(c.name == 'LWC' for c in cert_list)
+        has_nhs_cert = any(c.name == 'NHS' for c in cert_list)
+        has_diagnosis = any(c.name == 'diagnosis' for c in cert_list)
         preferred_times = client_fields.get('preferred_times', {})
         if isinstance(preferred_times, str):
             try:
@@ -235,6 +234,8 @@ def profile_detail(request):
             'has_pip_cert': has_pip_cert,
             'has_adp_cert': has_adp_cert,
             'has_lwc_cert': has_lwc_cert,
+            'has_nhs_cert': has_nhs_cert,
+            'has_diagnosis': has_diagnosis,
             'days': days,
             'time_slots': time_slots,
             'preferred_times': preferred_times,

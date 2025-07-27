@@ -42,27 +42,40 @@
         {% if user.role == 'client' %}
             {% with has_pets=client_fields.has_pets %}
                 {% for key, value in client_fields.items %}
-                    {% if key == 'preferred_times' %}
+                    {% comment %} {% if key == 'preferred_times' %}
                         <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}
                             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
                                 data-bs-target="#preferredTimesModal">Edit</button>
                         </p>
-                    {% endif %}
+                    {% endif %} {% endcomment %}
                     {% if key == 'pets_type' %}
                         {% if has_pets %}
                             <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
                         {% endif %}
                     {% elif key == 'pip_certificate' %}
                         {% if has_pip_cert %}
-                            <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                            <p><strong>{{ key }}:</strong></p>
+                            <embed src="{{ user.userprofile.clientprofile.pip_certificate.url }}" width="600px" height="500px" type="application/pdf">
                         {% endif %}
                     {% elif key == 'adp_certificate' %}
                         {% if has_adp_cert %}
-                            <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                            <p><strong>{{ key }}:</strong></p>
+                            <embed src="{{ user.userprofile.clientprofile.adp_certificate.url }}" width="600px" height="500px" type="application/pdf">
                         {% endif %}
                     {% elif key == 'lwc_certificate' %}
                         {% if has_lwc_cert %}
-                            <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                            <p><strong>{{ key }}:</strong></p>
+                            <embed src="{{ user.userprofile.clientprofile.lwc_certificate.url }}" width="600px" height="500px" type="application/pdf">
+                        {% endif %}
+                    {% elif key == 'nhs_certificate' %}
+                        {% if has_nhs_cert %}
+                            <p><strong>{{ key }}:</strong></p>
+                            <embed src="{{ user.userprofile.clientprofile.nhs_certificate.url }}" width="600px" height="500px" type="application/pdf">
+                        {% endif %}
+                    {% elif key == 'diagnosis' %}
+                        {% if has_diagnosis %}
+                            <p><strong>{{ key }}:</strong></p>
+                            <embed src="{{ user.userprofile.clientprofile.diagnosis.url }}" width="600px" height="500px" type="application/pdf">
                         {% endif %}
                     {% elif key != 'id' and key != 'user_profile' and key != 'preferred_times' %}
                         <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
@@ -71,13 +84,18 @@
             {% endwith %}
         {% elif user.role == 'volunteer' %}
             {% for key, value in volunteer_fields.items %}
-                {% if key == 'availability' %}
+                {% comment %} {% if key == 'availability' %}
                     <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
                             data-bs-target="#preferredTimesModal">Edit</button>
-                    </p>
-                {% elif key != 'id' and key != 'user_profile' %}
+                    </p> {% endcomment %}
+                {% if key == 'university_course' or key == 'profession' or key == 'is_for_credit' or key == 'skills' or key == 'interests' or key == 'pvg_level' %}
                     <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                {% elif key == 'pvg_file' %}
+                    {% if user.userprofile.volunteerprofile.pvg_file %}
+                        <p><strong>{{ key }}:</strong></p>
+                        <embed src="{{ user.userprofile.volunteerprofile.pvg_file.url }}" width="600px" height="500px" type="application/pdf">
+                    {% endif %}
                 {% endif %}
             {% endfor %}
         {% endif %}
@@ -96,6 +114,6 @@
         </div>
     {% endif %}
 
-    {% include "user/preferred_times_modal.html" %}
+    {% comment %} {% include "user/preferred_times_modal.html" %} {% endcomment %}
 
 {% endblock %}
