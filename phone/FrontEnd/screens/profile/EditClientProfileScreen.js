@@ -10,24 +10,30 @@ import { fetchUserProfile } from '../../components/fetchUserProfile';
 import { BASE_URL } from '../../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const CONDITIONS = ['M.E/CFS','Fibromyalgia','PTSD','Long Covid','Lupus','Cutaneous Lupus','Others'];
-const SUPPORT_AREAS = ['Housekeeping',
-	'Meal preparation',
-	'Administrative Help',
-	'Companionship',
-	'Transport Assistance',
-	'Laundry Assistance',
-	'Garden Maintenance',
-	'Reading Aloud',
-	'Pet Care',
-	'Childcare',
-	'Prescription Pick-Up',
-	'Shopping Assistance',
-	'Cooking and Meal Planning',
-	'Technology Assistance',
-	'Organisation and Decluttering',
-	'Crafts and Hobbies',
-	'Others',];
+const CONDITIONS = [
+  'M.E/CFS', 'Fibromyalgia', 'PTSD', 'Long Covid',
+  'Lupus', 'Cutaneous Lupus', 'Others'
+].map(item => ({ label: item, value: item }));
+
+const SUPPORT_AREAS = [
+  'Housekeeping',
+  'Meal preparation',
+  'Administrative Help',
+  'Companionship',
+  'Transport Assistance',
+  'Laundry Assistance',
+  'Garden Maintenance',
+  'Reading Aloud',
+  'Pet Care',
+  'Childcare',
+  'Prescription Pick-Up',
+  'Shopping Assistance',
+  'Cooking and Meal Planning',
+  'Technology Assistance',
+  'Organisation and Decluttering',
+  'Crafts and Hobbies',
+  'Others',
+].map(item => ({ label: item, value: item }));
 
 const formatPreferredTimes = (times) => {
   if (!times || Object.keys(times).length === 0) return '(Not set)';
@@ -150,16 +156,20 @@ const EditClientProfileScreen = () => {
 
 			<CollapsibleMultiSelect
         label="Conditions You Live With"
-        options={CONDITIONS}
-        selected={profile.conditions || []}
-        onChange={val => handleChange('conditions', val)}
+        items={CONDITIONS}
+        selectedItems={profile.conditions || []}
+        onSelectionsChange={val => handleChange('conditions', val)}
+        labelKey="label"
+        valueKey="value"
       />
 
       <CollapsibleMultiSelect
         label="Support Areas"
-        options={SUPPORT_AREAS}
-        selected={profile.support_areas || []}
-        onChange={val => handleChange('support_areas', val)}
+        items={SUPPORT_AREAS}
+        selectedItems={profile.support_areas || []}
+        onSelectionsChange={val => handleChange('support_areas', val)}
+        labelKey="label"
+        valueKey="value"
       />
       {/* Preferred Times 显示与跳转 */}
       <View style={{ marginBottom: 10 }}>

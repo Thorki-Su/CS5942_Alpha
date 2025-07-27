@@ -40,15 +40,19 @@ export default function LoginScreen({ navigation }) {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("✅ Got token:", data.token);
+        // console.log("✅ Got token:", data.token);
         await AsyncStorage.setItem('userToken', data.token);
         await AsyncStorage.setItem('loggedInEmail', data.email);
+
         const current = await AsyncStorage.getAllKeys();
         console.log('📦 当前 AsyncStorage 所有键:', current);
+
+        const role = data.role;  // ✅ 直接拿角色
         console.log('✅ 登录成功，跳转主页');
+
         navigation.reset({
           index: 0,
-          routes: [{ name: 'MainTabs' }],
+          routes: [{ name: 'MainTabs', params: { role } }],
         });
       } else {
         console.warn('登录失败:', data.error);

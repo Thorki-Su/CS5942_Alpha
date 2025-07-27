@@ -17,3 +17,6 @@ venv310/
 .DS_Store
 **/.DS_Store
 *.rdb
+**/node_modules/
+.patch
+.txt

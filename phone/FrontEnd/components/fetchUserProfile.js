@@ -14,7 +14,7 @@ export const fetchUserProfile = async () => {
       return null;
     }
 
-    const response = await axios.get(`${BASE_URL}/api/mobile/profile/`, {
+    const response = await axios.get(`${BASE_URL}/api/mobile/profile/view/`, {
       headers: {
         Authorization: `Token ${token}`,
       },

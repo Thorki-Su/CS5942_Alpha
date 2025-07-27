@@ -1,0 +1,2106 @@
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..833d7dc
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,68 @@
++# CS5942: MSC PROJECT IN INFORMATION TECHNOLOGY
++# Team Alpha
++In this file we will introduce each parts in the project.
++Our application has been deployed on Render: https://cs5942-alpha.onrender.com
++
++# How to run(local)
++use this code:
++```bash
++$env:DJANGO_DEVELOPMENT=1
++python manage.py runserver
++```
++
++# Project Structure
++Our project's name is '**final_project**'.  
++There are **7** apps in the project. They are **adminpanel**, **communication**, **matching**, **payment**, **task**, **user** and **volunteer**.  
++We use env file to store some keys. You can see the load method in settings.py.  
++
++## user
++This app is about users' registeration and logging-in.
++
++### models.py
++**CustomUserManager**: Since we plan not to use usernames, but rather email addresses for logins, we use this to make changes to the default user model.
++
++**CustomUser**: Changed user model with email, password and user type.
++
++**user_directory_path**: The function used to generate the file storage path.
++
++**UserProfile**: Used to store information that is shared between different types of user.
++
++**CertificationType**: Used to store the certification types.
++
++**ConditionType**: Used to store the condition types.
++
++**SupportType**: Used to store the support types.
++
++**ClientProfile**: Used to store information unique to the client.
++
++**VolunteerProfile**: Used to store information unique to the volunteer.
++
++**AdminProfile**: Used to store information unique to the admin.
++
++### forms.py
++**ClientRegisterForm**, **VolunteerRegisterForm**: Two register forms.
++
++**ClientProfileForm**, **VolunteerProfileForm**: Two forms used to change profile information.
++
++**ProfilePhotoForm**: The form used to change profile photo.
++
++### utils.py
++**normalize_uk_postcode**: Normalize the user input postcode.
++
++**is_valid_aberdeen_postcode**: Check the user input postcode is in Aberdeen or not.
++
++**geocode_address**: Use the user input postcode to get the coordinate.
++
++**send_activation_email**: To send a check email to user.
++
++## task
++
++## communication
++
++## matching
++
++## adminpanel
++
++## volunteer
++
++## payment
+\ No newline at end of file
+diff --git a/adminpanel/templates/adminpanel/admin_base.html b/adminpanel/templates/adminpanel/admin_base.html
+new file mode 100644
+index 0000000..6d94746
+--- /dev/null
++++ b/adminpanel/templates/adminpanel/admin_base.html
+@@ -0,0 +1,95 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++    <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <title>{% block title %}My Site{% endblock %}</title>
++    <style>
++        body {
++            margin: 0;
++            font-family: Arial, sans-serif;
++            background-color: #f4f4f4;
++        }
++        .header {
++            position: fixed;
++            top: 0;
++            left: 0;
++            width: 100%;
++            background-color: #fff;
++            padding: 10px 20px;
++            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
++            z-index: 1000;
++            display: flex;
++            justify-content: space-between;
++            align-items: center;
++        }
++        .navbar {
++            display: flex;
++            gap: 15px;
++            align-items: center;
++        }
++        .navbar a, .navbar button {
++            text-decoration: none;
++            color: #333;
++            font-weight: bold;
++            background: none;
++            border: none;
++            cursor: pointer;
++            padding: 5px 10px;
++            white-space: nowrap;
++            transition: color 0.3s;
++        }
++        .navbar a:hover, .navbar button:hover {
++            color: #007bff;
++        }
++        .navbar a.disabled {
++            color: #ccc;
++            cursor: not-allowed;
++            pointer-events: none;
++        }
++        .logo {
++            height: 40px;
++            vertical-align: middle;
++        }
++        .content-wrapper {
++            margin-top: 60px;
++            padding: 20px;
++        }
++        .footer {
++            position: fixed;
++            bottom: 0;
++            width: 100%;
++            text-align: center;
++            padding: 10px 0;
++            background-color: #fff;
++            font-size: 14px;
++            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
++        }
++    </style>
++    {% block style %}
++    {% endblock %}
++    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
++</head>
++<body>
++    {% load static %}
++    <div class="header">
++        <div class="navbar">
++            <img src="{% static 'images/ShallionLogoTransparent.png' %}" alt="Shallion Logo" class="logo">
++            <a href="{% url 'adminpanel:dashboard' %}">Admin Home</a>
++            <a href="{% url 'adminpanel:user_list' %}">User Control</a>
++            <a href="{% url 'adminpanel:task_list' %}">Task Control</a>
++            <a href="{% url 'user:home' %}">Website</a>
++        </div>
++    </div>
++
++    <div class="content-wrapper">
++        {% block content %}
++        {% endblock %}
++    </div>
++
++    <div class="footer">
++        © 2025 Shallion
++    </div>
++    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
++</body>
++</html>
+\ No newline at end of file
+diff --git a/adminpanel/templates/adminpanel/admin_dashboard.html b/adminpanel/templates/adminpanel/admin_dashboard.html
+index 2674f20..00a2217 100644
+--- a/adminpanel/templates/adminpanel/admin_dashboard.html
++++ b/adminpanel/templates/adminpanel/admin_dashboard.html
+@@ -1,18 +1,29 @@
+-<!DOCTYPE html>
+-<html>
+-<head>
+-    <title>Admin Dashboard</title>
+-</head>
+-<body>
+-    <h2>Welcome, {{ user.username }}</h2>
+-    <p>You are logged in as an administrator.</p>
++{% extends 'adminpanel/admin_base.html' %}
++{% load static %}
+ 
+-    <!-- Example admin tools -->
+-    <ul>
+-        <li><a href="#">User Management (coming soon)</a></li>
+-        <li><a href="#">Order Review (coming soon)</a></li>
+-    </ul>
++{% block title %}Admin Homepage{% endblock %}
+ 
+-    <p><a href="{% url 'logout' %}">Logout</a></p>
+-</body>
+-</html>
++{% block content %}
++    <div style="margin: 50px;">
++        <h1>Admin Control Panel</h1>
++        <hr>
++        <div style="display: flex; gap: 40px; margin-top: 30px;">
++            <div style="background-color: #f0f8ff; padding: 20px; border-radius: 8px; width: 200px; text-align: center;">
++                <h3>Client</h3>
++                <p style="font-size: 2em; font-weight: bold;">{{ client_count }}</p>
++            </div>
++            <div style="background-color: #ffe4e1; padding: 20px; border-radius: 8px; width: 200px; text-align: center;">
++                <h3>Volunteer</h3>
++                <p style="font-size: 2em; font-weight: bold;">{{ volunteer_count }}</p>
++            </div>
++            <div style="background-color: #fff9e1ff; padding: 20px; border-radius: 8px; width: 200px; text-align: center;">
++                <h3>Task</h3>
++                <p style="font-size: 2em; font-weight: bold;">{{ task_count }}</p>
++            </div>
++            <div style="background-color: #e1fff0ff; padding: 20px; border-radius: 8px; width: 200px; text-align: center;">
++                <h3>Today's new task</h3>
++                <p style="font-size: 2em; font-weight: bold;">{{ today_task_count }}</p>
++            </div>
++        </div>
++    </div>
++{% endblock %}
+diff --git a/adminpanel/templates/adminpanel/admin_login.html b/adminpanel/templates/adminpanel/admin_login.html
+deleted file mode 100644
+index 8f0fd18..0000000
+--- a/adminpanel/templates/adminpanel/admin_login.html
++++ /dev/null
+@@ -1,28 +0,0 @@
+-<!DOCTYPE html>
+-<html>
+-<head>
+-    <title>Admin Login</title>
+-</head>
+-<body>
+-    <h2>Administrator Login</h2>
+-
+-    {% if messages %}
+-        {% for message in messages %}
+-            <p style="color: red;">{{ message }}</p>
+-        {% endfor %}
+-    {% endif %}
+-
+-    <form method="POST">
+-        {% csrf_token %}
+-        <label>Username:</label><br>
+-        <input type="text" name="username" required><br><br>
+-
+-        <label>Password:</label><br>
+-        <input type="password" name="password" required><br><br>
+-
+-        <button type="submit">Login</button>
+-    </form>
+-
+-    <p><a href="{% url 'home' %}">Back to Home</a></p>
+-</body>
+-</html>
+diff --git a/adminpanel/templates/adminpanel/task_detail.html b/adminpanel/templates/adminpanel/task_detail.html
+new file mode 100644
+index 0000000..fb67f86
+--- /dev/null
++++ b/adminpanel/templates/adminpanel/task_detail.html
+@@ -0,0 +1,63 @@
++{% extends 'adminpanel/admin_base.html' %}
++{% load static %}
++
++{% block title %}Task Detail{% endblock %}
++
++{% block content %}
++    <div style="margin: 50px;">
++        <div>
++            <h1>Task details</h1>
++            <p><strong>ID:</strong> {{ task.id }}</p>
++            <p><strong>Title:</strong> {{ task.title }}</p>
++            <p><strong>Description:</strong> {{ task.description }}</p>
++            <p><strong>Work Area:</strong> {{ task.work_area }}</p>
++            <p><strong>Start Time:</strong> {{ task.start_time }}</p>
++            <p><strong>End Time:</strong> {{ task.end_time }}</p>
++            <p><strong>Needed Volunteer:</strong> {{ task.vol_number }}</p>
++            <p><strong>Status:</strong> {{ task.status }}</p>
++            <p><strong>Creater:</strong> {{ task.client }} [{{ task.client.userprofile.get_full_name }}]</p>
++            <p><strong>Created At:</strong> {{ task.created_at }}</p>
++            <p><strong>Closed At:</strong> {{ task.closed_at }}</p>
++        </div>
++        <div>
++            {% if applications %}
++            <h2>Applications for this task.</h2>
++                {% for app in applications %}
++                    <p><strong>Applicant:</strong> {{ app.volunteer }} [{{ app.volunteer.userprofile.get_full_name }}]</p>
++                    <p><strong>Status:</strong> {{ app.status }}</p>
++                    <p><strong>Apply At:</strong> {{ app.applied_at }}</p>
++                    {% if app.completed_at %}
++                        <p><strong>Completed At:</strong> {{ app.completed_at }}</p>
++                    {% elif app.cancelled_at %}
++                        <p><strong>Cancelled At:</strong> {{ app.cancelled_at }}</p>
++                    {% endif %}
++                    <p><strong>Auto-match or not:</strong> {{ app.is_auto_matched }}</p>
++                {% endfor %}
++            {% endif %}
++        </div>
++        <div>
++            {% if records %}
++                <h2>Records for this task.</h2>
++                {% for record in records %}
++                    <p><strong>Volunteer:</strong> {{ record.volunteer }} [{{ record.volunteer.userprofile.get_full_name }}]</p>
++                    <p><strong>Records:</strong> {{ record.records }}</p>
++                    <p><strong>Submitted At:</strong> {{ record.submitted_at }}</p>
++                {% endfor %}
++            {% endif %}
++        </div>
++        <div>
++            {% if feedbacks %}
++                <h2>Feedbacks for this task.</h2>
++                {% for feedback in feedbacks %}
++                    <p><strong>From:</strong> {{ feedback.from_user }} [{{ feedback.from_user.userprofile.get_full_name }}]</p>
++                    <p><strong>To:</strong> {{ feedback.to_user }} [{{ feedback.to_user.userprofile.get_full_name }}]</p>
++                    <p><strong>Satisfied or not:</strong> {{ feedback.is_satisfied }}</p>
++                    {% if feedback.comment %}
++                        <p><strong>Comments:</strong> {{ feedback.comment }}</p>
++                    {% endif %}
++                    <p><strong>Submitted At:</strong> {{ feedback.submitted_at }}</p>
++                {% endfor %}
++            {% endif %}
++        </div>
++    </div>
++{% endblock %}
+\ No newline at end of file
+diff --git a/adminpanel/templates/adminpanel/task_list.html b/adminpanel/templates/adminpanel/task_list.html
+new file mode 100644
+index 0000000..3efc6a0
+--- /dev/null
++++ b/adminpanel/templates/adminpanel/task_list.html
+@@ -0,0 +1,29 @@
++{% extends 'adminpanel/admin_base.html' %}
++{% load static %}
++
++{% block title %}Task List{% endblock %}
++
++{% block content %}
++    <div style="margin: 50px;">
++        <h2>Task List</h2>
++
++        <table border="1" cellpadding="8" cellspacing="0">
++            <tr>
++                <th>ID</th>
++                <th>Title</th>
++                <th>Creater</th>
++                <th>Status</th>
++                <th>Detail</th>
++            </tr>
++            {% for task in tasks %}
++            <tr>
++                <td>{{ task.id }}</td>
++                <td>{{ task.title }}</td>
++                <td>{{ task.client }}</td>
++                <td>{{ task.status }}</td>
++                <td><a href="{% url 'adminpanel:task_detail' task.id %}">check out</a></td>
++            </tr>
++            {% endfor %}
++        </table>
++    </div>
++{% endblock %}
+\ No newline at end of file
+diff --git a/adminpanel/templates/adminpanel/user_detail.html b/adminpanel/templates/adminpanel/user_detail.html
+new file mode 100644
+index 0000000..ad05051
+--- /dev/null
++++ b/adminpanel/templates/adminpanel/user_detail.html
+@@ -0,0 +1,65 @@
++{% extends 'adminpanel/admin_base.html' %}
++{% load static %}
++
++{% block title %}User details{% endblock %}
++
++{% block content %}
++    <div style="margin: 50px;">
++        <div>
++            <h1>User details</h1>
++            <p><strong>ID:</strong> {{ user.id }}</p>
++            <p><strong>Email:</strong> {{ user.email }}</p>
++            <p><strong>Name:</strong> {{ user.userprofile.get_full_name }}</p>
++            <p><strong>Role:</strong> {{ user.role }}</p>
++            <p><strong>Activated or not:</strong> {{ user.is_active }}</p>
++            <p><strong>Age:</strong> {{ user.userprofile.age|default:"unfilled" }}</p>
++            <p><strong>Gender:</strong> {{ user.userprofile.gender|default:"unfilled" }}</p>
++            <p><strong>Phone Number:</strong> {{ user.userprofile.phone_number|default:"unfilled" }}</p>
++            <p><strong>Location:</strong> {{ user.userprofile.location }}</p>
++            <p><strong>Photo:</strong></p>
++            {% if user.userprofile.profile_photo %}
++                <p><img src="{{ user.userprofile.profile_photo.url }}" alt="Profile Photo" width="200"></p>
++            {% else %}
++                <p>No photos</p>
++            {% endif %}
++            <p><strong>Emergency Contact:</strong> {{ user.userprofile.emergency_contact|default:"unfilled" }}</p>
++        </div>
++        <div>
++            {% if user.role == 'client' %}
++                <h2>User's Task</h2>
++                {% for task in tasks %}
++                    <p><strong>Title:</strong> {{ task.title }}</p>
++                    <p><strong>Status:</strong> {{ task.status }}</p>
++                    <p><strong>Created At:</strong> {{ task.created_at }}</p>
++                    <p><strong>Detail:</strong> <a href="{% url 'adminpanel:task_detail' task.id %}">check out</a></p>
++                {% endfor %}
++            {% elif user.role == 'volunteer' %}
++                <h2>User's Application</h2>
++                {% for app in applications %}
++                    <p><strong>Task:</strong> <a href="{% url 'adminpanel:task_detail' app.task.id %}">{{ app.task.title }}</a></p>
++                    <p><strong>Status:</strong> {{ app.status }}</p>
++                    <p><strong>Apply At:</strong> {{ app.applied_at }}</p>
++                {% endfor %}
++            {% endif %}
++        </div>
++        <div>
++            <h2>Stars</h2>
++            <h3>Stars Given</h3>
++            {% if give_stars %}
++                {% for star in give_stars %}
++                    <p><strong>To:</strong> {{star.to_user}} -- <strong>Time:</strong> {{star.starred_at}}</p>
++                {% endfor %}
++            {% else  %}
++                <p>This user has not given any stars.</p>
++            {% endif %}
++            <h3>Stars Received</h3>
++            {% if have_stars %}
++                {% for star in have_stars %}
++                    <p><strong>From:</strong> {{star.from_user}} -- <strong>Time:</strong> {{star.starred_at}}</p>
++                {% endfor %}
++            {% else  %}
++                <p>This user has not received any stars.</p>
++            {% endif %}
++        </div>
++    </div>
++{% endblock %}
+\ No newline at end of file
+diff --git a/adminpanel/templates/adminpanel/user_list.html b/adminpanel/templates/adminpanel/user_list.html
+new file mode 100644
+index 0000000..c708b44
+--- /dev/null
++++ b/adminpanel/templates/adminpanel/user_list.html
+@@ -0,0 +1,29 @@
++{% extends 'adminpanel/admin_base.html' %}
++{% load static %}
++
++{% block title %}User List{% endblock %}
++
++{% block content %}
++    <div style="margin: 50px;">
++        <h2>User List</h2>
++
++        <table border="1" cellpadding="8" cellspacing="0">
++            <tr>
++                <th>ID</th>
++                <th>Email</th>
++                <th>Name</th>
++                <th>Role</th>
++                <th>Detail</th>
++            </tr>
++            {% for user in users %}
++            <tr>
++                <td>{{ user.id }}</td>
++                <td>{{ user.email }}</td>
++                <td>{{ user.userprofile.get_full_name }}</td>
++                <td>{{ user.role }}</td>
++                <td><a href="{% url 'adminpanel:user_detail' user.id %}">check out</a></td>
++            </tr>
++            {% endfor %}
++        </table>
++    </div>
++{% endblock %}
+\ No newline at end of file
+diff --git a/adminpanel/urls.py b/adminpanel/urls.py
+index 4d34e63..ad60996 100644
+--- a/adminpanel/urls.py
++++ b/adminpanel/urls.py
+@@ -1,8 +1,13 @@
+ from django.urls import path
+ from . import views
+ 
++app_name = 'adminpanel'
++
+ urlpatterns = [
+-    path('admin-login/', views.admin_login_view, name='admin_login'),
+-    path('admin-dashboard/', views.admin_dashboard_view, name='admin_dashboard'),
++    path('dashboard/', views.admin_dashboard, name='dashboard'),
++    path('users/', views.user_list, name='user_list'),
++    path('users/<int:user_id>/', views.user_detail, name='user_detail'),
++    path('tasks/', views.task_list, name='task_list'),
++    path('tasks/<int:task_id>/', views.task_detail, name='task_detail'),
+ ]
+ 
+diff --git a/adminpanel/views.py b/adminpanel/views.py
+index e34a69b..1774613 100644
+--- a/adminpanel/views.py
++++ b/adminpanel/views.py
+@@ -1,25 +1,85 @@
+-from django.shortcuts import render, redirect
++from django.shortcuts import render, redirect, get_object_or_404
+ from django.contrib.auth import authenticate, login
+ from django.contrib import messages
++from django.contrib.auth.decorators import user_passes_test
++from django.contrib.auth import get_user_model
++from task.models import Task, TaskApplication, TaskRecord, Feedback, StarRelation
++from django.utils import timezone
+ 
+-# the view of admin login
+-def admin_login_view(request):
+-    if request.method == 'POST':
+-        username = request.POST.get('username')
+-        password = request.POST.get('password')
+-
+-        user = authenticate(request, username=username, password=password)
+-        if user is not None and user.is_staff:
+-            login(request, user)
+-            return redirect('admin_dashboard')
+-        else:
+-            messages.error(request, "Invalid credentials or not an admin.")
+-            return redirect('admin_login')
+-
+-    return render(request, 'adminpanel/admin_login.html')
+-
+-# the view of admin dashboard page
+-def admin_dashboard_view(request):
+-    if not request.user.is_authenticated or not request.user.is_staff:
+-        return redirect('admin_login')
+-    return render(request, 'adminpanel/admin_dashboard.html', {'user': request.user})
++User = get_user_model()
++
++def staff_required(view_func):
++    """
++    Access is only allowed for users with is_staff=True.
++    """
++    return user_passes_test(lambda u: u.is_authenticated and u.is_staff)(view_func)
++
++@staff_required
++def admin_dashboard(request):
++    today = timezone.localdate()
++    client_count = User.objects.filter(role='client').count()
++    volunteer_count = User.objects.filter(role='volunteer').count()
++    task_count = Task.objects.count()
++    today_task_count = Task.objects.filter(created_at__date=today).count()
++    
++    context = {
++        'client_count': client_count,
++        'volunteer_count': volunteer_count,
++        'task_count': task_count,
++        'today_task_count': today_task_count,
++    }
++    return render(request, 'adminpanel/admin_dashboard.html', context)
++
++@staff_required
++def user_list(request):
++    users = User.objects.all().order_by('id')
++    return render(request, 'adminpanel/user_list.html', {'users': users})
++
++@staff_required
++def user_detail(request, user_id):
++    user = get_object_or_404(User, id=user_id)
++    give_stars = StarRelation.objects.filter(from_user=user)
++    have_stars = StarRelation.objects.filter(to_user=user)
++    if user.role == 'client':
++        tasks = Task.objects.filter(client=user)
++        context = {
++            'user': user,
++            'tasks':tasks,
++            'give_stars':give_stars,
++            'have_stars':have_stars,
++        }
++    elif user.role == 'volunteer':
++        applications = TaskApplication.objects.filter(volunteer=user)
++        context = {
++            'user': user,
++            'applications':applications,
++            'give_stars':give_stars,
++            'have_stars':have_stars,
++        }
++    else:
++        context = {
++            'user': user,
++            'give_stars':give_stars,
++            'have_stars':have_stars,
++        }
++    return render(request, 'adminpanel/user_detail.html', context)
++
++@staff_required
++def task_list(request):
++    tasks = Task.objects.all().order_by('id')
++    return render(request, 'adminpanel/task_list.html', {'tasks':tasks})
++
++@staff_required
++def task_detail(request, task_id):
++    task = get_object_or_404(Task, id=task_id)
++    applications = TaskApplication.objects.filter(task=task)
++    records = TaskRecord.objects.filter(task=task)
++    feedbacks = Feedback.objects.filter(task=task)
++
++    context = {
++        'task': task,
++        'applications': applications,
++        'records':records,
++        'feedbacks':feedbacks,
++    }
++    return render(request, 'adminpanel/task_detail.html', context)
+\ No newline at end of file
+diff --git a/final_project/settings.py b/final_project/settings.py
+index 3050f37..57d3f16 100644
+--- a/final_project/settings.py
++++ b/final_project/settings.py
+@@ -17,6 +17,14 @@ import dj_database_url
+ # 本地开发时加载 .env 文件
+ if os.environ.get('DJANGO_DEVELOPMENT'):
+     load_dotenv() # 读取根目录的 .env 文件
++    
++EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
++EMAIL_HOST = os.getenv("EMAIL_HOST")
++EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
++EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
++EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
++EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
++DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "shallion9527@gmail.com")
+ 
+ # print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
+ # print("DEBUG: DATABASE_URL =", os.environ.get('DATABASE_URL'))
+@@ -141,11 +149,17 @@ AUTH_PASSWORD_VALIDATORS = [
+     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+ ]
+ 
++# 本地测试用
++# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
++# DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com'
++
+ LANGUAGE_CODE = 'en-us'
+ TIME_ZONE = 'Europe/London'
+ USE_I18N = True
+ USE_TZ = True
+ 
++LOGIN_URL = '/login/'
++
+ STATIC_URL = '/static/'
+ 
+ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+diff --git a/final_project/urls.py b/final_project/urls.py
+index 047cc7e..26afca8 100644
+--- a/final_project/urls.py
++++ b/final_project/urls.py
+@@ -7,8 +7,9 @@ urlpatterns = [
+     path('admin/', admin.site.urls),
+     path('', include(('user.urls', 'user'), namespace='user')),
+     path('communication/', include(('communication.urls', 'communication'), namespace='communication')),
+-    path('', include(('task.urls', 'task'), namespace='task')),
+-    path('', include(('matching.urls', 'matching'), namespace='matching')),
++    path('task/', include(('task.urls', 'task'), namespace='task')),
++    path('matching', include(('matching.urls', 'matching'), namespace='matching')),
++    path('adminpanel/', include(('adminpanel.urls', 'adminpanel'), namespace='adminpanel')),
+ ]
+ 
+ if settings.DEBUG:
+diff --git a/matching/urls.py b/matching/urls.py
+index 1deb2de..ebae329 100644
+--- a/matching/urls.py
++++ b/matching/urls.py
+@@ -2,5 +2,5 @@ from django.urls import path
+ from . import views
+ 
+ urlpatterns = [
+-    path('matching/shift/', views.shift, name='shift'),
++    path('shift/', views.shift, name='shift'),
+ ]
+\ No newline at end of file
+diff --git a/matching/utils.py b/matching/utils.py
+index 043b2bb..65365ed 100644
+--- a/matching/utils.py
++++ b/matching/utils.py
+@@ -1,9 +1,9 @@
+ # matching/utils.py
+ 
+ from math import radians, cos, sin, asin, sqrt
+-from task.models import TaskApplication
++from task.models import TaskApplication, StarRelation
+ from user.models import VolunteerProfile, ClientProfile
+-from django.utils.timezone import localtime
++from django.utils.timezone import localtime, timedelta
+ 
+ 
+ def haversine_distance(lat1, lon1, lat2, lon2):
+@@ -19,73 +19,110 @@ def haversine_distance(lat1, lon1, lat2, lon2):
+     return R * c
+ 
+ 
++def get_star_score(volunteer_user, client_user):
++    score = 0
++    if StarRelation.objects.filter(from_user=client_user, to_user=volunteer_user).exists():
++        score += 2
++    if StarRelation.objects.filter(from_user=volunteer_user, to_user=client_user).exists():
++        score += 1
++    return score
++
+ def match_volunteers_for_task(task):
+     """
+     根据志愿者设置的排班意向，对新发布的任务进行自动匹配。
+     为符合条件的志愿者创建 TaskApplication (pending 状态)
+     """
+     matched_count = 0
++    matched_volunteers = []
+ 
+     task_day = localtime(task.start_time).strftime('%A')
+-    task_start = localtime(task.start_time).time()
+-    task_end = localtime(task.end_time).time()
++    task_start_time  = localtime(task.start_time).time()
++    task_end_time  = localtime(task.end_time).time()
+     task_support_ids = set(task.work_area.values_list('id', flat=True))
+ 
++    client_user = task.client
+     client_profile = task.client.userprofile.clientprofile
+     client_lat = task.client.userprofile.location_lat
+     client_lng = task.client.userprofile.location_lng
+     client_has_pets = client_profile.has_pets
+ 
+-    scheduled_volunteers = VolunteerProfile.objects.filter(is_scheduled=True).select_related('user_profile__user').prefetch_related('preferred_tasks')
++    existing_app_volunteer_ids = set(TaskApplication.objects.filter(task=task).values_list('volunteer_id', flat=True))
++    
++    # scheduled_volunteers = VolunteerProfile.objects.filter(is_scheduled=True).select_related('user_profile__user').prefetch_related('preferred_tasks')
++    scheduled_volunteers = VolunteerProfile.objects.filter(is_scheduled=True)\
++        .select_related('user_profile')\
++        .prefetch_related('preferred_tasks')
+ 
+     for profile in scheduled_volunteers:
+         user = profile.user_profile.user
+ 
+         # 跳过已申请该任务的志愿者
+-        if TaskApplication.objects.filter(task=task, volunteer=user).exists():
+-            print(f"{user.email} 已申请，跳过")
++        if user.id in existing_app_volunteer_ids:
++            # print(f"{user.email} 已申请，跳过")
+             continue
+ 
++        # 冲突检查
++        buffer = timedelta(hours=1)
++        task_start = task.start_time
++        task_end = task.end_time
++
++        # 找到该志愿者已接受的任务（accepted），以及进行中（pending 也可以）
++        existing_apps = TaskApplication.objects.filter(
++            volunteer=user,
++            status__in=['pending', 'accepted'],
++            task__start_time__lt=task_end + buffer,
++            task__end_time__gt=task_start - buffer,
++        )
++
++        if existing_apps.exists():
++            continue  # 有冲突，跳过此志愿者
++
+         # 1. 工作内容匹配
+         volunteer_support_ids = set(profile.preferred_tasks.values_list('id', flat=True))
+         if not task_support_ids & volunteer_support_ids:
+-            print(f"{user.email} 工作内容不匹配")
++            # print(f"{user.email} 工作内容不匹配")
+             continue
+ 
+         # 2. 时间匹配
+         if task_day not in profile.available_days:
+-            print(f"{user.email} 可用日期不匹配")
++            # print(f"{user.email} 可用日期不匹配")
+             continue
+-        if profile.available_start_time and (task_start < profile.available_start_time):
+-            print(f"{user.email} 可用时间开始早于任务开始")
++        if profile.available_start_time and (task_start_time  < profile.available_start_time):
++            # print(f"{user.email} 可用时间开始早于任务开始")
+             continue
+-        if profile.available_end_time and (task_end > profile.available_end_time):
+-            print(f"{user.email} 可用时间结束晚于任务结束")
++        if profile.available_end_time and (task_end_time  > profile.available_end_time):
++            # print(f"{user.email} 可用时间结束晚于任务结束")
+             continue
+ 
+         # 3. 是否支持宠物
+         if not profile.accept_pets and client_has_pets:
+-            print(f"{user.email} 不接受宠物，任务有宠物")
++            # print(f"{user.email} 不接受宠物，任务有宠物")
+             continue
+ 
+         # 4. 距离匹配
+         vol_lat = profile.user_profile.location_lat
+         vol_lng = profile.user_profile.location_lng
+         if None in [vol_lat, vol_lng, client_lat, client_lng]:
+-            print(f"{user.email} 缺少经纬度信息")
++            # print(f"{user.email} 缺少经纬度信息")
+             continue  # 跳过无位置信息者
+         distance = haversine_distance(vol_lat, vol_lng, client_lat, client_lng)
+         if distance > profile.preferred_distance_km:
+-            print(f"{user.email} 距离过远")
++            # print(f"{user.email} 距离过远")
+             continue
+ 
++        star_score = get_star_score(user, client_user)
++        matched_volunteers.append((star_score, user))
++
++    matched_volunteers.sort(reverse=True, key=lambda x: x[0])
++    for _, volunteer in matched_volunteers:
+         # 创建申请
+         TaskApplication.objects.create(
+             task=task,
+-            volunteer=user,
++            volunteer=volunteer,
+             status='pending',
+             is_auto_matched=True,
+         )
+         matched_count += 1
++        print(f"[Match] {volunteer.email} Match successful → Task #{task.id} {task.title}")
+ 
+     return matched_count
+diff --git a/pvg/pvg.pdf b/pvg/pvg.pdf
+new file mode 100644
+index 0000000..48ad80d
+--- /dev/null
++++ b/pvg/pvg.pdf
+@@ -0,0 +1 @@
++file_content
+\ No newline at end of file
+diff --git a/pvg/pvg_N2gxHnF.pdf b/pvg/pvg_N2gxHnF.pdf
+new file mode 100644
+index 0000000..48ad80d
+--- /dev/null
++++ b/pvg/pvg_N2gxHnF.pdf
+@@ -0,0 +1 @@
++file_content
+\ No newline at end of file
+diff --git a/pvg/pvg_Nm1BnqQ.pdf b/pvg/pvg_Nm1BnqQ.pdf
+new file mode 100644
+index 0000000..48ad80d
+--- /dev/null
++++ b/pvg/pvg_Nm1BnqQ.pdf
+@@ -0,0 +1 @@
++file_content
+\ No newline at end of file
+diff --git a/task/migrations/0014_alter_taskapplication_status.py b/task/migrations/0014_alter_taskapplication_status.py
+new file mode 100644
+index 0000000..ec388f0
+--- /dev/null
++++ b/task/migrations/0014_alter_taskapplication_status.py
+@@ -0,0 +1,18 @@
++# Generated by Django 5.2.3 on 2025-07-16 14:41
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('task', '0013_taskapplication_is_auto_matched'),
++    ]
++
++    operations = [
++        migrations.AlterField(
++            model_name='taskapplication',
++            name='status',
++            field=models.CharField(choices=[('pending', 'pending'), ('accepted', 'accepted'), ('unselected', 'unselected'), ('rejected', 'rejected'), ('cancelled', 'cancelled'), ('completed', 'Completed')], default='pending', max_length=10),
++        ),
++    ]
+diff --git a/task/migrations/0015_taskapplication_completed_at.py b/task/migrations/0015_taskapplication_completed_at.py
+new file mode 100644
+index 0000000..d26f61a
+--- /dev/null
++++ b/task/migrations/0015_taskapplication_completed_at.py
+@@ -0,0 +1,18 @@
++# Generated by Django 5.2.3 on 2025-07-16 14:51
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('task', '0014_alter_taskapplication_status'),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name='taskapplication',
++            name='completed_at',
++            field=models.DateTimeField(blank=True, null=True),
++        ),
++    ]
+diff --git a/task/migrations/0016_alter_taskapplication_status.py b/task/migrations/0016_alter_taskapplication_status.py
+new file mode 100644
+index 0000000..b5c6c85
+--- /dev/null
++++ b/task/migrations/0016_alter_taskapplication_status.py
+@@ -0,0 +1,18 @@
++# Generated by Django 5.2.3 on 2025-07-17 18:37
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('task', '0015_taskapplication_completed_at'),
++    ]
++
++    operations = [
++        migrations.AlterField(
++            model_name='taskapplication',
++            name='status',
++            field=models.CharField(choices=[('pending', 'pending'), ('accepted', 'accepted'), ('unselected', 'unselected'), ('rejected', 'rejected'), ('cancelled', 'cancelled'), ('completed', 'completed')], default='pending', max_length=10),
++        ),
++    ]
+diff --git a/task/models.py b/task/models.py
+index bb7b2ce..c63da6a 100644
+--- a/task/models.py
++++ b/task/models.py
+@@ -45,8 +45,8 @@ class Task(models.Model):
+         now = timezone.now()
+         if self.status in ['cancelled', 'completed']:
+             return
+-        if now >= self.start_time and now <= self.end_time:
+-            approved_count = self.applications.filter(status='accepted').count()
++        approved_count = self.applications.filter(status='accepted').count()
++        if now >= self.start_time and now <= self.end_time + timedelta(hours=2):
+             if approved_count == 0:
+                 self.status = 'cancelled'
+                 self.closed_at = now
+@@ -57,10 +57,17 @@ class Task(models.Model):
+                     self.status = 'ongoing'
+                     self.applications.filter(status='pending').update(status='unselected')
+         elif now > self.end_time + timedelta(hours=2):
+-            if not self.confirmed_by_client:
++            if approved_count == 0:
++                self.status = 'cancel'
++                self.closed_at = now
++                for application in self.applications.all():
++                    application.cancel()
++            elif not self.confirmed_by_client:
+                 self.status = 'timeout'
+             else:
+                 self.status = 'completed'
++            for application in self.applications.all():
++                application.complete()
+             self.closed_at = now
+         elif now < self.start_time and self.status not in ['selected', 'timeout']:
+             self.status = 'open'
+@@ -86,7 +93,7 @@ class Task(models.Model):
+     
+     @property
+     def is_ongoing(self):
+-        return self.status in ['ongoing']
++        return self.status in ['ongoing', 'timeout']
+ 
+ class TaskApplication(models.Model):
+     STATUS_CHOICES = [
+@@ -95,12 +102,14 @@ class TaskApplication(models.Model):
+         ('unselected', 'unselected'),
+         ('rejected', 'rejected'),
+         ('cancelled', 'cancelled'),
++        ('completed', 'completed'),
+     ]
+ 
+     task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='applications')
+     volunteer = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='applications')
+     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+     applied_at = models.DateTimeField(auto_now_add=True)
++    completed_at = models.DateTimeField(null=True, blank=True)
+     cancelled_at = models.DateTimeField(null=True, blank=True)
+     is_auto_matched = models.BooleanField(default=False)
+ 
+@@ -116,6 +125,12 @@ class TaskApplication(models.Model):
+         self.save()
+         self.task.update_status_if_full()
+ 
++    def complete(self):
++        self.status = 'completed'
++        self.completed_at = timezone.now()
++        self.save()
++        self.task.update_status_if_full()
++
+     def can_be_cancelled(self):
+         return not self.task.is_within_24h()
+     
+@@ -125,7 +140,7 @@ class TaskApplication(models.Model):
+     
+     @property
+     def is_closed(self):
+-        return self.status in ['unselected', 'rejected', 'cancelled']
++        return self.status in ['unselected', 'rejected', 'cancelled', 'completed']
+ 
+ class TaskTemplate(models.Model):
+     name = models.CharField(max_length=100)
+diff --git a/task/templates/task/task_detail.html b/task/templates/task/task_detail.html
+index fe305a3..ac28c7b 100644
+--- a/task/templates/task/task_detail.html
++++ b/task/templates/task/task_detail.html
+@@ -4,7 +4,6 @@
+ 
+ {% block content %}
+     <div style='margin:50px;'>
+-        <p>任务详情，病人和志愿者会看到不同的按钮</p>
+         <h2>{{ task.title }}</h2>
+         <p>{{ task.description }}</p>
+         <p>Creater: {{ task.client.userprofile.get_full_name }}</p>
+diff --git a/task/urls.py b/task/urls.py
+index 44cbc01..21ab121 100644
+--- a/task/urls.py
++++ b/task/urls.py
+@@ -2,18 +2,19 @@ from django.urls import path
+ from . import views
+ 
+ urlpatterns = [
+-    path('task/mine/', views.mytask, name='mytask'),
+-    path('task/create/', views.task_create, name='task_create'),
+-    path('task/detail/<int:task_id>/', views.task_detail, name='task_detail'),
+-    path('task/detail/<int:task_id>/applications/', views.task_application, name='task_application'),
+-    path('task/myapplication/', views.myapplication, name='myapplication'),
+-    path('task/available/', views.tasklist, name='tasklist'),
+-    path('task/ongoing/', views.task_ongoing, name='task_ongoing'),
+-    path('task/apply/<int:task_id>/', views.task_apply, name='task_apply'),
+-    path('task/application/<int:application_id>/approve/', views.approve_application, name='approve_application'),
+-    path('task/application/<int:application_id>/reject/', views.reject_application, name='reject_application'),
++    path('mine/', views.mytask, name='mytask'),
++    path('create/', views.task_create, name='task_create'),
++    path('detail/<int:task_id>/', views.task_detail, name='task_detail'),
++    path('detail/<int:task_id>/applications/', views.task_application, name='task_application'),
++    path('myapplication/', views.myapplication, name='myapplication'),
++    path('available/', views.tasklist, name='tasklist'),
++    path('ongoing/', views.task_ongoing, name='task_ongoing'),
++    path('apply/<int:task_id>/', views.task_apply, name='task_apply'),
++    path('application/<int:application_id>/approve/', views.approve_application, name='approve_application'),
++    path('application/<int:application_id>/reject/', views.reject_application, name='reject_application'),
+     path('cancel/<int:task_id>/', views.cancel_task, name='cancel_task'),
+-    path('task/<int:task_id>/confirm/', views.task_confirm, name='task_confirm'),
+-    path('task/<int:task_id>/record/', views.task_record, name='task_record'),
+-    path('task/<int:task_id>/feedback/<int:to_user_id>/', views.task_feedback, name='task_feedback'),
++    path('cancel/applicaiton/<int:task_id>/', views.cancel_application, name='cancel_application'),
++    path('<int:task_id>/confirm/', views.task_confirm, name='task_confirm'),
++    path('<int:task_id>/record/', views.task_record, name='task_record'),
++    path('<int:task_id>/feedback/<int:to_user_id>/', views.task_feedback, name='task_feedback'),
+ ]
+\ No newline at end of file
+diff --git a/task/views.py b/task/views.py
+index f511d7f..590db08 100644
+--- a/task/views.py
++++ b/task/views.py
+@@ -10,6 +10,7 @@ from django.utils import timezone
+ from datetime import timedelta, time
+ from django.db.models import Q
+ from matching.utils import match_volunteers_for_task
++from django.views.decorators.csrf import csrf_exempt
+ 
+ # Create your views here.
+ def client_required(view_func):
+@@ -237,13 +238,6 @@ def approve_application(request, application_id):
+     
+     application.status = 'accepted'
+     application.save()
+-
+-    # if approved_count + 1 >= task.vol_number:
+-    #     TaskApplication.objects.filter(task=task, status='pending').update(status='unselected')
+-    #     task.status = 'selected'
+-    #     task.save()
+-    application.status = 'accepted'
+-    application.save()
+     task.update_status_if_full()
+     return redirect('task:task_application', task.id)
+ 
+@@ -299,6 +293,8 @@ def task_confirm(request, task_id):
+     task.update_status_by_time()
+ 
+     if request.user != task.client or not task.volunteer_submitted:
++        print("Current user:", request.user, request.user.role)
++        print("task creater:", task.client)
+         return redirect('task:task_detail', task_id=task.id)
+     
+     record = getattr(task, 'record', None)
+diff --git a/templates/base.html b/templates/base.html
+index 17081a4..fd2fa9c 100644
+--- a/templates/base.html
++++ b/templates/base.html
+@@ -92,6 +92,9 @@
+                     <a href="{% url 'task:mytask' %}">My Task</a>
+                 {% endif %}
+                 <a href="{% url 'task:task_ongoing' %}">Ongoing Task</a>
++                {% if user.role == 'admin' %}
++                    <a href="{% url 'adminpanel:dashboard' %}">Admin Dashboard</a>
++                {% endif %}
+                 <form action="{% url 'user:logout' %}" method="post" style="display:inline;">
+                     {% csrf_token %}
+                     <button type="submit" class="btn btn-link">Log Out</button>
+diff --git a/user/forms.py b/user/forms.py
+index 95452a9..3b05552 100644
+--- a/user/forms.py
++++ b/user/forms.py
+@@ -33,6 +33,7 @@ class ClientRegisterForm(UserCreationForm):
+ 
+     def save(self, commit=True):
+         user = super().save(commit=False)
++        user.is_active = False # 禁用账户，直到点击激活链接
+         user.role = 'client'
+         user.username = self.cleaned_data['email']
+         if commit:
+@@ -54,6 +55,10 @@ class ClientRegisterForm(UserCreationForm):
+         return user
+ 
+ class ClientProfileForm(forms.ModelForm):
++    first_name = forms.CharField(max_length=100, label='First Name')
++    last_name = forms.CharField(max_length=100, label='Last Name')
++    phone_number = forms.CharField(max_length=20, label='Phone Number')
++    location = forms.CharField(max_length=255, label='Location / Postcode')
+     support_areas = forms.ModelMultipleChoiceField(
+         queryset=SupportType.objects.all(),
+         widget=forms.CheckboxSelectMultiple,
+@@ -72,6 +77,16 @@ class ClientProfileForm(forms.ModelForm):
+ 
+     def __init__(self, *args, **kwargs):
+         super().__init__(*args, **kwargs)
++        if self.instance:
++            user_profile = self.instance.user_profile
++            self.fields['first_name'].initial = user_profile.first_name
++            self.fields['last_name'].initial = user_profile.last_name
++            self.fields['age'].initial = user_profile.age
++            self.fields['gender'].initial = user_profile.gender
++            self.fields['phone_number'].initial = user_profile.phone_number
++            self.fields['location'].initial = user_profile.location
++            self.fields['emergency_contact'].initial = user_profile.emergency_contact
++
+         if self.instance and self.instance.certifications.exists():
+             cert_names = list(self.instance.certifications.values_list('name', flat=True))
+             if 'PIP' in cert_names:
+@@ -126,12 +141,22 @@ class ClientProfileForm(forms.ModelForm):
+ 
+     def save(self, commit=True):
+         instance = super().save(commit=False)
++        user_profile = instance.user_profile
++        user_profile.first_name = self.cleaned_data['first_name']
++        user_profile.last_name = self.cleaned_data['last_name']
++        user_profile.age = self.cleaned_data['age']
++        user_profile.gender = self.cleaned_data['gender']
++        user_profile.phone_number = self.cleaned_data['phone_number']
++        user_profile.location = self.cleaned_data['location']
++        user_profile.emergency_contact = self.cleaned_data['emergency_contact']
++        user_profile.save()
+         if commit:
+             instance.save()
+             for field_name, field_value in self.cleaned_data.items():
+                 if field_name in ['pip_certificate', 'adp_certificate', 'lwc_certificate', 'nhs_certificate', 'diagnosis']:
+                     setattr(instance, field_name, field_value)
+             instance.save()
++            self.save_m2m()
+         return instance
+ 
+ class VolunteerRegisterForm(UserCreationForm):
+@@ -159,6 +184,7 @@ class VolunteerRegisterForm(UserCreationForm):
+     
+     def save(self, commit=True):
+         user = super().save(commit=False)
++        user.is_active = False # 禁用账户，直到点击激活链接
+         user.role = 'volunteer'
+         user.username = self.cleaned_data['email']
+         if commit:
+@@ -181,6 +207,10 @@ class VolunteerRegisterForm(UserCreationForm):
+         return user
+     
+ class VolunteerProfileForm(forms.ModelForm):
++    first_name = forms.CharField(disabled=True, required=False, label='First Name')
++    last_name = forms.CharField(disabled=True, required=False, label='Last Name')
++    location = forms.CharField(disabled=True, required=False, label='Postcode')
++    phone_number = forms.CharField(disabled=True, required=False, label='Phone Number')
+     age = forms.ChoiceField(choices=[('18-24', '18-24'), ('25-54', '25-54'), ('55+', '55+')], label='Age')
+     gender = forms.ChoiceField(choices=[('male', 'Male'), ('female', 'Female')], label='Gender')
+     emergency_contact = forms.CharField(max_length=255)
+@@ -192,6 +222,10 @@ class VolunteerProfileForm(forms.ModelForm):
+     class Meta:
+         model = VolunteerProfile
+         fields = [
++            'first_name',
++            'last_name',
++            'location',
++            'phone_number',
+             'skills',
+             'interests',
+             'preferred_tasks',
+@@ -207,6 +241,37 @@ class VolunteerProfileForm(forms.ModelForm):
+             }),
+             'motivation': forms.Textarea(attrs={'rows': 3}),
+         }
++    
++    def __init__(self, *args, **kwargs):
++        super().__init__(*args, **kwargs)
++
++        if self.instance:
++            user_profile = self.instance.user_profile
++            self.fields['first_name'].initial = user_profile.first_name
++            self.fields['last_name'].initial = user_profile.last_name
++            self.fields['location'].initial = user_profile.location
++            self.fields['phone_number'].initial = user_profile.phone_number
++            self.fields['age'].initial = user_profile.age
++            self.fields['gender'].initial = user_profile.gender
++            self.fields['emergency_contact'].initial = user_profile.emergency_contact
++
++    def save(self, commit=True):
++        instance = super().save(commit=False)
++        user_profile = instance.user_profile
++
++        user_profile.first_name = self.cleaned_data['first_name']
++        user_profile.last_name = self.cleaned_data['last_name']
++        user_profile.location = self.cleaned_data['location']
++        user_profile.phone_number = self.cleaned_data['phone_number']
++        user_profile.age = self.cleaned_data['age']
++        user_profile.gender = self.cleaned_data['gender']
++        user_profile.emergency_contact = self.cleaned_data['emergency_contact']
++        user_profile.save()
++
++        if commit:
++            instance.save()
++            self.save_m2m()
++        return instance
+ 
+ class ProfilePhotoForm(forms.ModelForm):
+     profile_photo = forms.FileField(
+diff --git a/user/migrations/0011_alter_customuser_is_active.py b/user/migrations/0011_alter_customuser_is_active.py
+new file mode 100644
+index 0000000..1c12472
+--- /dev/null
++++ b/user/migrations/0011_alter_customuser_is_active.py
+@@ -0,0 +1,18 @@
++# Generated by Django 5.2.3 on 2025-07-17 18:37
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('user', '0010_userprofile_location_lat_userprofile_location_lng'),
++    ]
++
++    operations = [
++        migrations.AlterField(
++            model_name='customuser',
++            name='is_active',
++            field=models.BooleanField(default=False),
++        ),
++    ]
+diff --git a/user/migrations/0012_remove_clientprofile_eligibility_confirmed_and_more.py b/user/migrations/0012_remove_clientprofile_eligibility_confirmed_and_more.py
+new file mode 100644
+index 0000000..fd8733e
+--- /dev/null
++++ b/user/migrations/0012_remove_clientprofile_eligibility_confirmed_and_more.py
+@@ -0,0 +1,22 @@
++# Generated by Django 5.2.3 on 2025-07-20 18:47
++
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('user', '0011_alter_customuser_is_active'),
++    ]
++
++    operations = [
++        migrations.RemoveField(
++            model_name='clientprofile',
++            name='eligibility_confirmed',
++        ),
++        migrations.AddField(
++            model_name='userprofile',
++            name='eligibility_confirmed',
++            field=models.BooleanField(default=False),
++        ),
++    ]
+diff --git a/user/models.py b/user/models.py
+index 9b7efe6..72d1929 100644
+--- a/user/models.py
++++ b/user/models.py
+@@ -25,7 +25,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
+         ('volunteer', 'Volunteer'),
+         ('admin', 'Admin'),
+     ])
+-    is_active = models.BooleanField(default=True) #控制账户是否激活（考虑是否需要）
++    is_active = models.BooleanField(default=False) #控制账户是否激活（考虑是否需要）
+     is_staff = models.BooleanField(default=False) #控制账号访问管理后台的权限
+ 
+     USERNAME_FIELD = 'email'                      #指定email为登录的标识（取代username）
+@@ -60,8 +60,12 @@ class UserProfile(models.Model):
+     location_lng = models.FloatField(null=True, blank=True)
+     profile_photo = models.ImageField(upload_to=user_directory_path, null=True, blank=True) #个人照片，用作头像和匹配时的展示
+     emergency_contact = models.CharField(max_length=255, null=True, blank=True)             #紧急联系人（姓名+联系方式）
++    eligibility_confirmed = models.BooleanField(default=False)                              #审核通过后改为True
+     consent_safeguard = models.BooleanField(default=False)                                  #是否同意数据使用和安全协议（不确定是否有必要）
+ 
++    def __str__(self):
++        return f"{self.get_full_name} [{self.user.email}]"
++    
+     def save(self, *args, **kwargs):
+         if self.location and (self.location_lat is None or self.location_lng is None):
+             lat, lng = geocode_address(self.location)
+@@ -101,7 +105,6 @@ class ClientProfile(models.Model):
+     lwc_certificate = models.FileField(upload_to='certificates/lwc/', null=True, blank=True)
+     nhs_certificate = models.FileField(upload_to='certificates/nhs/', null=True, blank=True)
+     diagnosis = models.FileField(upload_to='certificates/diagnosis/', null=True, blank=True)
+-    eligibility_confirmed = models.BooleanField(default=False)                               #审核通过后改为True
+     preferred_contact_method = models.CharField(max_length=20, choices=[('phone', 'Phone'), ('email', 'Email')])
+     conditions = models.ManyToManyField(ConditionType, blank=True)
+     other_conditions = models.CharField(max_length=255, null=True, blank=True)
+@@ -113,6 +116,9 @@ class ClientProfile(models.Model):
+     has_pets = models.BooleanField(default=False)                       #是否有宠物
+     pets_type = models.CharField(max_length=100, null=True, blank=True) #有的话宠物类型
+ 
++    def __str__(self):
++        return f"{self.user_profile.get_full_name} [{self.user_profile.user.email}]"
++
+ #Volunteer独有的信息
+ class VolunteerProfile(models.Model):
+     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+@@ -137,6 +143,9 @@ class VolunteerProfile(models.Model):
+     available_end_time = models.TimeField(null=True, blank=True)
+     preferred_distance_km = models.PositiveIntegerField(default=10)   #意向距离
+     accept_pets = models.BooleanField(default=True)                   #能否接受宠物
++    
++    def __str__(self):
++        return f"{self.user_profile.get_full_name} [{self.user_profile.user.email}]"
+ 
+ class AdminProfile(models.Model):
+     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+diff --git a/user/templates/user/activation_failed.html b/user/templates/user/activation_failed.html
+new file mode 100644
+index 0000000..7b3b97f
+--- /dev/null
++++ b/user/templates/user/activation_failed.html
+@@ -0,0 +1,8 @@
++{% extends "base.html" %}
++
++{% block title %}Activation Failed{% endblock %}
++
++{% block content %}
++    <h2>Your activation has been failed, please try again later.</h2>
++    <a href="{% url 'user:register' %}">Click here to register</a>
++{% endblock %}
+\ No newline at end of file
+diff --git a/user/templates/user/activation_success.html b/user/templates/user/activation_success.html
+new file mode 100644
+index 0000000..89e2b0a
+--- /dev/null
++++ b/user/templates/user/activation_success.html
+@@ -0,0 +1,9 @@
++{% extends "base.html" %}
++
++{% block title %}Activation Success{% endblock %}
++
++{% block content %}
++    <h2>Your account has been activated.</h2>
++    <p>Thank you for choosing Shallion Support.<p>
++    <a href="{% url 'user:login' %}">Click here to login</a>
++{% endblock %}
+\ No newline at end of file
+diff --git a/user/templates/user/client_profile_edit.html b/user/templates/user/client_profile_edit.html
+index d30910b..1880532 100644
+--- a/user/templates/user/client_profile_edit.html
++++ b/user/templates/user/client_profile_edit.html
+@@ -9,6 +9,25 @@
+         <form method="post" enctype="multipart/form-data">
+             {% csrf_token %}
+ 
++            <label for="id_first_name"><strong>{{ form.first_name.label_tag }}</strong></label><br>
++            {{ form.first_name }}<br>
++            {{ form.first_name.errors }}<br><br>
++
++            <label for="id_last_name"><strong>{{ form.last_name.label_tag }}</strong></label><br>
++            {{ form.last_name }}<br>
++            {{ form.last_name.errors }}<br><br>
++
++            <label for="id_phone_number"><strong>{{ form.phone_number.label_tag }}</strong></label><br>
++            {{ form.phone_number }}<br>
++            {{ form.phone_number.errors }}<br><br>
++
++            <label for="id_location"><strong>Please enter your postcode:</strong></label><br>
++            <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="autoFillLocation()">📍 Use My Location</button>
++            <small id="location-message" class="text-muted d-block mt-1"></small>
++            <input id="id_location" name="location" type="text" class="form-control" placeholder="Start typing address or postcode" autocomplete="off" style='width: 200px;'>
++            <ul id="address-suggestions" class="list-group" style='z-index: 1000;width: 100%;'></ul>
++            {{ form.location.errors }}<br>
++
+             <label for="id_age"><strong>{{ form.age.label_tag }}</strong></label><br>
+             {{ form.age }}<br>
+             {{ form.age.errors }}<br><br>
+@@ -65,11 +84,6 @@
+             {{ form.pets_type }}<br>
+             {{ form.pets_type.errors }}<br><br>
+ 
+-            {% comment %} 看这里！这条是时间，在这改！ {% endcomment %}
+-            {% comment %} <label for="id_preferred_times"><strong>{{ form.preferred_times.label_tag }}</strong></label><br>
+-            {{ form.preferred_times }}<br>
+-            {{ form.preferred_times.errors }}<br><br> {% endcomment %}
+-
+             <input type="submit" value="Save">
+         </form> 
+         
+@@ -83,4 +97,105 @@
+ 
+     </div>
+ 
++    <script>
++        document.addEventListener('DOMContentLoaded', function() {
++            var input = document.getElementById('id_location');
++            var suggestions = document.getElementById('address-suggestions');
++
++            input.addEventListener('input', function() {
++                var query = this.value.trim();
++                if (query.length < 3) {
++                    suggestions.innerHTML = '';
++                    return;
++                }
++
++                // 检查是否是 UK postcode 格式
++                var postcodeRegex = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}$/i;
++                if (postcodeRegex.test(query)) {
++                    // 查询 Postcodes.io
++                    fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(query)}`)
++                        .then(response => response.json())
++                        .then(data => {
++                            suggestions.innerHTML = '';
++                            if (data.status === 200) {
++                                var address = `${data.result.postcode}, ${data.result.admin_ward}, ${data.result.admin_district}, ${data.result.region}`;
++                                var li = document.createElement('li');
++                                li.textContent = address;
++                                li.classList.add('list-group-item', 'list-group-item-action');
++                                li.style.cursor = 'pointer';
++                                li.addEventListener('click', function() {
++                                    input.value = address;
++                                    suggestions.innerHTML = '';
++                                });
++                                suggestions.appendChild(li);
++                            }
++                        });
++                } else {
++                    // 否则走 Nominatim 查询地址
++                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&countrycodes=gb&limit=5&viewbox=-2.1800,57.2000,-2.0500,57.1200&bounded=1`)
++                        .then(response => response.json())
++                        .then(data => {
++                            suggestions.innerHTML = '';
++                            data.forEach(function(item) {
++                                var li = document.createElement('li');
++                                li.textContent = item.display_name;
++                                li.classList.add('list-group-item', 'list-group-item-action');
++                                li.style.cursor = 'pointer';
++                                li.addEventListener('click', function() {
++                                    input.value = item.display_name;
++                                    suggestions.innerHTML = '';
++                                });
++                                suggestions.appendChild(li);
++                            });
++                        });
++                }
++            });
++
++            // 点击其他地方隐藏 suggestions
++            document.addEventListener('click', function(e) {
++                if (!input.contains(e.target) && !suggestions.contains(e.target)) {
++                    suggestions.innerHTML = '';
++                }
++            });
++        });
++
++        function autoFillLocation() {
++            const input = document.getElementById('id_location');
++            const msg = document.getElementById('location-message');
++
++            msg.innerText = 'Trying to detect your location...';
++
++            if (!navigator.geolocation) {
++                msg.innerText = 'Geolocation is not supported by your browser.';
++                return;
++            }
++
++            navigator.geolocation.getCurrentPosition(success, error);
++
++            function success(position) {
++                const lat = position.coords.latitude;
++                const lon = position.coords.longitude;
++
++                fetch(`https://api.postcodes.io/postcodes?lon=${lon}&lat=${lat}`)
++                    .then(res => res.json())
++                    .then(data => {
++                        if (data.status === 200 && data.result.length > 0) {
++                            const postcode = data.result[0].postcode;
++                            input.value = postcode;
++                            msg.innerText = `Detected postcode: ${postcode}`;
++                        } else {
++                            msg.innerText = 'Could not find a postcode near your location.';
++                        }
++                    })
++                    .catch(() => {
++                        msg.innerText = 'Failed to retrieve postcode.';
++                    });
++            }
++
++            function error() {
++                msg.innerText = 'Location access denied or unavailable.';
++            }
++        }
++    </script>
++
+ {% endblock %}
+diff --git a/user/templates/user/password_change.html b/user/templates/user/password_change.html
+new file mode 100644
+index 0000000..38474b8
+--- /dev/null
++++ b/user/templates/user/password_change.html
+@@ -0,0 +1,12 @@
++{% extends "base.html" %}
++
++{% block title %}Change Password{% endblock %}
++
++{% block content %}
++  <h2>Change Password</h2>
++  <form method="post">
++    {% csrf_token %}
++    {{ form.as_p }}
++    <button type="submit">submit</button>
++  </form>
++{% endblock %}
+\ No newline at end of file
+diff --git a/user/templates/user/password_change_done.html b/user/templates/user/password_change_done.html
+new file mode 100644
+index 0000000..24689ba
+--- /dev/null
++++ b/user/templates/user/password_change_done.html
+@@ -0,0 +1,8 @@
++{% extends "base.html" %}
++
++{% block title %}Password changed successfully{% endblock %}
++
++{% block content %}
++  <h2>Password changed successfully</h2>
++  <p><a href="{% url 'user:home' %}">Back to home page</a></p>
++{% endblock %}
+\ No newline at end of file
+diff --git a/user/templates/user/please_check_email.html b/user/templates/user/please_check_email.html
+new file mode 100644
+index 0000000..8e78463
+--- /dev/null
++++ b/user/templates/user/please_check_email.html
+@@ -0,0 +1,9 @@
++{% extends "base.html" %}
++
++{% block title %}Wait Activation{% endblock %}
++
++{% block content %}
++    <h2>Thank you for registering!</h2>
++    <p>Please check your email to activate your account.</p>
++    <p>Our emails are likely to be recognized as spam, so please check carefully.<p>
++{% endblock %}
+diff --git a/user/templates/user/profile_detail.html b/user/templates/user/profile_detail.html
+index 991d137..031e9fe 100644
+--- a/user/templates/user/profile_detail.html
++++ b/user/templates/user/profile_detail.html
+@@ -7,6 +7,7 @@
+         <h1>Hello {{ user_profile.first_name }}</h1>
+         <p>Thanks for using Shallion as a {{ user.role }}!</p>
+         <p><a href="{% url 'user:logout' %}">Log Out</a></p>
++        <p><a href="{% url 'user:change_password' %}">Change Password</a><p>
+     </div>
+     <div style='margin:50px;margin-left:200px;'>
+         {% if user_profile.profile_photo %}
+diff --git a/user/templates/user/volunteer_profile_edit.html b/user/templates/user/volunteer_profile_edit.html
+index 1116770..9e872ba 100644
+--- a/user/templates/user/volunteer_profile_edit.html
++++ b/user/templates/user/volunteer_profile_edit.html
+@@ -9,6 +9,25 @@
+         <form method="post" enctype="multipart/form-data">
+             {% csrf_token %}
+ 
++            <label for="id_first_name"><strong>{{ form.first_name.label_tag }}</strong></label><br>
++            {{ form.first_name }}<br>
++            {{ form.first_name.errors }}<br><br>
++
++            <label for="id_last_name"><strong>{{ form.last_name.label_tag }}</strong></label><br>
++            {{ form.last_name }}<br>
++            {{ form.last_name.errors }}<br><br>
++
++            <label for="id_phone_number"><strong>{{ form.phone_number.label_tag }}</strong></label><br>
++            {{ form.phone_number }}<br>
++            {{ form.phone_number.errors }}<br><br>
++
++            <label for="id_location"><strong>Please enter your postcode:</strong></label><br>
++            <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="autoFillLocation()">📍 Use My Location</button>
++            <small id="location-message" class="text-muted d-block mt-1"></small>
++            <input id="id_location" name="location" type="text" class="form-control" placeholder="Start typing address or postcode" autocomplete="off" style='width: 200px;'>
++            <ul id="address-suggestions" class="list-group" style='z-index: 1000;width: 100%;'></ul>
++            {{ form.location.errors }}<br>
++
+             <label for="id_age"><strong>{{ form.age.label_tag }}</strong></label><br>
+             {{ form.age }}<br>
+             {{ form.age.errors }}<br><br>
+@@ -45,11 +64,6 @@
+             {{ form.motivation }}<br>
+             {{ form.motivation.errors }}<br><br>
+ 
+-            {% comment %} 看这里！这条是时间，在这改！ {% endcomment %}
+-            {% comment %} <label for="id_availability"><strong>{{ form.availability.label_tag }}</strong></label><br>
+-            {{ form.availability }}<br>
+-            {{ form.availability.errors }}<br><br> {% endcomment %}
+-
+             <input type="submit" value="Save">
+         </form>
+         
+@@ -65,4 +79,105 @@
+ 
+     </div>
+ 
++    <script>
++        document.addEventListener('DOMContentLoaded', function() {
++            var input = document.getElementById('id_location');
++            var suggestions = document.getElementById('address-suggestions');
++
++            input.addEventListener('input', function() {
++                var query = this.value.trim();
++                if (query.length < 3) {
++                    suggestions.innerHTML = '';
++                    return;
++                }
++
++                // 检查是否是 UK postcode 格式
++                var postcodeRegex = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}$/i;
++                if (postcodeRegex.test(query)) {
++                    // 查询 Postcodes.io
++                    fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(query)}`)
++                        .then(response => response.json())
++                        .then(data => {
++                            suggestions.innerHTML = '';
++                            if (data.status === 200) {
++                                var address = `${data.result.postcode}, ${data.result.admin_ward}, ${data.result.admin_district}, ${data.result.region}`;
++                                var li = document.createElement('li');
++                                li.textContent = address;
++                                li.classList.add('list-group-item', 'list-group-item-action');
++                                li.style.cursor = 'pointer';
++                                li.addEventListener('click', function() {
++                                    input.value = address;
++                                    suggestions.innerHTML = '';
++                                });
++                                suggestions.appendChild(li);
++                            }
++                        });
++                } else {
++                    // 否则走 Nominatim 查询地址
++                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&countrycodes=gb&limit=5&viewbox=-2.1800,57.2000,-2.0500,57.1200&bounded=1`)
++                        .then(response => response.json())
++                        .then(data => {
++                            suggestions.innerHTML = '';
++                            data.forEach(function(item) {
++                                var li = document.createElement('li');
++                                li.textContent = item.display_name;
++                                li.classList.add('list-group-item', 'list-group-item-action');
++                                li.style.cursor = 'pointer';
++                                li.addEventListener('click', function() {
++                                    input.value = item.display_name;
++                                    suggestions.innerHTML = '';
++                                });
++                                suggestions.appendChild(li);
++                            });
++                        });
++                }
++            });
++
++            // 点击其他地方隐藏 suggestions
++            document.addEventListener('click', function(e) {
++                if (!input.contains(e.target) && !suggestions.contains(e.target)) {
++                    suggestions.innerHTML = '';
++                }
++            });
++        });
++
++        function autoFillLocation() {
++            const input = document.getElementById('id_location');
++            const msg = document.getElementById('location-message');
++
++            msg.innerText = 'Trying to detect your location...';
++
++            if (!navigator.geolocation) {
++                msg.innerText = 'Geolocation is not supported by your browser.';
++                return;
++            }
++
++            navigator.geolocation.getCurrentPosition(success, error);
++
++            function success(position) {
++                const lat = position.coords.latitude;
++                const lon = position.coords.longitude;
++
++                fetch(`https://api.postcodes.io/postcodes?lon=${lon}&lat=${lat}`)
++                    .then(res => res.json())
++                    .then(data => {
++                        if (data.status === 200 && data.result.length > 0) {
++                            const postcode = data.result[0].postcode;
++                            input.value = postcode;
++                            msg.innerText = `Detected postcode: ${postcode}`;
++                        } else {
++                            msg.innerText = 'Could not find a postcode near your location.';
++                        }
++                    })
++                    .catch(() => {
++                        msg.innerText = 'Failed to retrieve postcode.';
++                    });
++            }
++
++            function error() {
++                msg.innerText = 'Location access denied or unavailable.';
++            }
++        }
++    </script>
++
+ {% endblock %}
+diff --git a/user/tests.py b/user/tests.py
+index c537d71..25b4d60 100644
+--- a/user/tests.py
++++ b/user/tests.py
+@@ -17,12 +17,14 @@ class CustomUserModelTests(TestCase):
+         self.client_user = self.user_manager.create_user(
+             email='client@test.com',
+             password='testpass123',
+-            role='client'
++            role='client',
++            is_active=True
+         )
+         self.volunteer_user = self.user_manager.create_user(
+             email='volunteer@test.com',
+             password='testpass123',
+-            role='volunteer'
++            role='volunteer',
++            is_active=True
+         )
+         self.user_profile_client = UserProfile.objects.create(
+             user=self.client_user,
+@@ -61,7 +63,8 @@ class CustomUserModelTests(TestCase):
+         user = self.user_manager.create_user(
+             email='testuser@test.com',
+             password='testpass123',
+-            role='client'
++            role='client',
++            is_active=True
+         )
+         self.assertEqual(user.email, 'testuser@test.com')
+         self.assertTrue(user.check_password('testpass123'))
+@@ -111,7 +114,7 @@ class ClientRegisterFormTests(TestCase):
+             'last_name': 'Client',
+             'phone_number': '1234567890',
+             'contact_method': 'email',
+-            'location': 'Test City',
++            'location': 'AB25 3DD',
+             'certifications': [self.cert_type.id],
+             'consent_safeguard': True
+         }
+@@ -144,7 +147,7 @@ class VolunteerRegisterFormTests(TestCase):
+             'first_name': 'New',
+             'last_name': 'Volunteer',
+             'phone_number': '0987654321',
+-            'location': 'Test City',
++            'location': 'AB25 3DD',
+             'university_course': 'Biology',
+             'profession': 'Student',
+             'is_for_credit': False,
+@@ -174,14 +177,15 @@ class ClientProfileFormTests(TestCase):
+         self.user = CustomUser.objects.create_user(
+             email='client@test.com',
+             password='testpass123',
+-            role='client'
++            role='client',
++            is_active=True
+         )
+         self.user_profile = UserProfile.objects.create(
+             user=self.user,
+             first_name='Client',
+             last_name='Test',
+             phone_number='1234567890',
+-            location='Test City'
++            location='AB25 3DD'
+         )
+         self.cert_type = CertificationType.objects.create(name='PIP')
+         self.condition_type = ConditionType.objects.create(name='Diabetes')
+@@ -235,14 +239,15 @@ class VolunteerProfileFormTests(TestCase):
+         self.user = CustomUser.objects.create_user(
+             email='volunteer@test.com',
+             password='testpass123',
+-            role='volunteer'
++            role='volunteer',
++            is_active=True
+         )
+         self.user_profile = UserProfile.objects.create(
+             user=self.user,
+             first_name='Volunteer',
+             last_name='Test',
+             phone_number='0987654321',
+-            location='Test City'
++            location='AB25 3DD'
+         )
+         self.support_type = SupportType.objects.create(name='Medical Assistance')
+         self.volunteer_profile = VolunteerProfile.objects.create(
+@@ -287,14 +292,15 @@ class UserViewsTests(TestCase):
+         self.user = CustomUser.objects.create_user(
+             email='testuser@test.com',
+             password='testpass123',
+-            role='client'
++            role='client',
++            is_active=True
+         )
+         self.client_user_profile = UserProfile.objects.create(
+             user=self.user,
+             first_name='Test',
+             last_name='User',
+             phone_number='1234567890',
+-            location='Test City'
++            location='AB25 3DD'
+         )
+         self.client_profile = ClientProfile.objects.create(
+             user_profile=self.client_user_profile,
+@@ -303,14 +309,15 @@ class UserViewsTests(TestCase):
+         self.volunteer_user = CustomUser.objects.create_user(
+             email='volunteer@test.com',
+             password='testpass123',
+-            role='volunteer'
++            role='volunteer',
++            is_active=True
+         )
+         self.volunteer_user_profile = UserProfile.objects.create(
+             user=self.volunteer_user,
+             first_name='Volunteer',
+             last_name='User',
+             phone_number='0987654321',
+-            location='Test City'
++            location='AB25 3DD'
+         )
+         self.volunteer_profile = VolunteerProfile.objects.create(
+             user_profile=self.volunteer_user_profile,
+@@ -369,7 +376,9 @@ class UserViewsTests(TestCase):
+             'certifications': [cert_type.id],
+             'consent_safeguard': True
+         })
+-        self.assertRedirects(response, reverse('user:home'))
++        #self.assertRedirects(response, reverse('user:home'))
++        self.assertEqual(response.status_code, 200)
++        self.assertContains(response, "check your email")
+         self.assertTrue(CustomUser.objects.filter(email='newclient@test.com').exists())
+ 
+     def test_volunteer_register_view_get(self):
+@@ -391,7 +400,9 @@ class UserViewsTests(TestCase):
+             'is_for_credit': False,
+             'consent_safeguard': True
+         })
+-        self.assertRedirects(response, reverse('user:home'))
++        #self.assertRedirects(response, reverse('user:home'))
++        self.assertEqual(response.status_code, 200)
++        self.assertContains(response, "check your email")
+         self.assertTrue(CustomUser.objects.filter(email='newvolunteer@test.com').exists())
+ 
+     def test_client_profile_edit_view_get(self):
+diff --git a/user/urls.py b/user/urls.py
+index d826965..444c07a 100644
+--- a/user/urls.py
++++ b/user/urls.py
+@@ -1,5 +1,7 @@
+ from django.urls import path
+ from . import views
++from .views import CustomPasswordChangeView
++from django.contrib.auth.views import PasswordChangeDoneView
+ 
+ urlpatterns = [
+     path('', views.home_view, name='home'),
+@@ -13,4 +15,8 @@ urlpatterns = [
+     path('profile/', views.profile_detail, name='profile_detail'),
+     path('profile/photoedit/', views.photo_edit, name='photo_edit'),
+     path('save-preferred-times/', views.save_preferred_times, name='save_preferred_times'),
++    path('activate/<uidb64>/<token>/', views.activate_account, name='activate'),
++    path('change-password/', CustomPasswordChangeView.as_view(), name='change_password'),
++    path('change-password/done/', PasswordChangeDoneView.as_view(
++        template_name='user/password_change_done.html'), name='password_change_done'),
+ ]
+\ No newline at end of file
+diff --git a/user/utils.py b/user/utils.py
+index f6d7aef..ec2e964 100644
+--- a/user/utils.py
++++ b/user/utils.py
+@@ -2,6 +2,12 @@
+ 
+ import requests
+ import re
++from django.core.mail import send_mail
++from django.utils.http import urlsafe_base64_encode
++from django.utils.encoding import force_bytes
++from django.contrib.auth.tokens import default_token_generator
++from django.urls import reverse
++from django.conf import settings
+ 
+ def normalize_uk_postcode(postcode):
+     postcode = postcode.upper().strip().replace(' ', '')
+@@ -34,7 +40,7 @@ def geocode_address(address):
+     # 为保险起见加上国家
+     cleaned_address = ', '.join(clean_parts + ['UK'])
+ 
+-    print(f"尝试解析地址：{cleaned_address}")
++    # print(f"尝试解析地址：{cleaned_address}")
+ 
+     url = f"https://nominatim.openstreetmap.org/search"
+     params = {
+@@ -56,3 +62,31 @@ def geocode_address(address):
+         print(f"[Geocode ERROR] 地址解析失败：{cleaned_address} → {e}")
+     return None, None
+ 
++def send_activation_email(user, request):
++    uid = urlsafe_base64_encode(force_bytes(user.pk))
++    token = default_token_generator.make_token(user)
++
++    activation_url = request.build_absolute_uri(
++        reverse('user:activate', kwargs={'uidb64': uid, 'token': token})
++    )
++
++    subject = "Activate Your Account"
++    message = f"""\
++Hi {user.email},
++
++Thank you for registering on our platform.
++
++To activate your account, please click the link below:
++
++{activation_url}
++
++If you did not sign up for this account, you can safely ignore this email.
++
++Best regards,  
++The Support Team
++"""
++
++    from_email = settings.DEFAULT_FROM_EMAIL
++    recipient_list = [user.email]
++
++    send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+diff --git a/user/views.py b/user/views.py
+index 600ca43..14d40d6 100644
+--- a/user/views.py
++++ b/user/views.py
+@@ -1,11 +1,11 @@
+-from django.shortcuts import render, redirect
++from django.shortcuts import render, redirect, HttpResponse
+ from django.contrib.auth.models import User
+-from django.contrib.auth import authenticate, login, logout
++from django.contrib.auth import authenticate, login, logout, get_user_model
+ from django.contrib.auth.decorators import login_required
+ from django.contrib import messages
+ from .models import CustomUser, UserProfile, ClientProfile, VolunteerProfile
+ from .forms import ClientRegisterForm, ClientProfileForm, VolunteerRegisterForm, VolunteerProfileForm, ProfilePhotoForm
+-from django.contrib.auth.forms import AuthenticationForm
++from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+ from django.forms.models import model_to_dict
+ from django.core.files.base import ContentFile
+ import base64
+@@ -17,7 +17,13 @@ from django.utils.safestring import mark_safe
+ from django.core.files.storage import default_storage
+ from storages.backends.s3boto3 import S3Boto3Storage
+ from task.models import Task
+-from user.utils import geocode_address, is_valid_aberdeen_postcode
++from user.utils import geocode_address, is_valid_aberdeen_postcode, send_activation_email
++from django.utils.http import urlsafe_base64_decode
++from django.contrib.auth.tokens import default_token_generator
++from django.conf import settings
++from django.contrib.auth.views import PasswordChangeView
++from django.urls import reverse_lazy
++from django.contrib.auth.mixins import LoginRequiredMixin
+ 
+ def home_view(request):
+     tasks = Task.objects.filter(client=request.user) if request.user.is_authenticated and request.user.role == 'client' else []
+@@ -29,6 +35,11 @@ def login_view(request):
+         if form.is_valid():
+             user = form.get_user()
+             login(request, user)
++            # print("登录成功，用户 role 是：", user.role)
++            if user.role == 'admin':
++                # print("管理员身份，准备跳转后台")
++                return redirect('adminpanel:dashboard')
++            # print("普通用户身份，准备跳转 user:home")
+             return redirect('user:home')
+         else:
+             messages.error(request, "Wrong email or password.")
+@@ -54,8 +65,8 @@ def client_register(request):
+                 form.add_error('location', 'Please enter a valid postcode within Aberdeen')
+             else:
+                 user = form.save()
+-                login(request, user)
+-                return redirect('user:home')
++                send_activation_email(user, request)
++                return render(request, 'user/please_check_email.html')
+         else:
+             print(form.errors)
+     else:
+@@ -71,37 +82,40 @@ def volunteer_register(request):
+                 form.add_error('location', 'Please enter a valid postcode within Aberdeen')
+             else:
+                 user = form.save()
+-                login(request, user)
+-                return redirect('user:home')
++                send_activation_email(user, request)
++                return render(request, 'user/please_check_email.html')
+         else:
+             print(form.errors)
+     else:
+         form = VolunteerRegisterForm()
+     return render(request, 'user/volunteer_register.html', {'form': form})
+ 
++def activate_account(request, uidb64, token):
++    User = get_user_model()
++    try:
++        uid = urlsafe_base64_decode(uidb64).decode()
++        user = User.objects.get(pk=uid)
++    except (User.DoesNotExist, ValueError, TypeError):
++        user = None
++
++    if user and default_token_generator.check_token(user, token):
++        user.is_active = True
++        user.save()
++        return render(request, 'user/activation_success.html')
++    else:
++        return render(request, 'user/activation_failed.html')
++
+ @login_required
+ def client_profile_edit(request):
+     try:
+         client_profile = request.user.userprofile.clientprofile
+     except ClientProfile.DoesNotExist:
+         return redirect('user:choose_role')
++    
+     if request.method == 'POST':
+         form = ClientProfileForm(request.POST, request.FILES, instance=client_profile)
+         if form.is_valid():
+             form.save()
+-            user_profile = request.user.userprofile
+-            user_age = form.cleaned_data.get('age')
+-            user_gender = form.cleaned_data.get('gender')
+-            user_emergency_contact = form.cleaned_data.get('emergency_contact')
+-            if user_age:
+-                user_profile.age = user_age
+-                user_profile.save()
+-            if user_gender:
+-                user_profile.gender = user_gender
+-                user_profile.save()
+-            if user_emergency_contact:
+-                user_profile.emergency_contact = user_emergency_contact
+-                user_profile.save()
+             return redirect('user:profile_detail')
+         else:
+             print(form.errors)
+@@ -109,6 +123,10 @@ def client_profile_edit(request):
+         form = ClientProfileForm(
+             instance=client_profile,
+             initial={
++                'first_name': request.user.userprofile.first_name,
++                'last_name': request.user.userprofile.last_name,
++                'phone_number': request.user.userprofile.phone_number,
++                'location': request.user.userprofile.location,
+                 'age': request.user.userprofile.age,
+                 'gender': request.user.userprofile.gender,
+                 'emergency_contact': request.user.userprofile.emergency_contact
+@@ -126,19 +144,6 @@ def volunteer_profile_edit(request):
+         form = VolunteerProfileForm(request.POST, request.FILES, instance=volunteer_profile)
+         if form.is_valid():
+             form.save()
+-            user_profile = request.user.userprofile
+-            user_age = form.cleaned_data.get('age')
+-            user_gender = form.cleaned_data.get('gender')
+-            user_emergency_contact = form.cleaned_data.get('emergency_contact')
+-            if user_age:
+-                user_profile.age = user_age
+-                user_profile.save()
+-            if user_gender:
+-                user_profile.gender = user_gender
+-                user_profile.save()
+-            if user_emergency_contact:
+-                user_profile.emergency_contact = user_emergency_contact
+-                user_profile.save()
+             return redirect('user:profile_detail')
+         else:
+             print(form.errors)
+@@ -146,6 +151,10 @@ def volunteer_profile_edit(request):
+         form = VolunteerProfileForm(
+             instance=volunteer_profile,
+             initial={
++                'first_name': request.user.userprofile.first_name,
++                'last_name': request.user.userprofile.last_name,
++                'phone_number': request.user.userprofile.phone_number,
++                'location': request.user.userprofile.location,
+                 'age': request.user.userprofile.age,
+                 'gender': request.user.userprofile.gender,
+                 'emergency_contact': request.user.userprofile.emergency_contact
+@@ -281,4 +290,9 @@ def save_preferred_times(request):
+             volunteer_profile.availability = data
+             volunteer_profile.save()
+         return JsonResponse({'status': 'success'})
+-    return JsonResponse({'status': 'error'}, status=400)
+\ No newline at end of file
++    return JsonResponse({'status': 'error'}, status=400)
++
++class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
++    form_class = PasswordChangeForm
++    template_name = 'user/password_change.html'
++    success_url = reverse_lazy('user:password_change_done')
+\ No newline at end of file

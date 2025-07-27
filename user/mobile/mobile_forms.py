@@ -146,7 +146,7 @@ class MobileVolunteerProfileForm(forms.ModelForm):
         raw = self.parse_list_field('preferred_tasks')
         print("📥 raw from parse_list_field:", raw)
 
-        qs = TaskType.objects.filter(name__in=raw)
+        qs = SupportType.objects.filter(name__in=raw)
         matched_names = list(qs.values_list('name', flat=True))
         print("✅ matched:", matched_names)
 
@@ -154,8 +154,23 @@ class MobileVolunteerProfileForm(forms.ModelForm):
         if missing:
             print("❌ missing:", missing)
             raise forms.ValidationError(f'Some preferred task values are invalid: {missing}')
-        # return qs
-        return list(qs.values_list('id', flat=True))
+        
+        return list(qs.values_list('id', flat=True))  # ✅ 返回 ID 列表以供 .set() 使用
+    # def clean_preferred_tasks(self):
+    #     print("🔥 clean_preferred_tasks() 被调用")
+    #     raw = self.parse_list_field('preferred_tasks')
+    #     print("📥 raw from parse_list_field:", raw)
+
+    #     qs = TaskType.objects.filter(name__in=raw)
+    #     matched_names = list(qs.values_list('name', flat=True))
+    #     print("✅ matched:", matched_names)
+
+    #     missing = set(raw) - set(matched_names)
+    #     if missing:
+    #         print("❌ missing:", missing)
+    #         raise forms.ValidationError(f'Some preferred task values are invalid: {missing}')
+    #     # return qs
+    #     return list(qs.values_list('id', flat=True))
 
     def clean_pvg_level(self):
         code = self.data.get('pvg_level')

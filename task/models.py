@@ -58,7 +58,8 @@ class Task(models.Model):
                     self.applications.filter(status='pending').update(status='unselected')
         elif now > self.end_time + timedelta(hours=2):
             if approved_count == 0:
-                self.status = 'cancel'
+                # 请确认是否应该是cancelled
+                self.status = 'cancel' 
                 self.closed_at = now
                 for application in self.applications.all():
                     application.cancel()

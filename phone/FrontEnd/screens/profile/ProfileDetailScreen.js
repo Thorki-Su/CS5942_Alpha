@@ -107,7 +107,7 @@ export default function ProfileDetailScreen() {
     >
       <View style={styles.avatarContainer}>
         <Image
-          source={user_profile.profile_photo ? { uri: user_profile.profile_photo } : DefaultAvatar}
+          source={user_profile?.profile_photo ? { uri: user_profile.profile_photo } : DefaultAvatar}
           style={styles.avatarImage}
         />
       </View>

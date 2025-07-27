@@ -41,7 +41,8 @@ const TASK_OPTIONS = [
   'Befriending',
   'Emotional Support',
   'Others',
-];
+].map(item => ({ label: item, value: item }));
+
 const PVG_LEVEL_OPTIONS = [
   { label: 'Verified', value: 'verified' },
   { label: 'Processing', value: 'processing' },
@@ -151,9 +152,11 @@ const EditVolunteerProfileScreen = () => {
 
       <CollapsibleMultiSelect
         label="Preferred Tasks"
-        options={TASK_OPTIONS}
-        selected={profile.preferred_tasks || []}
-        onChange={val => handleChange('preferred_tasks', val)}
+        items={TASK_OPTIONS}  // ✅ 改为 items
+        selectedItems={profile.preferred_tasks || []}  // ✅ 改为 selectedItems
+        onSelectionsChange={val => handleChange('preferred_tasks', val)}  // ✅ 改为 onSelectionsChange
+        labelKey="label"
+        valueKey="value"
       />
 
       <View style={{ marginBottom: 10 }}>

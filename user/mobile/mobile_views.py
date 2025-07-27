@@ -147,6 +147,20 @@ def mobile_token_login(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def get_user_role(request):
+    return Response({
+        'role': request.user.role
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def mobile_profile(request):
+    user = request.user
+    role = user.role
+    return Response({'role': role})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def mobile_profile_view(request):
     print("📲 当前是 mobile_profile_view 被调用")
     user = request.user

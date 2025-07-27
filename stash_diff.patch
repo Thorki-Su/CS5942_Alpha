@@ -1,0 +1,201 @@
+diff --git a/final_project/settings.py b/final_project/settings.py
+index 3050f37..6da0a11 100644
+--- a/final_project/settings.py
++++ b/final_project/settings.py
+@@ -10,15 +10,15 @@ For the full list of settings and their values, see
+ https://docs.djangoproject.com/en/5.1/ref/settings/
+ """
+ import os
++import sys
+ from pathlib import Path
+ from dotenv import load_dotenv
+ import dj_database_url
+ 
+ # 本地开发时加载 .env 文件
+-if os.environ.get('DJANGO_DEVELOPMENT'):
+-    load_dotenv() # 读取根目录的 .env 文件
++load_dotenv() # 读取根目录的 .env 文件
+ 
+-# print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
++print("DEBUG: DJANGO_DEVELOPMENT =", os.environ.get('DJANGO_DEVELOPMENT'))
+ # print("DEBUG: DATABASE_URL =", os.environ.get('DATABASE_URL'))
+ 
+ AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+@@ -36,13 +36,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
+ 
+ SECRET_KEY = 'django-insecure-i!o^^a8m_sz=(_5e_c07nyutwzr(fdu+uihy5=gpr^lwvwpotb'
+ DEBUG = True
+-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'mangoairport-artistbanana-8000.codio-box.uk', 'cs5942-alpha.onrender.com']
++ALLOWED_HOSTS = ['localhost', '10.18.2.217','127.0.0.1', 'mangoairport-artistbanana-8000.codio-box.uk', 'cs5942-alpha.onrender.com']
+ 
++# add for mobile
++CORS_ALLOW_ALL_ORIGINS = True
+ CSRF_TRUSTED_ORIGINS = [
+     'https://cs5942-alpha.onrender.com',
+     'https://mangoairport-artistbanana-8000.codio-box.uk',
+     'http://localhost:8000',
+     'http://127.0.0.1:8000',
++    # add for mobile
++    'http://10.0.2.2:8000', 
+ ]
+ 
+ INSTALLED_APPS = [
+@@ -61,6 +65,10 @@ INSTALLED_APPS = [
+     'channels',
+     'task',
+     'storages',
++    # add for mobile
++    'corsheaders',
++    'rest_framework',
++    'rest_framework.authtoken',
+ ]
+ 
+ ASGI_APPLICATION = 'final_project.asgi.application'
+@@ -84,6 +92,8 @@ MIDDLEWARE = [
+     'django.contrib.auth.middleware.AuthenticationMiddleware',
+     'django.contrib.messages.middleware.MessageMiddleware',
+     'django.middleware.clickjacking.XFrameOptionsMiddleware',
++    # add for mobile
++    'corsheaders.middleware.CorsMiddleware',
+ ]
+ 
+ ROOT_URLCONF = 'final_project.urls'
+@@ -104,13 +114,20 @@ TEMPLATES = [
+     },
+ ]
+ 
++REST_FRAMEWORK = {
++    'DEFAULT_AUTHENTICATION_CLASSES': [
++        'rest_framework.authentication.TokenAuthentication',
++    ]
++}
++
+ WSGI_APPLICATION = 'final_project.wsgi.application'
+ 
+ IS_TESTING = 'test' in os.sys.argv
+ IS_DEVELOPMENT = os.environ.get('DJANGO_DEVELOPMENT') == '1'
+ 
+ #if IS_TESTING or IS_DEVELOPMENT:
+-if IS_TESTING:
++if IS_TESTING or IS_DEVELOPMENT:
++    print("⚠ 使用 SQLite 本地数据库")
+     DATABASES = {
+         'default': {
+             'ENGINE': 'django.db.backends.sqlite3',
+@@ -118,6 +135,7 @@ if IS_TESTING:
+         }
+     }
+ else:
++    print("🌐 使用远程 PostgreSQL 数据库")
+     DATABASES = {
+         'default': dj_database_url.config(
+             default=os.getenv('DATABASE_URL'),
+@@ -155,4 +173,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
+ # MEDIA_URL = '/media/'
+ # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+ 
+-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+\ No newline at end of file
++DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
++
++LOGIN_URL = '/login/'
++
++print(DATABASES)
+\ No newline at end of file
+diff --git a/user/templates/user/home.html b/user/templates/user/home.html
+index 2fd8b94..85aad53 100644
+--- a/user/templates/user/home.html
++++ b/user/templates/user/home.html
+@@ -12,7 +12,7 @@
+     </div>
+ 
+     <section class="mission-section">
+-        <p class="section-text">Shallion Support is a bespoke support service dedicated to assisting individuals with autoimmune conditions such as M.E., Lupus, Fibromyalgia, and PTSD. <b>We provide non-medical, practical support to help you navigate your daily life with ease</b>, whether it’s appointment management, housekeeping, pet care, planning and preparing your meals, so you can always have healthy and delicious options.</p>
++        <p class="section-text">Shallion Support is a bespoke support service dedicated to assisting individuals with autoimmune conditions such as M.E., Lupus, Fibromyalgia, and PTSD. <b>We provide non-medical, practical support to help you navigate your daily life with ease</b>, whether it's appointment management, housekeeping, pet care, planning and preparing your meals, so you can always have healthy and delicious options.</p>
+     </section>
+ 
+     <section class="services-section">
+diff --git a/user/urls.py b/user/urls.py
+index d826965..d562fc7 100644
+--- a/user/urls.py
++++ b/user/urls.py
+@@ -1,6 +1,8 @@
+-from django.urls import path
++from django.urls import path,include
+ from . import views
+ 
++from . import mobile_urls
++
+ urlpatterns = [
+     path('', views.home_view, name='home'),
+     path('login/', views.login_view, name='login'),
+@@ -13,4 +15,7 @@ urlpatterns = [
+     path('profile/', views.profile_detail, name='profile_detail'),
+     path('profile/photoedit/', views.photo_edit, name='photo_edit'),
+     path('save-preferred-times/', views.save_preferred_times, name='save_preferred_times'),
++    
++    # 移动端视图：统一挂载到 /api/mobile/
++    path('api/mobile/', include('user.mobile_urls')),
+ ]
+\ No newline at end of file
+diff --git a/user/utils.py b/user/utils.py
+index f6d7aef..6eba23d 100644
+--- a/user/utils.py
++++ b/user/utils.py
+@@ -56,3 +56,28 @@ def geocode_address(address):
+         print(f"[Geocode ERROR] 地址解析失败：{cleaned_address} → {e}")
+     return None, None
+ 
++# functions below used for phones
++from django.forms.models import model_to_dict
++from django.db.models.fields.files import FieldFile
++
++def safe_model_to_dict(instance, exclude=[]):
++    data = model_to_dict(instance)
++
++    for key, value in data.items():
++        if isinstance(value, FieldFile):  # 处理 ImageField 或 FileField
++            try:
++                data[key] = value.url
++            except ValueError:
++                data[key] = None
++        elif hasattr(value, 'isoformat'):  # 处理 datetime / date
++            data[key] = value.isoformat()
++        elif isinstance(value, bytes):
++            data[key] = value.decode('utf-8', errors='ignore')
++        elif not isinstance(value, (str, int, float, bool, type(None), list, dict)):
++            data[key] = str(value)  # fallback 序列化为字符串
++
++    for field in exclude:
++        if field in data:
++            del data[field]
++
++    return data
+diff --git a/user/views.py b/user/views.py
+index 600ca43..9af820b 100644
+--- a/user/views.py
++++ b/user/views.py
+@@ -1,6 +1,6 @@
+ from django.shortcuts import render, redirect
+ from django.contrib.auth.models import User
+-from django.contrib.auth import authenticate, login, logout
++from django.contrib.auth import authenticate, login, logout,get_user_model
+ from django.contrib.auth.decorators import login_required
+ from django.contrib import messages
+ from .models import CustomUser, UserProfile, ClientProfile, VolunteerProfile
+@@ -12,6 +12,7 @@ import base64
+ import re
+ from django.http import JsonResponse
+ from django.views.decorators.csrf import ensure_csrf_cookie
++from django.views.decorators.csrf import csrf_exempt
+ import json
+ from django.utils.safestring import mark_safe
+ from django.core.files.storage import default_storage
+@@ -281,4 +282,5 @@ def save_preferred_times(request):
+             volunteer_profile.availability = data
+             volunteer_profile.save()
+         return JsonResponse({'status': 'success'})
+-    return JsonResponse({'status': 'error'}, status=400)
+\ No newline at end of file
++    return JsonResponse({'status': 'error'}, status=400)
++
