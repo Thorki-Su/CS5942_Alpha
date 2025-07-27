@@ -20,3 +20,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+#   $env:DJANGO_DEVELOPMENT=1

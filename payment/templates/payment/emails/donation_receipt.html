@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Receipt - Shallion Support</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+        }
+        .donation-details {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        .amount {
+            font-size: 2em;
+            color: #28a745;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .message-box {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Thank You for Your Donation!</h1>
+        <p>Shallion Support - Building Stronger Communities</p>
+    </div>
+    
+    <div class="content">
+        <p>Dear {{ donation.donor_name }},</p>
+        
+        <p>Thank you so much for your generous donation to Shallion Support. Your contribution helps us continue providing essential support services to community members in need.</p>
+        
+        <div class="donation-details">
+            <h3>Donation Receipt</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Donation Amount:</td>
+                    <td style="padding: 8px 0;" class="amount">£{{ donation.amount }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Date:</td>
+                    <td style="padding: 8px 0;">{{ donation.completed_at|date:"F d, Y" }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Transaction ID:</td>
+                    <td style="padding: 8px 0;">{{ donation.stripe_payment_intent_id }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Donor:</td>
+                    <td style="padding: 8px 0;">{{ donation.donor_name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Email:</td>
+                    <td style="padding: 8px 0;">{{ donation.donor_email }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        {% if donation.message %}
+        <div class="message-box">
+            <h4>Your Message:</h4>
+            <p><em>"{{ donation.message }}"</em></p>
+        </div>
+        {% endif %}
+        
+        <h3>Your Impact</h3>
+        <p>Your donation will help us:</p>
+        <ul>
+            <li>Provide essential support services to vulnerable community members</li>
+            <li>Train and support our dedicated volunteers</li>
+            <li>Maintain and improve our technology platform</li>
+            <li>Expand our reach to help more people in need</li>
+        </ul>
+        
+        <p>We are incredibly grateful for your support and trust in our mission. Together, we are building stronger, more supportive communities.</p>
+        
+        <p><strong>Tax Information:</strong> Please keep this receipt for your records. If you need additional documentation for tax purposes, please contact us at support@shallion.org.</p>
+        
+        <p>With heartfelt gratitude,<br>
+        <strong>The Shallion Support Team</strong></p>
+    </div>
+    
+    <div class="footer">
+        <p>Shallion Support<br>
+        Email: support@shallion.org<br>
+        This is an automated receipt. Please do not reply to this email.</p>
+        
+        <p>Want to help in other ways? <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'user:volunteer_register' %}" style="color: #28a745;">Become a volunteer</a> and make an even bigger impact!</p>
+    </div>
+</body>
+</html>

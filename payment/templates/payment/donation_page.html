@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}Support Shallion - Make a Donation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Main Donation Form -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h2 class="mb-0"><i class="fas fa-heart"></i> Support Our Community</h2>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Your donation helps us provide essential support services to community members in
+                        need. Every contribution makes a difference!</p>
+
+                    <form id="donation-form" method="post">
+                        {% csrf_token %}
+
+                        <!-- Amount Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Select Amount</label>
+                            <div class="row">
+                                {% for choice in form.amount_choice %}
+                                <div class="col-6 col-md-3 mb-2">
+                                    <div class="form-check">
+                                        {{ choice.tag }}
+                                        <label class="form-check-label btn btn-outline-success w-100"
+                                            for="{{ choice.id_for_label }}">
+                                            {{ choice.choice_label }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Custom Amount -->
+                        <div class="mb-4" id="custom-amount-section" style="display: none;">
+                            <label for="{{ form.custom_amount.id_for_label }}" class="form-label fw-bold">Custom Amount (£)</label>
+                            {{ form.custom_amount }}
+                            {% if form.custom_amount.errors %}
+                            <div class="text-danger">{{ form.custom_amount.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Donor Information -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.donor_name.id_for_label }}" class="form-label fw-bold">Full Name</label>
+                                {{ form.donor_name }}
+                                {% if form.donor_name.errors %}
+                                <div class="text-danger">{{ form.donor_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.donor_email.id_for_label }}" class="form-label fw-bold">Email Address</label>
+                                {{ form.donor_email }}
+                                {% if form.donor_email.errors %}
+                                <div class="text-danger">{{ form.donor_email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Message -->
+                        <div class="mb-3">
+                            <label for="{{ form.message.id_for_label }}" class="form-label fw-bold">Message (Optional)</label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                            <div class="text-danger">{{ form.message.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Anonymous Option -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_anonymous }}
+                                <label class="form-check-label" for="{{ form.is_anonymous.id_for_label }}">
+                                    Make this donation anonymous
+                                </label>
+                            </div>
+                            <small class="text-muted">Your name will not be displayed publicly if checked</small>
+                        </div>
+
+                        <!-- Error Alert (initially hidden) -->
+                        <div id="error-alert" class="alert alert-danger" style="display: none;" role="alert">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span id="error-message"></span>
+                        </div>
+
+                        <!-- Payment Section -->
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">Payment Information</h5>
+                                <div id="card-element" class="form-control" style="padding: 12px;">
+                                    <!-- Stripe Elements will create form elements here -->
+                                </div>
+                                <div id="card-errors" role="alert" class="text-danger mt-2"></div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                            <button type="submit" id="submit-button" class="btn btn-success btn-lg me-md-2">
+                                <i class="fas fa-heart"></i> Complete Donation
+                            </button>
+                            <a href="{% url 'payment:donation_cancel' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+
+                        <!-- Loading Spinner -->
+                        <div id="loading-spinner" class="text-center mt-3" style="display: none;">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Processing...</span>
+                            </div>
+                            <p class="mt-2">Processing your donation...</p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Impact Stats -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Our Impact</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h3 class="text-success">£{{ total_donated|floatformat:0 }}</h3>
+                            <small class="text-muted">Total Raised</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="text-info">{{ total_donors }}</h3>
+                            <small class="text-muted">Generous Donors</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How Your Money Helps -->
+            <!-- <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-hands-helping"></i> How Your Money Helps</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success"></i> £10 - Provides essential supplies for
+                            one volunteer visit</li>
+                        <li class="mb-2"><i class="fas fa-check text-success"></i> £25 - Covers transportation costs for
+                            emergency support</li>
+                        <li class="mb-2"><i class="fas fa-check text-success"></i> £50 - Funds training materials for
+                            new volunteers</li>
+                        <li class="mb-2"><i class="fas fa-check text-success"></i> £100 - Supports our technology
+                            platform for one month</li>
+                    </ul>
+                </div>
+            </div> -->
+
+            <!-- Recent Donations -->
+            {% if recent_donations %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> Recent Supporters</h5>
+                </div>
+                <div class="card-body">
+                    {% for donation in recent_donations %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ donation.display_name }}</strong>
+                            {% if donation.message %}
+                            <br><small class="text-muted">"{{ donation.message|truncatechars:50 }}"</small>
+                            {% endif %}
+                        </div>
+                        <span class="badge bg-success">£{{ donation.amount }}</span>
+                    </div>
+                    {% if not forloop.last %}
+                    <hr class="my-2">{% endif %}
+                    {% endfor %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'payment:donation_list' %}" class="btn btn-sm btn-outline-secondary">View All
+                            Donations</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stripe JavaScript -->
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    // Initialize Stripe
+    const stripe = Stripe('{{ stripe_public_key }}');
+    const elements = stripe.elements();
+
+    // Create card element
+    const cardElement = elements.create('card', {
+        style: {
+            base: {
+                fontSize: '16px',
+                color: '#424770',
+                '::placeholder': {
+                    color: '#aab7c4',
+                },
+            },
+        },
+    });
+
+    cardElement.mount('#card-element');
+
+    // Handle form submission
+    const form = document.getElementById('donation-form');
+    const submitButton = document.getElementById('submit-button');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const cardErrors = document.getElementById('card-errors');
+    const errorAlert = document.getElementById('error-alert');
+    const errorMessage = document.getElementById('error-message');
+
+    // Function to show error
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorAlert.style.display = 'block';
+        errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Function to hide error
+    function hideError() {
+        errorAlert.style.display = 'none';
+    }
+
+    // Show/hide custom amount field
+    document.querySelectorAll('input[name="amount_choice"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            const customSection = document.getElementById('custom-amount-section');
+            if (this.value === 'custom') {
+                customSection.style.display = 'block';
+            } else {
+                customSection.style.display = 'none';
+            }
+        });
+    });
+
+    // Handle card errors
+    cardElement.on('change', function (event) {
+        if (event.error) {
+            cardErrors.textContent = event.error.message;
+        } else {
+            cardErrors.textContent = '';
+        }
+    });
+
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        // Hide any previous errors
+        hideError();
+
+        submitButton.disabled = true;
+        loadingSpinner.style.display = 'block';
+
+        // Submit form data first
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('{% url "payment:donation_page" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Confirm payment with Stripe
+                const { error, paymentIntent } = await stripe.confirmCardPayment(result.client_secret, {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: formData.get('donor_name'),
+                            email: formData.get('donor_email'),
+                        },
+                    }
+                });
+
+                if (error) {
+                    // Payment failed
+                    console.error('Payment failed:', error);
+                    cardErrors.textContent = error.message;
+
+                    // Show user-friendly error message
+                    let userMessage = '';
+                    switch (error.code) {
+                        case 'card_declined':
+                            userMessage = 'Your card was declined. Please try a different card.';
+                            break;
+                        case 'insufficient_funds':
+                            userMessage = 'Insufficient funds. Please try a different card.';
+                            break;
+                        case 'incorrect_cvc':
+                            userMessage = 'Your card\'s security code is incorrect.';
+                            break;
+                        case 'expired_card':
+                            userMessage = 'Your card has expired.';
+                            break;
+                        case 'processing_error':
+                            userMessage = 'An error occurred while processing your card. Please try again.';
+                            break;
+                        default:
+                            userMessage = error.message || 'Payment failed. Please try again.';
+                    }
+
+                    // Show error in the alert box
+                    showError(userMessage);
+                    submitButton.disabled = false;
+                    loadingSpinner.style.display = 'none';
+                } else if (paymentIntent.status === 'succeeded') {
+                    // Success! Redirect to success page
+                    window.location.href = '{% url "payment:donation_success" 0 %}'.replace('0', result.donation_id);
+                } else {
+                    // Payment requires additional action or failed
+                    showError('Payment could not be completed. Please try again.');
+                    submitButton.disabled = false;
+                    loadingSpinner.style.display = 'none';
+                }
+            } else {
+                // Handle form errors
+                console.error('Form submission failed:', result);
+                if (result.errors) {
+                    let errorMessage = 'Please correct the following errors:\n';
+                    for (const [field, errors] of Object.entries(result.errors)) {
+                        errorMessage += `${field}: ${errors.join(', ')}\n`;
+                    }
+                    alert(errorMessage);
+                } else {
+                    alert(result.error || 'An error occurred. Please try again.');
+                }
+                submitButton.disabled = false;
+                loadingSpinner.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+            submitButton.disabled = false;
+            loadingSpinner.style.display = 'none';
+        }
+    });
+</script>
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

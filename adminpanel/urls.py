@@ -7,7 +7,10 @@ urlpatterns = [
     path('dashboard/', views.admin_dashboard, name='dashboard'),
     path('users/', views.user_list, name='user_list'),
     path('users/<int:user_id>/', views.user_detail, name='user_detail'),
+    path('users/<int:user_id>/files/', views.user_file, name='user_file'),
+    path('users/<int:user_id>/update-eligibility/', views.update_eligibility, name='update_eligibility'),
     path('tasks/', views.task_list, name='task_list'),
     path('tasks/<int:task_id>/', views.task_detail, name='task_detail'),
+    path('records/', views.records, name='records'),
 ]
 

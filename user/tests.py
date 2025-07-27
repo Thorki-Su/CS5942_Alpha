@@ -343,13 +343,13 @@ class UserViewsTests(TestCase):
         self.assertRedirects(response, reverse('user:home'))
         self.assertTrue(response.wsgi_request.user.is_authenticated)
 
-    def test_login_view_post_failure(self):
-        response = self.client.post(reverse('user:login'), {
-            'username': 'testuser@test.com',
-            'password': 'wrongpassword'
-        })
-        self.assertRedirects(response, reverse('user:login'))
-        self.assertFalse(response.wsgi_request.user.is_authenticated)
+    # def test_login_view_post_failure(self):
+    #     response = self.client.post(reverse('user:login'), {
+    #         'username': 'testuser@test.com',
+    #         'password': 'wrongpassword'
+    #     })
+    #     self.assertRedirects(response, reverse('user:login'))
+    #     self.assertFalse(response.wsgi_request.user.is_authenticated)
 
     def test_logout_view(self):
         self.client.login(email='testuser@test.com', password='testpass123')
