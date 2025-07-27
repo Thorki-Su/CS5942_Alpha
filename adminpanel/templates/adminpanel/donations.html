@@ -1,0 +1,19 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Donation Records{% endblock %}
+
+{% block content %}
+    <div style="margin: 50px;">
+        {% if donations %}
+            {% for don in donations %}
+                <p>{{ don.donor_name }}</p>
+                <p>{{ don.donor_email }}</p>
+                <p>{{ don.amount }}</p>
+                <p>{{ don.completed_at }}</p><br><br>
+            {% endfor %}
+        {% else %}
+            <p>There is no donations yet!</p>
+        {% endif %}
+    </div>
+{% endblock %}
