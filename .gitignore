@@ -17,3 +17,5 @@ venv310/
 .DS_Store
 **/.DS_Store
 *.rdb
+.env
+dump.rdb
