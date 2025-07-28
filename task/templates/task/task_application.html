@@ -11,6 +11,7 @@
                 {% for app in applications %}
                     <li>
                         Volunteer: {{ app.volunteer.userprofile.get_full_name }} [{{ app.volunteer.email }}]
+                        <br><img src="{{ app.volunteer.userprofile.profile_photo.url }}" alt="The photo of creater" width="100">
                         <br>— Status: {{ app.status }}
                         {% if app.is_auto_matched %}
                             <br>(Automatically matched by the system)
