@@ -9,6 +9,7 @@ from communication.models import ChatMessage, OneToOneChatSession
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +42,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             if hasattr(self, 'room_group_name'):
                 await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-                if self.user_email:
-                    logger.debug(f"Disconnected from room {self.room_name} for user {self.user_email} with code {close_code}")
+                logger.debug(f"Disconnected from room {self.room_name} with code {close_code}")
         except Exception as e:
             logger.error(f"Error in disconnect: {e}")
 
@@ -51,7 +51,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             text_data_json = json.loads(text_data)
             logger.debug(f"Received raw data: {text_data}")
             if text_data_json.get('type') == 'ping':
-                return  # 忽略 ping 消息
+                await self.send(json.dumps({'type': 'pong'}))
+                return
             if not self.user_email and text_data_json.get('type') == 'auth':
                 self.user_email = text_data_json.get('user_email')
                 if not self.user_email:
@@ -66,7 +67,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     return
                 await self.send(json.dumps({'type': 'auth_ack', 'status': 'authenticated', 'user': self.user_email}))
                 logger.debug(f"Authenticated user {self.user_email} in room {self.room_name}")
-                return  # 严格退出，避免处理其他消息
 
             if not self.user_email:
                 logger.warning("User not authenticated, closing connection")
@@ -79,23 +79,32 @@ class ChatConsumer(AsyncWebsocketConsumer):
             candidate = text_data_json.get('candidate')
 
             if message:
-                receiver = await self.get_receiver()
+                start_time = time.time()
+                receiver_task = asyncio.create_task(self.get_receiver())
+                receiver = await receiver_task
+                logger.debug(f"Got receiver {receiver} in {time.time() - start_time:.3f}s")
+                timestamp = timezone.now().isoformat()
                 data = {
                     'message': message,
                     'sender': self.user_email,
                     'receiver': receiver,
-                    'timestamp': timezone.now().isoformat(),
+                    'timestamp': timestamp,
                     'is_group': self.is_task_group
                 }
+                save_task = asyncio.create_task(self.save_message(self.user_email, receiver, message, self.is_task_group))
+                save_task.add_done_callback(lambda t: logger.error(f"Save message task failed: {t.exception()}") if t.exception() else None)
                 try:
-                    await self.send(text_data=json.dumps(data))  # 直接发送给当前客户端
+                    await self.send(text_data=json.dumps(data))
+                    logger.debug(f"Sending group message to {self.room_group_name}")
                     await self.channel_layer.group_send(self.room_group_name, {
                         'type': 'chat_message',
                         'message': message,
                         'sender': self.user_email,
                         'receiver': receiver,
+                        'timestamp': timestamp,
                         'is_group': self.is_task_group
                     })
+                    logger.debug(f"Group send completed in {time.time() - start_time:.3f}s")
                 except ChannelFull:
                     logger.error(f"Channel full for room {self.room_name}")
             elif audio_data:
@@ -124,9 +133,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             logger.error(f"Unexpected error in receive for room {self.room_name}: {e}")
             await self.close()
 
-    async def auth_ack(self, event):
-        logger.debug(f"Received auth_ack for room {self.room_name}")
-
     @database_sync_to_async
     def authenticate_user(self):
         try:
@@ -147,44 +153,55 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     logger.error(f"OneToOneChatSession {self.room_name} not found")
                     return False
             return False
+        except (ValueError, ObjectDoesNotExist) as e:
+            logger.error(f"Authentication error in room {self.room_name}: {e}")
+            return False
         except Exception as e:
             logger.error(f"Authentication error in room {self.room_name}: {e}")
             return False
 
     @database_sync_to_async
     def get_receiver(self):
-        if self.is_one_to_one:
-            try:
+        start_time = time.time()
+        try:
+            if self.is_one_to_one:
                 session = OneToOneChatSession.objects.get(room_name=self.room_name)
                 if self.user_email == session.user1.email:
-                    return session.user2.email
+                    result = session.user2.email
                 elif self.user_email == session.user2.email:
-                    return session.user1.email
-            except OneToOneChatSession.DoesNotExist:
-                return None
-        return None
+                    result = session.user1.email
+                else:
+                    result = None
+                logger.debug(f"Got receiver {result} in {time.time() - start_time:.3f}s")
+                return result
+            logger.debug(f"No receiver for group chat in {time.time() - start_time:.3f}s")
+            return None
+        except OneToOneChatSession.DoesNotExist:
+            logger.error(f"OneToOneChatSession {self.room_name} not found")
+            return None
 
     async def chat_message(self, event):
         try:
             message = event['message']
             sender = event['sender']
             receiver = event.get('receiver')
+            timestamp = event.get('timestamp')
             is_group = event.get('is_group', False)
-            await self.save_message(sender, receiver, message, is_group)
-            # 只对其他客户端发送，排除发送者
-            if self.user_email != sender:
-                await self.send(text_data=json.dumps({
-                    'message': message,
-                    'sender': sender,
-                    'receiver': receiver,
-                    'timestamp': timezone.now().isoformat(),
-                    'is_group': is_group
-                }))
+            start_time = time.time()
+            await self.send(text_data=json.dumps({
+                'message': message,
+                'sender': sender,
+                'receiver': receiver,
+                'timestamp': timestamp,
+                'is_group': is_group
+            }))
+            logger.debug(f"Sent chat_message to {self.user_email} in {time.time() - start_time:.3f}s")
         except Exception as e:
             logger.error(f"Error in chat_message: {e}")
 
     @database_sync_to_async
     def save_message(self, sender_email, receiver_email, message, is_group):
+        start_time = time.time()
         try:
             User = get_user_model()
             sender = User.objects.get(email=sender_email)
@@ -200,8 +217,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 task=task,
                 timestamp=timezone.now(),
                 is_group=is_group,
-                is_read=False  # 确保设置
+                is_read=False
             )
+            logger.debug(f"Saved message in {time.time() - start_time:.3f}s")
         except Exception as e:
             logger.error(f"Error in save_message: {e}")
 
@@ -243,12 +261,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             logger.error(f"Error in candidate: {e}")
 
-    async def close_room(self, event):
-        try:
-            await self.close()
-        except Exception as e:
-            logger.error(f"Error in close_room: {e}")
-
 class VideoCallConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         try:
@@ -277,8 +289,7 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
         try:
             if hasattr(self, 'room_group_name'):
                 await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-                if self.user_email:
-                    logger.debug(f"Disconnected from video room {self.room_name} for user {self.user_email}")
+                logger.debug(f"Disconnected from video room {self.room_name} with code {close_code}")
         except Exception as e:
             logger.error(f"Error in disconnect: {e}")
 
@@ -288,7 +299,8 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
             logger.debug(f"Received raw data: {text_data}")
 
             if text_data_json.get('type') == 'ping':
-                return  # 忽略 ping 消息
+                await self.send(json.dumps({'type': 'pong'}))
+                return
             if not self.user_email and text_data_json.get('type') == 'auth':
                 self.user_email = text_data_json.get('user_email')
                 if not self.user_email:
@@ -305,7 +317,6 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
                     'status': 'authenticated',
                     'user': self.user_email
                 }))
-                return
 
             if not self.user_email:
                 logger.warning("User not authenticated")
@@ -351,9 +362,6 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
             logger.error(f"Unexpected error in receive for video room {self.room_name}: {e}")
             await self.close()
 
-    async def auth_ack(self, event):
-        logger.debug(f"Received auth_ack for video room {self.room_name}")
-
     @database_sync_to_async
     def authenticate_user(self):
         try:
@@ -373,6 +381,9 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
                 except OneToOneChatSession.DoesNotExist:
                     logger.error(f"OneToOneChatSession {self.room_name} not found")
                     return False
+            return False
+        except (ValueError, ObjectDoesNotExist) as e:
+            logger.error(f"Authentication error in video room {self.room_name}: {e}")
             return False
         except Exception as e:
             logger.error(f"Authentication error in video room {self.room_name}: {e}")
