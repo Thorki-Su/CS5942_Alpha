@@ -4,8 +4,12 @@ from user.models import VolunteerProfile
 from .forms import VolunteerAvailabilityForm
 from django.urls import reverse
 from adminpanel.models import OperationLog
+from user.views import eligibility_required
+from task.views import volunteer_required
 
 # Create your views here.
+@eligibility_required
+@volunteer_required
 @login_required
 def shift(request):
     profile = request.user.userprofile.volunteerprofile

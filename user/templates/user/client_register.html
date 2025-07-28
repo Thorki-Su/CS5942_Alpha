@@ -91,7 +91,8 @@
                         .then(data => {
                             suggestions.innerHTML = '';
                             if (data.status === 200) {
-                                var address = `${data.result.postcode}, ${data.result.admin_ward}, ${data.result.admin_district}, ${data.result.region}`;
+                                // var address = `${data.result.postcode}, ${data.result.admin_ward}, ${data.result.admin_district}, ${data.result.region}`;
+                                var address = data.result.postcode;
                                 var li = document.createElement('li');
                                 li.textContent = address;
                                 li.classList.add('list-group-item', 'list-group-item-action');
@@ -111,7 +112,8 @@
                             suggestions.innerHTML = '';
                             data.forEach(function(item) {
                                 var li = document.createElement('li');
-                                li.textContent = item.display_name;
+                                // li.textContent = item.display_name;
+                                li.textContent = item.address.postcode;  // 只显示邮编
                                 li.classList.add('list-group-item', 'list-group-item-action');
                                 li.style.cursor = 'pointer';
                                 li.addEventListener('click', function() {

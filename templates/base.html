@@ -82,16 +82,18 @@
             <a href="{% url 'user:home' %}">Home</a>
             <a href="{% url 'payment:donation_page' %}">Donation</a>
             {% if user.is_authenticated %}
-                <a href="{% url 'user:profile_detail' %}">Profile</a>
-                <a href="{% url 'communication:message_selection' %}">Message</a> <!-- 合并为 Message -->
-                {% if user.role == 'volunteer' %}
-                    <a href="{% url 'matching:shift' %}">Join Shift</a>
-                    <a href="{% url 'task:tasklist' %}">Task List</a>
-                    <a href="{% url 'task:myapplication' %}">My Application</a>
-                {% elif user.role == 'client' %}
-                    <a href="{% url 'task:mytask' %}">My Task</a>
+                {% if user.role == 'volunteer' or user.role == 'client' %}
+                        <a href="{% url 'user:profile_detail' %}">Profile</a>
+                        <a href="{% url 'communication:message_selection' %}">Message</a> <!-- 合并为 Message -->
+                    {% if user.role == 'volunteer' %}
+                        <a href="{% url 'matching:shift' %}">Join Shift</a>
+                        <a href="{% url 'task:tasklist' %}">Task List</a>
+                        <a href="{% url 'task:myapplication' %}">My Application</a>
+                    {% elif user.role == 'client' %}
+                        <a href="{% url 'task:mytask' %}">My Task</a>
+                    {% endif %}
+                    <a href="{% url 'task:task_ongoing' %}">Ongoing Task</a>
                 {% endif %}
-                <a href="{% url 'task:task_ongoing' %}">Ongoing Task</a>
                 {% if user.role == 'admin' %}
                     <a href="{% url 'adminpanel:dashboard' %}">Admin Dashboard</a>
                 {% endif %}

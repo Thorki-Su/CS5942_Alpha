@@ -5,6 +5,7 @@ from .forms import TaskForm, TaskFilterForm, TaskRecordForm, FeedbackForm
 from django.http import HttpResponseForbidden
 from functools import wraps
 from user.models import CustomUser
+from user.views import eligibility_required
 from .models import Task, TaskApplication, TaskTemplate, TaskRecord, Feedback, StarRelation
 from django.utils import timezone
 from datetime import timedelta, time
@@ -31,8 +32,9 @@ def volunteer_required(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
-@login_required
+@eligibility_required
 @client_required
+@login_required
 def mytask(request):
     tasks = Task.objects.filter(client=request.user).order_by('-start_time')
     for task in tasks:
@@ -40,8 +42,9 @@ def mytask(request):
         task.update_status_by_time()
     return render(request, 'task/mytask.html', {'tasks': tasks})
 
-@login_required
+@eligibility_required
 @client_required
+@login_required
 def task_create(request):
     templates = TaskTemplate.objects.prefetch_related('work_area').all()
 
@@ -72,6 +75,7 @@ def task_create(request):
         'templates': templates
         })
 
+@eligibility_required
 @login_required
 def task_detail(request, task_id):
     task = get_object_or_404(Task, id=task_id)
@@ -98,27 +102,36 @@ def task_detail(request, task_id):
     }
     return render(request, 'task/task_detail.html', context)
 
-@login_required
+@eligibility_required
 @client_required
+@login_required
 def task_application(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     task.update_status_by_time()
-    applications = TaskApplication.objects.filter(task=task).select_related('volunteer')
+    #applications = TaskApplication.objects.filter(task=task).select_related('volunteer')
+    applications = (
+        TaskApplication.objects
+        .filter(task=task)
+        .select_related('volunteer')
+        .order_by('applied_at')[:20]
+    )
     context = {
         'task': task,
         'applications': applications,
     }
     return render(request, 'task/task_application.html', context)
 
-@login_required
+@eligibility_required
 @volunteer_required
+@login_required
 def myapplication(request):
     user = request.user
     applications = TaskApplication.objects.filter(volunteer=user).select_related('task').order_by('-applied_at')
     return render(request, 'task/myapplication.html', {'applications': applications})
 
-@login_required
+@eligibility_required
 @volunteer_required
+@login_required
 def tasklist(request):
     user = request.user
     applied_task_ids = TaskApplication.objects.filter(volunteer=user).values_list('task_id', flat=True)
@@ -164,6 +177,7 @@ def tasklist(request):
         'form': form
     })
 
+@eligibility_required
 @login_required
 def task_ongoing(request):
     user = request.user
@@ -200,8 +214,9 @@ def task_ongoing(request):
         'user': user
     })
 
-@login_required
+@eligibility_required
 @volunteer_required
+@login_required
 def task_apply(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     task.update_status_by_time()
@@ -235,8 +250,9 @@ def task_apply(request, task_id):
 
     return redirect('task:task_detail', task_id=task.id)
 
-@login_required
+@eligibility_required
 @client_required
+@login_required
 def approve_application(request, application_id):
     application = get_object_or_404(TaskApplication, id=application_id)
     task = application.task
@@ -254,8 +270,9 @@ def approve_application(request, application_id):
     task.update_status_if_full()
     return redirect('task:task_application', task.id)
 
-@login_required
+@eligibility_required
 @client_required
+@login_required
 def reject_application(request, application_id):
     application = get_object_or_404(TaskApplication, id=application_id)
     task = application.task
@@ -267,8 +284,9 @@ def reject_application(request, application_id):
     application.save()
     return redirect('task:task_application', task.id)
 
-@login_required
+@eligibility_required
 @client_required
+@login_required
 def cancel_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     task.update_status_by_time()
@@ -287,8 +305,9 @@ def cancel_task(request, task_id):
 
     return redirect('task:task_detail', task_id=task.id)
 
-@login_required
+@eligibility_required
 @volunteer_required
+@login_required
 def cancel_application(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     task.update_status_by_time()
@@ -309,8 +328,9 @@ def cancel_application(request, task_id):
     
     return redirect('task:task_detail', task_id=task.id)
 
-@login_required
+@eligibility_required
 @client_required
+@login_required
 def task_confirm(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     task.update_status_by_time()
@@ -330,8 +350,9 @@ def task_confirm(request, task_id):
     
     return render(request, 'task/task_confirm.html', {'task': task, 'record': record})
 
-@login_required
+@eligibility_required
 @volunteer_required
+@login_required
 def task_record(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     task.update_status_by_time()
@@ -351,6 +372,7 @@ def task_record(request, task_id):
             return redirect('task:task_detail', task_id=task.id)
     return render(request, 'task/task_record.html')
 
+@eligibility_required
 @login_required
 def task_feedback(request, task_id, to_user_id):
     task = get_object_or_404(Task, id=task_id)

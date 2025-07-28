@@ -21,7 +21,7 @@
                 <td>{{ task.title }}</td>
                 <td>{{ task.client }}</td>
                 <td>{{ task.status }}</td>
-                <td><a href="{% url 'adminpanel:task_detail' task.id %}">check out</a></td>
+                <td><a href="{% url 'adminpanel:task_detail' task.id %}">see details</a></td>
             </tr>
             {% endfor %}
         </table>

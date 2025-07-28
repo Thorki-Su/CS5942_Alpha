@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.db.models import Q
 from .models import OperationLog
+from payment.models import Donation
 
 User = get_user_model()
 
@@ -110,9 +111,14 @@ def update_eligibility(request, user_id):
     else:
         messages.error(request, "Invalid eligibility status parameter.")
 
-    return redirect("adminpanel: user_file", user_id=user.id)
+    return redirect("adminpanel:user_file", user_id=user.id)
 
 @staff_required
 def records(request):
     logs = OperationLog.objects.all().order_by('-timestamp')
     return render(request, 'adminpanel/records.html', {'logs':logs})
+
+@staff_required
+def donations(request):
+    donations = Donation.objects.filter(status='completed')
+    return render(request, 'adminpanel/donations.html', {'donations':donations})

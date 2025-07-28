@@ -26,6 +26,15 @@ from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from adminpanel.models import OperationLog
+from functools import wraps
+
+def eligibility_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.userprofile.eligibility_confirmed:
+            return render(request, 'eligibility_required.html', status=403)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
 def home_view(request):
     tasks = Task.objects.filter(client=request.user) if request.user.is_authenticated and request.user.role == 'client' else []
@@ -199,13 +208,12 @@ def profile_detail(request):
         client_fields['conditions'] = ", ".join(
             [c.name for c in client_profile.conditions.all()]
         )
-        client_fields['support_areas'] = ", ".join(
-            [s.name for s in client_profile.support_areas.all()]
-        )
         cert_list = client_profile.certifications.all()
         has_pip_cert = any(c.name == 'PIP' for c in cert_list)
         has_adp_cert = any(c.name == 'ADP' for c in cert_list)
         has_lwc_cert = any(c.name == 'LWC' for c in cert_list)
+        has_nhs_cert = any(c.name == 'NHS' for c in cert_list)
+        has_diagnosis = any(c.name == 'diagnosis' for c in cert_list)
         preferred_times = client_fields.get('preferred_times', {})
         if isinstance(preferred_times, str):
             try:
@@ -222,6 +230,8 @@ def profile_detail(request):
             'has_pip_cert': has_pip_cert,
             'has_adp_cert': has_adp_cert,
             'has_lwc_cert': has_lwc_cert,
+            'has_nhs_cert': has_nhs_cert,
+            'has_diagnosis': has_diagnosis,
             'days': days,
             'time_slots': time_slots,
             'preferred_times': preferred_times,
