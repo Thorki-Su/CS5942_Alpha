@@ -7,6 +7,7 @@
         <h2>{{ task.title }}</h2>
         <p>{{ task.description }}</p>
         <p>Creater: {{ task.client.userprofile.get_full_name }}</p>
+        <p><img src="{{ task.client.userprofile.profile_photo.url }}" alt="The photo of creater" width="100"></p>
         <p>Time: {{ task.start_time }} - {{ task.end_time }}</p>
         <p>Support needed: {{ task.work_area.all|join:", " }}</p>
         <p>Volunteer needed: {{ task.vol_number }}</p>
