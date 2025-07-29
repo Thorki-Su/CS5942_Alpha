@@ -19,8 +19,8 @@ export const fetchUserProfile = async () => {
         Authorization: `Token ${token}`,
       },
     });
-    console.log('📥 成功取到的 profile 数据');
-    // console.log('📥 拉取到的 profile 数据:', response.data);
+    // console.log('📥 成功取到的 profile 数据');
+    console.log('📥 拉取到的 profile 数据:', response.data);
     return response.data;
   } catch (error) {
     console.error('❌ 拉取用户信息失败:', error.response?.data || error.message);

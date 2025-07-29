@@ -8,21 +8,22 @@ import { toastConfig } from './components/ToastConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, ActivityIndicator } from 'react-native';
 import {BASE_URL} from './config'
+
 // js.files import below
 import StartupScreen from './screens/StartupScreen';
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/HomeScreen';
-
+// paths below are 'register' module
 import RegisterRoleSelectScreen from './screens/register/RegisterRoleSelectScreen';
 import ClientRegisterScreen from './screens/register/ClientRegisterScreen';
 import VolunteerRegisterScreen from './screens/register/VolunteerRegisterScreen';
-
+// paths below are 'profile' module
 import ProfileDetailScreen from './screens/profile/ProfileDetailScreen';
 import EditClientProfileScreen from './screens/profile/EditClientProfileScreen';
 import EditVolunteerProfileScreen from './screens/profile/EditVolunteerProfileScreen';
 import UploadAvatarScreen from './screens/profile/UploadAvatarScreen';
 import EditPreferredTimesScreen from './screens/profile/EditPreferredTimesScreen';
-
+// paths below are 'tasks' module
 import ClientTaskListScreen from './task/ClientTaskListScreen';
 import CreateTaskScreen from './task/CreateTaskScreen';
 import ClientTaskConfirmScreen from './task/ClientTaskConfirmScreen';
@@ -34,6 +35,8 @@ import VolunteerSubmitRecordScreen from './task/VolunteerSubmitRecordScreen';
 import VolunteerSubmitFeedbackScreen from './task/VolunteerSubmitFeedbackScreen';
 import TaskDetailScreen from './task/TaskDetailScreen';
 import TaskApplicationListScreen from './task/TaskApplicationListScreen';
+// paths below are 'chatting' module
+import VideoCallScreen from './chatting/VideoCallScreen';
 
 import SettingsScreen from './screens/SettingsScreen';
 
@@ -54,7 +57,7 @@ function MainTabs({}) {
   return (
     <Tab.Navigator>
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
+      {/* <Tab.Screen name="Settings" component={SettingsScreen} /> */}
 
       {/* ✅ 只有 client 显示 client 的任务列表 */}
       {role === 'client' && (
@@ -86,15 +89,17 @@ export default function App() {
           <Stack.Navigator initialRouteName="Startup" screenOptions={{ headerShown: true }}>
             <Stack.Screen name="Startup" component={StartupScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
             <Stack.Screen name="RoleSelect" component={RegisterRoleSelectScreen} />
             <Stack.Screen name="ClientRegister" component={ClientRegisterScreen} />
             <Stack.Screen name="VolunteerRegister" component={VolunteerRegisterScreen} />
-            <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
+            
             <Stack.Screen name="EditClientProfile" component={EditClientProfileScreen} />
             <Stack.Screen name="EditVolunteerProfile" component={EditVolunteerProfileScreen} options={{ title: 'Edit Volunteer Profile' }}/>
             <Stack.Screen name="UploadAvatarScreen" component={UploadAvatarScreen} />
             <Stack.Screen name="EditPreferredTimes" component={EditPreferredTimesScreen} />
             <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ title: "修改密码", headerBackTitle: "返回" }} />
+
             <Stack.Screen name="ClientTaskList" component={ClientTaskListScreen} />
             <Stack.Screen name="CreateTask" component={CreateTaskScreen} />
             <Stack.Screen name="ClientSubmitFeedback" component={ClientSubmitFeedbackScreen} />
@@ -106,6 +111,8 @@ export default function App() {
 						<Stack.Screen name="VolunteerSubmitFeedback" component={VolunteerSubmitFeedbackScreen} />
             <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
             <Stack.Screen name="TaskApplications" component={TaskApplicationListScreen} options={{ title: 'Applications' }}/>
+
+            <Stack.Screen name="VideoCall" component={VideoCallScreen} />
             {/* stack请在此行之上添加 */}
           </Stack.Navigator>
         </NavigationContainer>

@@ -14,5 +14,5 @@ urlpatterns = [
     path('upload_avatar/', mobile_views.mobile_upload_avatar, name='mobile_upload_avatar'),
     path('save_preferred_times/', mobile_views.mobile_save_preferred_times, name='mobile_save_preferred_times'),
     path('edit/volunteer/', mobile_views.mobile_volunteer_profile_edit, name='edit_volunteer_profile'),
-
+    path('public_profile/<int:user_id>/', mobile_views.get_public_profile, name='get_public_profile'),
 ]

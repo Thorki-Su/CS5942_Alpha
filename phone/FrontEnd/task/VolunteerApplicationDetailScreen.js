@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, 
+Text, 
+StyleSheet, 
+TouchableOpacity, 
+Alert, 
+Modal, 
+Image, 
+TouchableWithoutFeedback, 
+Linking} from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -12,18 +20,19 @@ export default function VolunteerApplicationDetailScreen() {
   const navigation = useNavigation();
   const { application } = route.params;
 
-  console.log('📌 Application Status:', application.status);
-
-  console.log('✔ status:', application.status);
-  console.log('✔ task_status:', application.task_status);
-  console.log('✔ feedback:', feedback);
-  console.log('✔ receivedFeedback:', receivedFeedback);
-
   const [feedback, setFeedback] = useState(null);
   const [receivedFeedback, setReceivedFeedback] = useState(null);
+  
+  const [clientInfo, setClientInfo] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const fullName = clientInfo?.user
+    ? `${clientInfo.user.first_name || ''} ${clientInfo.user.last_name || ''}`.trim()
+    : '';
+
 
   const fetchTaskDetail = async () => {
     try {
+      // console.log("🧩 application 内容", application);
       const token = await AsyncStorage.getItem('userToken');
       const res = await axios.get(`${BASE_URL}/mobile/task/${application.task_id}/`, {
         headers: { Authorization: `Token ${token}` },
@@ -35,7 +44,22 @@ export default function VolunteerApplicationDetailScreen() {
     }
   };
 
+  const fetchClientInfo = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const clientId = application.client_id;
+      const res = await axios.get(`${BASE_URL}/api/mobile/public_profile/${clientId}/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setClientInfo(res.data);
+      setModalVisible(true);
+    } catch (error) {
+      console.error("❌ 获取 client 公开信息失败:", error);
+    }
+  };
+
   useEffect(() => {
+    fetchTaskDetail();
     const unsubscribe = navigation.addListener('focus', fetchTaskDetail);
     return unsubscribe;
   }, [navigation]);
@@ -82,6 +106,13 @@ export default function VolunteerApplicationDetailScreen() {
   return (
     <View style={styles.container}>
       <Text style={TYPOGRAPHY.title}>{application.title}</Text>
+
+      <TouchableOpacity onPress={fetchClientInfo}>
+        <Text style={{ color: COLORS.primary, marginTop: 4, marginBottom: 8 }}>
+          Created by {application.client?.username || 'Client'}
+        </Text>
+      </TouchableOpacity>
+
       <Text style={styles.label}>Time:</Text>
       <Text style={styles.value}>
         {formatDate(application.start_time)} → {formatDate(application.end_time)}
@@ -98,7 +129,7 @@ export default function VolunteerApplicationDetailScreen() {
           <Text style={styles.cancelText}>Cancel Application</Text>
         </TouchableOpacity>
       )}
-      
+
       {feedback ? (
         <View style={styles.feedbackCard}>
           <Text style={styles.feedbackTitle}>Your Feedback</Text>
@@ -121,18 +152,21 @@ export default function VolunteerApplicationDetailScreen() {
           <Text style={styles.feedbackComment}>{feedback.comment || 'No comment'}</Text>
         </View>
       ) : (
-        application.status === 'accepted' && application.task_status === 'completed' && !feedback (
+        application.status === 'accepted' &&
+        application.task_status === 'completed' &&
+        !feedback && (
           <TouchableOpacity
             style={styles.feedbackBtn}
             onPress={() => navigation.navigate('VolunteerSubmitFeedback', {
               taskId: application.task_id,
-              toUserId: application.client_id, // 请确认是否有这个字段
+              toUserId: application.client_id,
             })}
           >
             <Text style={styles.feedbackText}>Submit Feedback</Text>
           </TouchableOpacity>
         )
       )}
+
       {receivedFeedback && (
         <View style={styles.feedbackCard}>
           <Text style={styles.feedbackTitle}>Client's Feedback</Text>
@@ -162,14 +196,83 @@ export default function VolunteerApplicationDetailScreen() {
           </Text>
         </View>
       )}
+
       {application.status === 'accepted' && application.task_status === 'ongoing' && (
-      <TouchableOpacity
-        style={styles.recordButton}
-        onPress={() => navigation.navigate('VolunteerSubmitRecord', { taskId: application.task_id })}
+        <TouchableOpacity
+          style={styles.recordButton}
+          onPress={() => navigation.navigate('VolunteerSubmitRecord', { taskId: application.task_id })}
+        >
+          <Text style={styles.recordButtonText}>Submit Task Record</Text>
+        </TouchableOpacity>
+      )}
+
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
       >
-        <Text style={styles.recordButtonText}>Submit Task Record</Text>
-      </TouchableOpacity>
-    )}
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+          <View style={{
+            flex: 1, justifyContent: 'center', alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+          }}>
+            <View style={{
+              width: '80%', backgroundColor: 'white', borderRadius: 12,
+              padding: 20, alignItems: 'center'
+            }}>
+              {clientInfo ? (
+                <>
+                  {clientInfo.user_profile.profile_photo && (
+                    <Image
+                      source={{ uri: clientInfo.user_profile.profile_photo }}
+                      style={{ width: 80, height: 80, borderRadius: 40, marginBottom: 12 }}
+                    />
+                  )}
+                  <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>
+                    {fullName || 'Unnamed User'}
+                  </Text>
+                  <Text style={{ marginBottom: 4 }}>
+                    Gender: {clientInfo.user_profile.gender || 'N/A'}
+                  </Text>
+                  <Text style={{ marginBottom: 12 }}>
+                    Age: {clientInfo.user_profile.age || 'N/A'}
+                  </Text>
+
+                  <TouchableOpacity
+                    style={[styles.callButton, { marginBottom: 12 }]}
+                    onPress={() => {
+                        const phone = clientInfo?.user_profile?.phone_number;
+                        if (phone) {
+                          Linking.openURL(`tel:${phone}`);
+                        } else {
+                          Alert.alert("Phone number not available");
+                        }
+                      }}
+                    >
+                    <Text style={styles.callButtonText}>普通通话</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.feedbackBtn}
+                    onPress={() => {
+                      setModalVisible(false);
+                      navigation.navigate('VideoCallTest', {
+                        userId: application.volunteer_id,
+                        targetId: application.client.id,
+                      });
+                    }}
+                  >
+                    <Text style={styles.feedbackText}>发起视频通话</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <Text>Loading...</Text>
+              )}
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 }
@@ -179,6 +282,12 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: COLORS.background,
     flex: 1,
+  },
+  createdBy: {
+    fontSize:16,
+    marginTop: 4,
+    fontStyle: 'italic',
+    color: COLORS.primary || '#666',
   },
   label: {
     marginTop: 12,
@@ -201,18 +310,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   feedbackBtn: {
-  marginTop: 20,
-  backgroundColor: COLORS.primary,
-  paddingVertical: 12,
-  paddingHorizontal: 20,
-  borderRadius: 8,
-  alignItems: 'center',
-	},
-	feedbackText: {
-	color: '#fff',
-	fontSize: 16,
-	fontWeight: 'bold',
-	},
+    marginTop: 20,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  feedbackText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   feedbackCard: {
     backgroundColor: '#fff',
     paddingVertical: 20,
@@ -235,7 +344,7 @@ const styles = StyleSheet.create({
   feedbackRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12  ,
+    marginBottom: 12,
   },
   feedbackLabel: {
     fontSize: 16,
@@ -261,16 +370,75 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   recordButton: {
-    backgroundColor: '#007bff',  // 深蓝色按钮
+    backgroundColor: '#007bff',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 24,
   },
-
   recordButtonText: {
     color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    padding: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 12,
+  },
+  modalName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  modalText: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  modalBtnGroup: {
+    flexDirection: 'row',
+    marginTop: 16,
+    gap: 12,
+  },
+  callBtn: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 8,
+  },
+  videoBtn: {
+    backgroundColor: '#17a2b8',
+    padding: 10,
+    borderRadius: 8,
+  },
+  callBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  callButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  callButtonText: {
+    color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },

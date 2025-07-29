@@ -1,0 +1,184 @@
+[33mcommit 40b2f93204b8a6eda41589f04266885e50b75bf1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mYiFanWong[m[33m, [m[1;31morigin/YiFanWong[m[33m)[m
+Author: Yeyaomon <Yeyaomoon@gmail.com>
+Date:   Sun Jul 27 02:10:23 2025 +0100
+
+    ✨ feat(task-mobile): 实现任务模块完整功能流程
+    
+    • 志愿者任务筛选：支持关键字、时间段、工作领域等筛选条件
+    
+    • 任务申请流程：仅显示可申请任务，避免重复提交
+    
+    • 任务详情页：根据身份显示不同操作按钮，逻辑动态适配
+    
+    • Client端支持：查看申请人、取消任务、提前结束任务
+    
+    • 志愿者端支持：任务记录填写、反馈提交、撤销申请等
+    
+    • Task状态联动逻辑：自动更新状态，确保流程完整
+    
+    • 所有按钮行为添加二次确认，避免误操作
+    
+    • 各功能统一风格，结构清晰，符合用户操作习惯
+
+[1mdiff --git a/.gitignore b/.gitignore[m
+[1mindex 989a971..bfc1434 100644[m
+[1m--- a/.gitignore[m
+[1m+++ b/.gitignore[m
+[36m@@ -17,3 +17,6 @@[m [mvenv310/[m
+ .DS_Store[m
+ **/.DS_Store[m
+ *.rdb[m
+[32m+[m[32m**/node_modules/[m
+[32m+[m[32m.patch[m
+[32m+[m[32m.txt[m
+\ No newline at end of file[m
+[1mdiff --git a/diff.txt b/diff.txt[m
+[1mnew file mode 100644[m
+[1mindex 0000000..2a6aac8[m
+[1m--- /dev/null[m
+[1m+++ b/diff.txt[m
+[36m@@ -0,0 +1,2106 @@[m
+[32m+[m[32mdiff --git a/README.md b/README.md[m
+[32m+[m[32mnew file mode 100644[m
+[32m+[m[32mindex 0000000..833d7dc[m
+[32m+[m[32m--- /dev/null[m
+[32m+[m[32m+++ b/README.md[m
+[32m+[m[32m@@ -0,0 +1,68 @@[m
+[32m+[m[32m+# CS5942: MSC PROJECT IN INFORMATION TECHNOLOGY[m
+[32m+[m[32m+# Team Alpha[m
+[32m+[m[32m+In this file we will introduce each parts in the project.[m
+[32m+[m[32m+Our application has been deployed on Render: https://cs5942-alpha.onrender.com[m
+[32m+[m[32m+[m
+[32m+[m[32m+# How to run(local)[m
+[32m+[m[32m+use this code:[m
+[32m+[m[32m+```bash[m
+[32m+[m[32m+$env:DJANGO_DEVELOPMENT=1[m
+[32m+[m[32m+python manage.py runserver[m
+[32m+[m[32m+```[m
+[32m+[m[32m+[m
+[32m+[m[32m+# Project Structure[m
+[32m+[m[32m+Our project's name is '**final_project**'.[m[41m  [m
+[32m+[m[32m+There are **7** apps in the project. They are **adminpanel**, **communication**, **matching**, **payment**, **task**, **user** and **volunteer**.[m[41m  [m
+[32m+[m[32m+We use env file to store some keys. You can see the load method in settings.py.[m[41m  [m
+[32m+[m[32m+[m
+[32m+[m[32m+## user[m
+[32m+[m[32m+This app is about users' registeration and logging-in.[m
+[32m+[m[32m+[m
+[32m+[m[32m+### models.py[m
+[32m+[m[32m+**CustomUserManager**: Since we plan not to use usernames, but rather email addresses for logins, we use this to make changes to the default user model.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**CustomUser**: Changed user model with email, password and user type.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**user_directory_path**: The function used to generate the file storage path.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**UserProfile**: Used to store information that is shared between different types of user.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**CertificationType**: Used to store the certification types.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**ConditionType**: Used to store the condition types.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**SupportType**: Used to store the support types.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**ClientProfile**: Used to store information unique to the client.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**VolunteerProfile**: Used to store information unique to the volunteer.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**AdminProfile**: Used to store information unique to the admin.[m
+[32m+[m[32m+[m
+[32m+[m[32m+### forms.py[m
+[32m+[m[32m+**ClientRegisterForm**, **VolunteerRegisterForm**: Two register forms.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**ClientProfileForm**, **VolunteerProfileForm**: Two forms used to change profile information.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**ProfilePhotoForm**: The form used to change profile photo.[m
+[32m+[m[32m+[m
+[32m+[m[32m+### utils.py[m
+[32m+[m[32m+**normalize_uk_postcode**: Normalize the user input postcode.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**is_valid_aberdeen_postcode**: Check the user input postcode is in Aberdeen or not.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**geocode_address**: Use the user input postcode to get the coordinate.[m
+[32m+[m[32m+[m
+[32m+[m[32m+**send_activation_email**: To send a check email to user.[m
+[32m+[m[32m+[m
+[32m+[m[32m+## task[m
+[32m+[m[32m+[m
+[32m+[m[32m+## communication[m
+[32m+[m[32m+[m
+[32m+[m[32m+## matching[m
+[32m+[m[32m+[m
+[32m+[m[32m+## adminpanel[m
+[32m+[m[32m+[m
+[32m+[m[32m+## volunteer[m
+[32m+[m[32m+[m
+[32m+[m[32m+## payment[m
+[32m+[m[32m\ No newline at end of file[m
+[32m+[m[32mdiff --git a/adminpanel/templates/adminpanel/admin_base.html b/adminpanel/templates/adminpanel/admin_base.html[m
+[32m+[m[32mnew file mode 100644[m
+[32m+[m[32mindex 0000000..6d94746[m
+[32m+[m[32m--- /dev/null[m
+[32m+[m[32m+++ b/adminpanel/templates/adminpanel/admin_base.html[m
+[32m+[m[32m@@ -0,0 +1,95 @@[m
+[32m+[m[32m+<!DOCTYPE html>[m
+[32m+[m[32m+<html lang="en">[m
+[32m+[m[32m+<head>[m
+[32m+[m[32m+    <meta charset="UTF-8">[m
+[32m+[m[32m+    <meta name="viewport" content="width=device-width, initial-scale=1.0">[m
+[32m+[m[32m+    <title>{% block title %}My Site{% endblock %}</title>[m
+[32m+[m[32m+    <style>[m
+[32m+[m[32m+        body {[m
+[32m+[m[32m+            margin: 0;[m
+[32m+[m[32m+            font-family: Arial, sans-serif;[m
+[32m+[m[32m+            background-color: #f4f4f4;[m
+[32m+[m[32m+        }[m
+[32m+[m[32m+        .header {[m
+[32m+[m[32m+            position: fixed;[m
+[32m+[m[32m+            top: 0;[m
+[32m+[m[32m+            left: 0;[m
+[32m+[m[32m+            width: 100%;[m
+[32m+[m[32m+            background-color: #fff;[m
+[32m+[m[32m+            padding: 10px 20px;[m
+[32m+[m[32m+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);[m
+[32m+[m[32m+            z-index: 1000;[m
+[32m+[m[32m+            display: flex;[m
+[32m+[m[32m+            justify-content: space-between;[m
+[32m+[m[32m+            align-items: center;[m
+[32m+[m[32m+        }[m
+[32m+[m[32m+        .navbar {[m
+[32m+[m[32m+            display: flex;[m
+[32m+[m[32m+            gap: 15px;[m
+[32m+[m[32m+            align-items: center;[m
+[32m+[m[32m+        }[m
+[32m+[m[32m+        .navbar a, .navbar button {[m
+[32m+[m[32m+            text-decoration: none;[m
+[32m+[m[32m+            color: #333;[m
+[32m+[m[32m+            font-weight: bold;[m
+[32m+[m[32m+            background: none;[m
+[32m+[m[32m+            border: none;[m
+[32m+[m[32m+            cursor: pointer;[m
+[32m+[m[32m+            padding: 5px 10px;[m
+[32m+[m[32m+            white-space: nowrap;[m
+[32m+[m[32m+            transition: color 0.3s;[m
+[32m+[m[32m+        }[m
+[32m+[m[32m+        .navbar a:hover, .navbar button:hover {[m
+[32m+[m[32m+            color: #007bff;[m
+[32m+[m[32m+        }[m
+[32m+[m[32m+        .navbar a.disabled {[m
+[32m+[m[32m+            color: #ccc;[m
+[32m+[m[32m+            cursor: not-allowed;[m
+[32m+[m[32m+            pointer-events: none;[m
+[32m+[m[32m+        }[m
+[32m+[m[32m+        .logo {[m
+[32m+[m[32m+            height: 40px;[m
+[32m+[m[32m+            vertical-align: middle;[m
+[32m+[m[32m+        }[m
+[32m+[m[32m+        .content-wrapper {[m
+[32m+[m[32m+            margin-top: 60px;[m
+[32m+[m[32m+            padding: 20px;[m
+[32m+[m[32m+        }[m
+[32m+[m[32m+        .footer {[m
+[32m+[m[32m+            position: fixed;[m
+[32m+[m[32m+            bottom: 0;[m
+[32m+[m[32m+            width: 100%;[m
+[32m+[m[32m+            text-align: center;[m
+[32m+[m[32m+         

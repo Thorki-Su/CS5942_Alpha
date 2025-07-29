@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Button,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { BASE_URL } from '../config';
@@ -123,6 +124,10 @@ export default function TaskDetailScreen() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 300 }}>
+        <Button
+          title="进入视频通话"
+          onPress={() => navigation.navigate('VideoCall', { taskId: task.id })}
+        />
         <Text style={styles.title}>{task.title}</Text>
         <Text style={styles.label}>Description:</Text>
         <Text>{task.description}</Text>

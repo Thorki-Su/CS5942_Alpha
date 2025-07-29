@@ -28,6 +28,8 @@ from rest_framework import status
 from user.models import CustomUser, UserProfile, ClientProfile, VolunteerProfile
 from user.mobile.mobile_forms import MobileClientProfileForm,MobileVolunteerProfileForm
 from django.forms.models import model_to_dict
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 from user.mobile.mobile_utils import safe_model_to_dict
 
@@ -379,3 +381,52 @@ def mobile_volunteer_profile_edit(request):
 
     flat_data = {**user_data, **volunteer_data}
     return Response(flat_data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_public_profile(request, user_id):
+    """
+    获取指定用户的公开信息（由当前登录者查看他人资料）
+    """
+    print("📲 当前是 get_public_profile 调用目标信息")
+    try:
+        user = User.objects.get(id=user_id)
+        user_profile = user.userprofile
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
+
+    # 基础信息
+    user_fields = safe_model_to_dict(user_profile)
+    user_fields['profile_photo'] = user_profile.profile_photo.url if user_profile.profile_photo else None
+
+    user_data = {
+        'id': user.id,
+        'email': user.email,
+        'role': user.role,
+        'first_name': user_profile.first_name,
+        'last_name': user_profile.last_name,
+        'phone_number': user_profile.phone_number
+    }
+
+    result = {
+        'user': user_data,
+        'user_profile': user_fields,
+    }
+
+    # 附加角色信息
+    if user.role == 'client':
+        client_profile = user_profile.clientprofile
+        client_fields = safe_model_to_dict(client_profile)
+        client_fields['preferred_times'] = client_profile.preferred_times
+        client_fields['certifications'] = [c.name for c in client_profile.certifications.all()]
+        client_fields['conditions'] = [c.name for c in client_profile.conditions.all()]
+        client_fields['support_areas'] = [s.name for s in client_profile.support_areas.all()]
+        result['client_fields'] = client_fields
+
+    elif user.role == 'volunteer':
+        volunteer_profile = user_profile.volunteerprofile
+        volunteer_fields = safe_model_to_dict(volunteer_profile)
+        volunteer_fields['availability'] = volunteer_profile.availability
+        result['volunteer_fields'] = volunteer_fields
+
+    return Response(result)

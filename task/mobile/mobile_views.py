@@ -333,6 +333,8 @@ def mobile_volunteer_applications(request):
     data = []
     print("📤 Volunteer Applications Fetched:")
     for app in applications:
+        # print("📦 Application ID:", app.id, "➡️ Client ID:", app.task.client.id)
+        # print("👀 Client:", app.task.client, "🧬 Type:", type(app.task.client))  # ✅ 调试用
         data.append({
             'id': app.id,
             'task_id': app.task.id,
@@ -342,6 +344,7 @@ def mobile_volunteer_applications(request):
             'status': app.status,
             'task_status': app.task.status,
             'applied_at': app.applied_at,
+            'client_id': app.task.client.id,
         })
     return Response({'applications': data})
     
