@@ -105,12 +105,13 @@ def match_volunteers_for_task(task):
         vol_lng = profile.user_profile.location_lng
         if None in [vol_lat, vol_lng, client_lat, client_lng]:
             print(f"DEBUG: {user.email} Lack of latitude and longitude information")
-            continue  # 跳过无位置信息者
+            continue  # Skip those without location information
         distance = haversine_distance(vol_lat, vol_lng, client_lat, client_lng)
         if distance > profile.preferred_distance_km:
             print(f"DEBUG: {user.email} too far apart. Practical distance {distance} larger than {profile.preferred_distance_km}")
             continue
-
+            
+        # Stars
         star_score = get_star_score(user, client_user)
         matched_volunteers.append((star_score, user))
 
@@ -129,7 +130,8 @@ def match_volunteers_for_task(task):
             profile.is_scheduled = False
             print(f"DEBUG: {volunteer.email} reaching the task ceiling")
         profile.save()
-
+        
+        # record this apply
         url = reverse('adminpanel:task_detail', args=[task.id])
         OperationLog.objects.create(
             user=volunteer,
