@@ -10,9 +10,9 @@ from adminpanel.models import OperationLog
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     """
-    计算地球两点之间的距离（单位：公里）
+    Calculation of the distance between two points (in kilometres)
     """
-    R = 6371  # 地球半径（km）
+    R = 6371  # Earth radius (km)
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
     dlat = lat2 - lat1
     dlon = lon2 - lon1
@@ -22,6 +22,9 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 
 def get_star_score(volunteer_user, client_user):
+    """
+    Give scores based on the stars between users and the scores will be used to compare the priority of matching
+    """
     score = 0
     if StarRelation.objects.filter(from_user=client_user, to_user=volunteer_user).exists():
         score += 2
@@ -31,8 +34,8 @@ def get_star_score(volunteer_user, client_user):
 
 def match_volunteers_for_task(task):
     """
-    根据志愿者设置的排班意向，对新发布的任务进行自动匹配。
-    为符合条件的志愿者创建 TaskApplication (pending 状态)
+    Automated matching of newly posted tasks based on scheduling intentions set by volunteers.
+    Create an application for eligible volunteers
     """
     matched_count = 0
     matched_volunteers = []
@@ -50,7 +53,6 @@ def match_volunteers_for_task(task):
 
     existing_app_volunteer_ids = set(TaskApplication.objects.filter(task=task).values_list('volunteer_id', flat=True))
     
-    # scheduled_volunteers = VolunteerProfile.objects.filter(is_scheduled=True).select_related('user_profile__user').prefetch_related('preferred_tasks')
     scheduled_volunteers = VolunteerProfile.objects.filter(is_scheduled=True)\
         .select_related('user_profile')\
         .prefetch_related('preferred_tasks')
@@ -58,66 +60,64 @@ def match_volunteers_for_task(task):
     for profile in scheduled_volunteers:
         user = profile.user_profile.user
 
-        # 跳过已申请该任务的志愿者
+        # Skip volunteers who have applied for this task
         if user.id in existing_app_volunteer_ids:
-            # print(f"{user.email} 已申请，跳过")
+            # print(f"DEBUG: {user.email} has applied, skip")
             continue
 
-        # 冲突检查
+        # Conflict checking
         buffer = timedelta(hours=1)
         task_start = task.start_time
         task_end = task.end_time
-
-        # 找到该志愿者已接受的任务（accepted），以及进行中（pending 也可以）
         existing_apps = TaskApplication.objects.filter(
             volunteer=user,
             status__in=['pending', 'accepted'],
             task__start_time__lt=task_end + buffer,
             task__end_time__gt=task_start - buffer,
         )
-
         if existing_apps.exists():
-            continue  # 有冲突，跳过此志愿者
+            continue  # Conflict, skip this volunteer
 
-        # 1. 工作内容匹配
+        # 1. Support Type Matching
         volunteer_support_ids = set(profile.preferred_tasks.values_list('id', flat=True))
         if not task_support_ids & volunteer_support_ids:
-            print(f"{user.email} 工作内容不匹配")
+            print(f"DEBUG: {user.email} mismatch in support type")
             continue
 
-        # 2. 时间匹配
+        # 2. Time Availability
         if task_day not in profile.available_days:
-            print(f"{user.email} 可用日期不匹配")
+            print(f"DEBUG: {user.email} mismatch in available date")
             continue
         if profile.available_start_time and (task_start_time  < profile.available_start_time):
-            print(f"{user.email} 可用时间开始早于任务开始")
+            print(f"DEBUG: {user.email} available time earlier than the start time")
             continue
         if profile.available_end_time and (task_end_time  > profile.available_end_time):
-            print(f"{user.email} 可用时间结束晚于任务结束")
+            print(f"DEBUG: {user.email} available time later than the end time")
             continue
 
-        # 3. 是否支持宠物
+        # 3. Pet Tolerance
         if not profile.accept_pets and client_has_pets:
-            print(f"{user.email} 不接受宠物，任务有宠物")
+            print(f"DEBUG: {user.email} no pets accepted, task has pets")
             continue
 
-        # 4. 距离匹配
+        # 4. Geographic Distance
         vol_lat = profile.user_profile.location_lat
         vol_lng = profile.user_profile.location_lng
         if None in [vol_lat, vol_lng, client_lat, client_lng]:
-            print(f"{user.email} 缺少经纬度信息")
-            continue  # 跳过无位置信息者
+            print(f"DEBUG: {user.email} Lack of latitude and longitude information")
+            continue  # Skip those without location information
         distance = haversine_distance(vol_lat, vol_lng, client_lat, client_lng)
         if distance > profile.preferred_distance_km:
-            print(f"{user.email} 距离过远,距离{distance},大于{profile.preferred_distance_km}")
+            print(f"DEBUG: {user.email} too far apart. Practical distance {distance} larger than {profile.preferred_distance_km}")
             continue
-
+            
+        # Stars
         star_score = get_star_score(user, client_user)
         matched_volunteers.append((star_score, user))
 
     matched_volunteers.sort(reverse=True, key=lambda x: x[0])
     for _, volunteer in matched_volunteers:
-        # 创建申请
+        # Create a application
         TaskApplication.objects.create(
             task=task,
             volunteer=volunteer,
@@ -128,9 +128,10 @@ def match_volunteers_for_task(task):
         profile.assigned_tasks_count += 1
         if profile.assigned_tasks_count >= profile.max_task_count:
             profile.is_scheduled = False
-            print(f"{volunteer.email} 到达任务上限")
+            print(f"DEBUG: {volunteer.email} reaching the task ceiling")
         profile.save()
-
+        
+        # record this apply
         url = reverse('adminpanel:task_detail', args=[task.id])
         OperationLog.objects.create(
             user=volunteer,
