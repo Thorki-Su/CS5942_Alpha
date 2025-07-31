@@ -97,34 +97,34 @@ else:
         },
     }
 
-# Logging configuration for debugging
+# Logging configuration - reduced verbosity
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
+        'simple': {
+            'format': '{levelname} {message}',
             'style': '{',
         },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+            'formatter': 'simple',
         },
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'INFO' if not DEBUG else 'DEBUG',
+            'level': 'WARNING',  # Only show warnings and errors
         },
         'channels': {
             'handlers': ['console'],
-            'level': 'DEBUG' if IS_TESTING or IS_DEVELOPMENT else 'INFO',
+            'level': 'WARNING',  # Reduce channels verbosity
         },
         'communication.consumers': {
             'handlers': ['console'],
-            'level': 'DEBUG' if IS_TESTING or IS_DEVELOPMENT else 'INFO',
+            'level': 'WARNING',  # Reduce consumer verbosity
         },
     },
 }
@@ -181,9 +181,9 @@ else:
         )
     }
 
-# Print database config for debugging
-print("DATABASES:", DATABASES)
-print("CHANNEL_LAYERS:", CHANNEL_LAYERS)
+# Database config debugging (commented out to reduce console output)
+# print("DATABASES:", DATABASES)
+# print("CHANNEL_LAYERS:", CHANNEL_LAYERS)
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
