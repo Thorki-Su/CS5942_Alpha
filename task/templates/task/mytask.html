@@ -1,38 +1,261 @@
 {% extends "base.html" %}
 
-{% block title %}My Task{% endblock %}
+{% block title %}My Tasks{% endblock %}
+
+{% block style %}
+<style>
+    .mytask-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .mytask-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .mytask-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 300;
+    }
+    .quick-action {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+        text-align: center;
+        border-left: 4px solid #667eea;
+    }
+    .quick-action a {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    .quick-action a:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    .section-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #333;
+        margin: 30px 0 20px 0;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #28a745;
+    }
+    .tasks-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+    .task-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .task-card.active {
+        border-left: 4px solid #28a745;
+    }
+    .task-card.active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+    .task-card.closed {
+        border-left: 4px solid #6c757d;
+        opacity: 0.8;
+    }
+    .task-card.closed::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    }
+    .task-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .task-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        text-decoration: none;
+    }
+    .task-title:hover {
+        color: #28a745;
+        text-decoration: none;
+    }
+    .task-info {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .task-info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #495057;
+    }
+    .task-info-icon {
+        width: 20px;
+        height: 20px;
+        background: #28a745;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    .status-ongoing {
+        background: #d4edda;
+        color: #155724;
+    }
+    .status-completed {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    .task-support-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .support-tag {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .no-tasks {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .no-tasks p {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin: 0;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-    <div style='margin:50px;'>
-        <h2>My Tasks</h2>
-        <p><a href="{% url 'task:task_create' %}">Create a new task</a></p>
-        {% if tasks %}
-            <h3>Active Tasks</h3>
-            {% for task in tasks %}
-                {% if task.is_active %}  
-                <div style="margin-bottom: 1em;">  
-                    <a href="{% url 'task:task_detail' task.id %}">{{ task.title }}</a><br>
-                    — Status: [{{ task.status }}]<br>
-                    — Time: [{{ task.start_time }}] to [{{ task.end_time }}]<br>
-                    — Support needed: {{ task.work_area.all|join:", " }}<br>
-                    — Volunteer needed: [{{ task.vol_number }}]<br>
-                </div>
-                {% endif %}
-            {% endfor %}
-            <h3>Closed Tasks</h3>
-            {% for task in tasks %}
-                {% if task.is_closed %}
-                <div style="margin-bottom: 1em;">
-                    <a href="{% url 'task:task_detail' task.id %}">{{ task.title }}</a><br>
-                    — Status: [{{ task.status }}]<br>
-                    — Closed at: {{ task.closed_at }}<br>
-                </div>
-                {% endif %}
-            {% endfor %}
-
-        {% else %}
-            <p>You haven't posted any tasks yet.</p>
-        {% endif %}
+    <div class="mytask-container">
+        <div class="mytask-header">
+            <h2>My Tasks</h2>
+        </div>
         
+        <div class="quick-action">
+            <a href="{% url 'task:task_create' %}">Create a New Task</a>
+        </div>
+        
+        {% if tasks %}
+            <h2 class="section-title">Active Tasks</h2>
+            <div class="tasks-grid">
+                {% for task in tasks %}
+                    {% if task.is_active %}  
+                        <div class="task-card active">
+                            <a href="{% url 'task:task_detail' task.id %}" class="task-title">{{ task.title }}</a>
+                            <div class="task-info">
+                                <div class="task-info-item">
+                                    <div class="task-info-icon">📋</div>
+                                    <span><strong>Status:</strong> <span class="status-badge status-{{ task.status|lower }}">{{ task.status }}</span></span>
+                                </div>
+                                <div class="task-info-item">
+                                    <div class="task-info-icon">🕒</div>
+                                    <span><strong>Time:</strong> {{ task.start_time|date:"M d, Y H:i" }} to {{ task.end_time|date:"M d, Y H:i" }}</span>
+                                </div>
+                                <div class="task-info-item">
+                                    <div class="task-info-icon">👥</div>
+                                    <span><strong>Volunteers Needed:</strong> {{ task.vol_number }}</span>
+                                </div>
+                                <div class="task-info-item">
+                                    <div class="task-info-icon">🎯</div>
+                                    <span><strong>Support Areas:</strong></span>
+                                </div>
+                                <div class="task-support-tags">
+                                    {% for area in task.work_area.all %}
+                                        <span class="support-tag">{{ area }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <h2 class="section-title">Closed Tasks</h2>
+            <div class="tasks-grid">
+                {% for task in tasks %}
+                    {% if task.is_closed %}
+                        <div class="task-card closed">
+                            <a href="{% url 'task:task_detail' task.id %}" class="task-title">{{ task.title }}</a>
+                            <div class="task-info">
+                                <div class="task-info-item">
+                                    <div class="task-info-icon">📋</div>
+                                    <span><strong>Status:</strong> <span class="status-badge status-{{ task.status|lower }}">{{ task.status }}</span></span>
+                                </div>
+                                <div class="task-info-item">
+                                    <div class="task-info-icon">📅</div>
+                                    <span><strong>Closed at:</strong> {{ task.closed_at|date:"M d, Y H:i" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-tasks">
+                <p>You haven't posted any tasks yet.</p>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
