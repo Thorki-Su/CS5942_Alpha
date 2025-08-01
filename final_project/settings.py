@@ -205,3 +205,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'  # Explicit static storage
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Stripe Configuration
+STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY') or ''
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY') or ''
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET') or ''
