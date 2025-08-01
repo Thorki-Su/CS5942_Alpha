@@ -1,26 +1,134 @@
 {% extends "base.html" %}
 
-{% block title %}Client Registration{% endblock %}
+{% block title %}User Login{% endblock %}
+
+{% block style %}
+<style>
+    .login-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .login-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .login-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 300;
+    }
+    .login-form {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border-left: 4px solid #30574e;
+    }
+    .form-group {
+        margin-bottom: 25px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #495057;
+        font-size: 1.1rem;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+    .form-group input:focus {
+        outline: none;
+        border-color: #30574e;
+        box-shadow: 0 0 0 3px rgba(48, 87, 78, 0.1);
+    }
+    .submit-btn {
+        background: #30574e;
+        color: white;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 30px;
+    }
+    .submit-btn:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+    }
+    .error-message {
+        color: #dc3545;
+        background: #f8d7da;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid #dc3545;
+    }
+    .register-link {
+        text-align: center;
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    .register-link a {
+        color: #30574e;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .register-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-    <div style='margin:50px;'>
-        <h2>User Login</h2>
+    <div class="login-container">
+        <div class="login-header">
+            <h2>User Login</h2>
+        </div>
 
-        {% if messages %}
-            {% for message in messages %}
-                <p style="color: red;">{{ message }}</p>
-            {% endfor %}
-        {% endif %}
+        <div class="login-form">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="error-message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
 
-        <form method="POST">
-            {% csrf_token %}
-            <label>Email:</label><br>
-            <input type="email" name="username" required><br><br> <!-- 改为 username 字段 -->
-            <label>Password:</label><br>
-            <input type="password" name="password" required><br><br>
-            <button type="submit">Login</button>
-        </form>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="username">Email:</label>
+                    <input type="email" name="username" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" name="password" id="password" required>
+                </div>
+                <button type="submit" class="submit-btn">Login</button>
+            </form>
 
-        <p>Don't have an account? <a href="{% url 'user:choose_role' %}">Register here</a></p>
+            <div class="register-link">
+                <p>Don't have an account? <a href="{% url 'user:choose_role' %}">Register here</a></p>
+            </div>
+        </div>
     </div>
 {% endblock %}
