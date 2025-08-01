@@ -1,23 +1,81 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Room</title>
-    {% load static %}
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <style>
-        .chat-container { height: 80vh; overflow-y: auto; padding: 20px; }
-        .message { max-width: 70%; margin-bottom: 15px; padding: 10px 15px; border-radius: 10px; display: block; width: fit-content; }
-        .sent { background-color: #0084ff; color: white; margin-left: auto; text-align: right; }
-        .received { background-color: #e9ecef; color: black; margin-right: auto; text-align: left; }
-        .message-time { font-size: 0.75rem; color: #666; }
-        .input-area { padding: 10px; border-top: 1px solid #ddd; background-color: #fff; }
-        .video-container { display: none; width: 80%; margin: 20px auto; justify-content: space-between; flex-wrap: wrap; }
-        video, audio { width: 45%; border: 1px solid #ccc; margin: 5px; }
-    </style>
-</head>
-<body class="bg-gray-100 flex items-center justify-center">
+{% extends 'base.html' %}
+
+{% block title %}Chat Room{% endblock %}
+
+{% block style %}
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<style>
+    body {
+        background-color: #f3f4f6 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 100vh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .content-wrapper {
+        margin-top: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: 100vh !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .chat-container { 
+        height: 60vh; 
+        overflow-y: auto; 
+        padding: 20px; 
+    }
+    .message { 
+        max-width: 70%; 
+        margin-bottom: 15px; 
+        padding: 10px 15px; 
+        border-radius: 10px; 
+        display: block; 
+        width: fit-content; 
+    }
+    .sent { 
+        background-color: #0084ff; 
+        color: white; 
+        margin-left: auto; 
+        text-align: right; 
+    }
+    .received { 
+        background-color: #e9ecef; 
+        color: black; 
+        margin-right: auto; 
+        text-align: left; 
+    }
+    .message-time { 
+        font-size: 0.75rem; 
+        color: #666; 
+    }
+    .input-area { 
+        padding: 10px; 
+        border-top: 1px solid #ddd; 
+        background-color: #fff; 
+    }
+    .video-container { 
+        display: none; 
+        width: 80%; 
+        margin: 20px auto; 
+        justify-content: space-between; 
+        flex-wrap: wrap; 
+    }
+    video, audio { 
+        width: 45%; 
+        border: 1px solid #ccc; 
+        margin: 5px; 
+    }
+    .header, .footer {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
     <div class="w-full max-w-2xl bg-white shadow-lg rounded-lg flex flex-col h-screen">
         <div class="p-4 border-b flex justify-between items-center">
             <h2 class="text-xl font-bold">Chat with {{ user2_email }}</h2>
@@ -57,7 +115,10 @@
         </div>
     </div>
 
-    {{ participants|json_script:"participants-data" }}  <!-- 修复：用json_script输出 -->
+{{ participants|json_script:"participants-data" }}  <!-- 修复：用json_script输出 -->
+{% endblock %}
+
+{% block script %}
 
     <script>
         const chatContainer = document.getElementById('chat-container');
@@ -284,5 +345,4 @@
             return bytes.buffer;
         }
     </script>
-</body>
-</html>
+{% endblock %}

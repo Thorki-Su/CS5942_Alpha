@@ -26,8 +26,10 @@ class DonationForm(forms.ModelForm):
         max_value=10000,
         widget=forms.NumberInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Enter custom amount',
-            'step': '0.01'
+            'placeholder': 'Enter amount (e.g., 75.00)',
+            'step': '0.01',
+            'min': '1',
+            'max': '10000'
         }),
         label='Custom Amount (£)'
     )
