@@ -1,3 +1,5 @@
+import time
+import json
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -7,9 +9,9 @@ from .models import OneToOneChatSession, ChatMessage
 from asgiref.sync import sync_to_async, async_to_sync
 from django.urls import reverse
 from django.core.paginator import Paginator
+from django.db.models import Q, Count
 import asyncio
 import logging
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +45,21 @@ def get_or_create_one_to_one_room(user1_email, user2_email):
 
 @login_required
 def message_selection_view(request):
-    return render(request, 'communication/message_selection.html')
+    user = request.user
+    one_to_one_unread = ChatMessage.objects.filter(
+        receiver=user, is_group=False, is_read=False
+    ).count()
+    task_unread = ChatMessage.objects.filter(
+        is_group=True, is_read=False,
+        task__in=Task.objects.filter(
+            Q(client=user) | Q(applications__volunteer=user, applications__status='accepted')
+        )
+    ).count()
+    logger.debug(f"Queried unread counts: 1v1={one_to_one_unread}, task={task_unread}")
+    return render(request, 'communication/message_selection.html', {
+        'one_to_one_unread': one_to_one_unread,
+        'task_unread': task_unread
+    })
 
 @login_required
 def one_to_one_chat_selection_view(request):
@@ -66,16 +82,21 @@ def task_communication_view(request, task_id):
     start_time = time.time()
     try:
         task = Task.objects.get(id=task_id)
-        user = request.user
-        if not (task.client == user or TaskApplication.objects.filter(task=task, volunteer=user, status='accepted').exists()):
-            logger.warning(f"User {user.email} unauthorized for task {task_id}")
+        if not (task.client == request.user or TaskApplication.objects.filter(
+                task=task, volunteer=request.user, status='accepted').exists()):
+            logger.warning(f"User {request.user.email} unauthorized for task {task_id}")
             return redirect('user:home')
         if task.status in ['completed', 'cancelled']:
             logger.warning(f"Task {task_id} is {task.status}")
             return redirect('user:home')
         room_name = f"chat_task_{task_id}"
-        participants = [task.client.email] + list(TaskApplication.objects.filter(task=task, status='accepted').values_list('volunteer__email', flat=True))
+        participants = [task.client.email] + list(TaskApplication.objects.filter(
+            task=task, status='accepted').values_list('volunteer__email', flat=True))
         messages = ChatMessage.objects.filter(task=task).order_by('timestamp')
+        # Mark task messages as read
+        ChatMessage.objects.filter(
+            task=task, is_group=True, is_read=False
+        ).update(is_read=True)
         logger.debug(f"Loaded task communication view for task {task_id} in {time.time() - start_time:.3f}s")
         return render(request, 'communication/communication.html', {
             'room_name': room_name,
@@ -111,6 +132,11 @@ def one_to_one_communication_view(request, room_name):
         sender__email__in=users,
         receiver__email__in=users
     ).order_by('timestamp')
+    # Mark 1v1 messages as read
+    ChatMessage.objects.filter(
+        receiver=request.user, is_group=False, is_read=False,
+        sender__email=user2_email
+    ).update(is_read=True)
     logger.debug(f"Loaded one-to-one communication view for room {room_name} in {time.time() - start_time:.3f}s")
     return render(request, 'communication/communication.html', {
         'room_name': room_name,
@@ -142,3 +168,20 @@ def create_one_to_one_room(request):
     except Exception as e:
         logger.error(f"Error creating room: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+def get_unread_details(request):
+    user = request.user
+    one_to_one_unread = ChatMessage.objects.filter(
+        receiver=user, is_group=False, is_read=False
+    ).values('sender__email').annotate(count=Count('id'))
+    task_unread = ChatMessage.objects.filter(
+        is_group=True, is_read=False,
+        task__in=Task.objects.filter(
+            Q(client=user) | Q(applications__volunteer=user, applications__status='accepted')
+        )
+    ).values('task__id', 'task__title').annotate(count=Count('id'))
+    return JsonResponse({
+        'one_to_one': list(one_to_one_unread),
+        'task': list(task_unread)
+    })
