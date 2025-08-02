@@ -2,7 +2,19 @@
 
 {% block title %}Activation Failed{% endblock %}
 
+{% block style %}
+<style>
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <h2>Your activation has been failed, please try again later.</h2>
-    <a href="{% url 'user:register' %}">Click here to register</a>
+    <div class="container">
+        <h2>Your activation has been failed, please try again later.</h2>
+        <a href="{% url 'user:register' %}">Click here to register</a>
+    </div>
 {% endblock %}

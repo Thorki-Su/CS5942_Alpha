@@ -2,10 +2,62 @@
 
 {% block title %}Please Choose a Role{% endblock %}
 
+{% block style %}
+<style>
+    .role-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .role-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .role-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .role-links {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .role-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #30574e;
+        color: white;
+        padding: 20px 40px;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        font-weight: 500;
+        text-decoration: none;
+        width: 300px;
+        transition: background 0.3s;
+    }
+    .role-box:hover {
+        background: #417a6b;
+    }
+
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style='margin:50px;'>
-        <h1>Please choose a role</h1>
-        <p><a href="{% url 'user:client_register' %}">Register as a client</a></p>
-        <p><a href="{% url 'user:volunteer_register' %}">Register as a volunteer</a></p>
+    <div class="role-container">
+        <div class="role-header">
+            <h2>Please choose a role</h1>
+        </div>
+        <div class="role-links">
+            <p><a href="{% url 'user:client_register' %}" class="role-box">Register as a client</a></p>
+            <p><a href="{% url 'user:volunteer_register' %}" class="role-box">Register as a volunteer</a></p>
+        </div>
     </div>
 {% endblock %}

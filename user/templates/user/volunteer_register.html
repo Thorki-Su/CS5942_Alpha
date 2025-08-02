@@ -21,7 +21,7 @@
     .register-header h2 {
         margin: 0;
         font-size: 2.5rem;
-        font-weight: 300;
+        font-weight: 500;
     }
     .back-link {
         background: rgba(255,255,255,0.2);
@@ -85,6 +85,15 @@
         margin-bottom: 0;
         font-weight: 500;
         line-height: 1.4;
+    }
+    #id_is_for_credit label {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 20px;
+    }
+    .form-group #id_is_for_credit {
+        display: inline-flex;
+        margin-bottom: 25px;
     }
     .password-rules {
         background: #f8f9fa;
@@ -299,10 +308,10 @@
                     {% endif %}
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" id="id_is_for_credit">
                     <div class="checkbox-group">
+                        <label for="id_is_for_credit">{{ form.is_for_credit.label }}</label>
                         {{ form.is_for_credit }}
-                        <label for="{{ form.is_for_credit.id_for_label }}">{{ form.is_for_credit.label }}</label>
                     </div>
                     {% if form.is_for_credit.errors %}
                         {% for error in form.is_for_credit.errors %}

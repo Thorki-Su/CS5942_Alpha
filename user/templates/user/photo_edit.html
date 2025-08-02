@@ -2,17 +2,71 @@
 
 {% block title %}Profile Photo Edit{% endblock %}
 
+{% block style %}
+<style>
+    .photo-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .photo-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .photo-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .photo-form {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border-left: 4px solid #30574e;
+    }
+    .button-group {
+        display: flex;
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .button-group button {
+        flex: 1;
+        background: #30574e;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .button-group button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+    .button-group button:hover:enabled {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style='margin:50px;margin-left:200px;'>
-        <h2>Edit Your Photo</h2>
+    <div class="photo-container">
+        <div class="photo-header">
+            <h2>Edit Your Photo</h2>
+        </div>
 
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" class="photo-form">
             {% csrf_token %}
-
-            {% comment %}
-            {{ form.as_p }}
-            <input type="submit" value="Register">
-            {% endcomment %}
 
             {{ form.profile_photo.label_tag }}
             <input type="file" id="id_profile_photo" name="profile_photo" accept="image/*">
@@ -24,8 +78,11 @@
             <input type="hidden" id="cropped_image_data" name="cropped_image_data">
 
             <br>
-            <button type="button" id="crop_button">Crop & Preview</button>
-            <input type="submit" value="Save" id="save_button" disabled>
+            <div class="button-group">
+                <button type="button" id="crop_button">Crop & Preview</button>
+                <button type="submit" id="save_button" disabled>Save</button>
+                {% comment %} <input type="submit" value="Save" id="save_button" disabled> {% endcomment %}
+            </div>
 
         </form>
     </div>

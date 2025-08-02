@@ -114,7 +114,7 @@
     }
     .support-tag {
         background: #30574e;
-        color: white;
+        color: white !important;
         padding: 6px 12px;
         border-radius: 15px;
         font-size: 0.85rem;
@@ -267,8 +267,27 @@
             <div class="task-details-grid">
                 <div class="detail-item">
                     <strong>Time:</strong>
-                    <span>{{ task.start_time|date:"M d, Y H:i" }} - {{ task.end_time|date:"M d, Y H:i" }}</span>
+                    <span>From: {{ task.start_time|date:"M d, Y H:i" }}</span><br>
+                    <span>To: {{ task.end_time|date:"M d, Y H:i" }}</span>
                 </div>
+                <div class="detail-item">
+                    <strong>Location:</strong>
+                    <span>{{ task.client.userprofile.location }}</span>
+                </div>
+                {% with task.client.userprofile.clientprofile.conditions.all as conds %}
+                    <div class="detail-item">
+                        <strong>Condition:</strong>
+                        <span>{{ conds|join:", " }}</span>
+                    </div>
+                    {% for condition in conds %}
+                        {% if condition.name == "Others" %}
+                            <div class="detail-item">
+                                <strong>Other Condition:</strong>
+                                <span>{{ task.client.userprofile.clientprofile.other_conditions }}</span>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endwith %}
                 <div class="detail-item">
                     <strong>Volunteers Needed:</strong>
                     <span>{{ task.vol_number }}</span>

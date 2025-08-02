@@ -178,7 +178,7 @@
                     <strong>Email:</strong> {{ user.email }}
                 </div>
                 {% for key, value in user_fields.items %}
-                    {% if key != 'id' and key != 'user' and key != 'profile_photo' and key != 'consent_safeguard'%}
+                    {% if key != 'id' and key != 'user' and key != 'profile_photo' and key != 'consent_safeguard' and key != 'location_lat' and key != 'location_lng' %}
                         <div class="info-item">
                             <strong>{{ key|title }}:</strong> {{ value|default:'(Unfilled)' }}
                         </div>
@@ -208,7 +208,9 @@
                     {% endif %} {% endcomment %}
                     {% if key == 'pets_type' %}
                         {% if has_pets %}
-                            <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                            <div class="info-item">
+                                <p><strong>{{ key }}:</strong> {{ value|default:'(Unfilled)' }}</p>
+                            </div>
                         {% endif %}
                     {% elif key == 'pip_certificate' %}
                         {% if has_pip_cert %}

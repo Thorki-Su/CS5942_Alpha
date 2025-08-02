@@ -2,8 +2,20 @@
 
 {% block title %}Wait Activation{% endblock %}
 
+{% block style %}
+<style>
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <h2>Thank you for registering!</h2>
-    <p>Please check your email to activate your account.</p>
-    <p>Our emails are likely to be recognized as spam, so please check carefully.<p>
+    <div class="container">
+        <h2>Thank you for registering!</h2>
+        <p>Please check your email to activate your account.</p>
+        <p>Our emails are likely to be recognized as spam, so please check carefully.<p>
+    </div>
 {% endblock %}
