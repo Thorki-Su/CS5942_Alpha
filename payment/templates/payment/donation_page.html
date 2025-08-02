@@ -392,6 +392,82 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
+    /* Override Bootstrap colors with #30574e theme */
+    .container {
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin: 20px auto;
+    }
+    
+    .card {
+        border: 2px solid #30574e;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.2);
+    }
+    
+    .card-header {
+        background-color: #30574e !important;
+        color: white !important;
+        border-bottom: 2px solid #30574e;
+    }
+    
+    .bg-success, .btn-success {
+        background-color: #30574e !important;
+        border-color: #30574e !important;
+    }
+    
+    .bg-info {
+        background-color: #30574e !important;
+    }
+    
+    .bg-secondary {
+        background-color: #30574e !important;
+    }
+    
+    .text-success {
+        color: #30574e !important;
+    }
+    
+    .text-info {
+        color: #30574e !important;
+    }
+    
+    .border-success {
+        border-color: #30574e !important;
+    }
+    
+    .btn-outline-success {
+        color: #30574e !important;
+        border-color: #30574e !important;
+    }
+    
+    .btn-outline-success:hover {
+        background-color: #30574e !important;
+        border-color: #30574e !important;
+        color: white !important;
+    }
+    
+    .btn-outline-secondary {
+        color: #30574e !important;
+        border-color: #30574e !important;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #30574e !important;
+        border-color: #30574e !important;
+        color: white !important;
+    }
+    
+    .badge.bg-success {
+        background-color: #30574e !important;
+    }
+    
+    .spinner-border.text-success {
+        color: #30574e !important;
+    }
+    
     /* Hide the default radio buttons */
     .form-check input[type="radio"] {
         display: none;
@@ -401,20 +477,27 @@
     .form-check-label {
         cursor: pointer;
         transition: all 0.3s ease;
+        color: #30574e !important;
+        border-color: #30574e !important;
     }
     
     /* When radio is checked, change button appearance */
     .form-check input[type="radio"]:checked + .form-check-label {
-        background-color: #198754 !important;
+        background-color: #30574e !important;
         color: white !important;
-        border-color: #198754 !important;
+        border-color: #30574e !important;
     }
     
     /* Special styling for custom amount button */
     .form-check input[type="radio"]:checked + .btn-outline-warning {
-        background-color: #ffc107 !important;
-        color: #000 !important;
-        border-color: #ffc107 !important;
+        background-color: #30574e !important;
+        color: white !important;
+        border-color: #30574e !important;
+    }
+    
+    .btn-outline-warning {
+        color: #30574e !important;
+        border-color: #30574e !important;
     }
     
     /* Custom amount section animation */
@@ -424,8 +507,36 @@
     
     /* Highlight the custom amount input when focused */
     #custom-amount-section .form-control:focus {
-        border-color: #ffc107;
-        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+        border-color: #30574e;
+        box-shadow: 0 0 0 0.2rem rgba(48, 87, 78, 0.25);
+    }
+    
+    /* Center all content */
+    .row {
+        justify-content: center;
+    }
+    
+    /* Button styling */
+    .btn {
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Form controls */
+    .form-control:focus {
+        border-color: #30574e;
+        box-shadow: 0 0 0 0.2rem rgba(48, 87, 78, 0.25);
+    }
+    
+    /* Alert styling */
+    .alert-danger {
+        border-color: #30574e;
+        background-color: rgba(48, 87, 78, 0.1);
+        color: #30574e;
     }
 </style>
 {% endblock %}
