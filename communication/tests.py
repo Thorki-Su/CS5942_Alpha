@@ -49,7 +49,7 @@ class CommunicationModelTests(TestCase):
         )
 
     def test_chat_message_creation(self):
-        """测试ChatMessage模型的创建"""
+        """Test ChatMessage model creation"""
         message = ChatMessage.objects.create(
             sender=self.user1,
             receiver=self.user2,
@@ -66,7 +66,7 @@ class CommunicationModelTests(TestCase):
         self.assertEqual(str(message), 'user1@example.com to user2@example.com: Hello, test message!')
 
     def test_video_call_session_creation(self):
-        """测试VideoCallSession模型的创建"""
+        """Test VideoCallSession model creation"""
         session = VideoCallSession.objects.create(
             initiator=self.user1,
             participant=self.user2,
@@ -79,7 +79,7 @@ class CommunicationModelTests(TestCase):
         self.assertEqual(str(session), 'user1@example.com with user2@example.com')
 
     def test_one_to_one_chat_session_creation(self):
-        """测试OneToOneChatSession模型的创建"""
+        """Test OneToOneChatSession model creation"""
         session = OneToOneChatSession.objects.create(
             user1=self.user1,
             user2=self.user2,
@@ -91,7 +91,7 @@ class CommunicationModelTests(TestCase):
         self.assertEqual(str(session), 'user1@example.com - user2@example.com (1v1_1_2)')
 
     def test_one_to_one_chat_session_unique_constraint(self):
-        """测试OneToOneChatSession的唯一性约束"""
+        """Test OneToOneChatSession unique constraint"""
         OneToOneChatSession.objects.create(
             user1=self.user1,
             user2=self.user2,
@@ -136,14 +136,14 @@ class CommunicationViewTests(TestCase):
         )
 
     def test_message_selection_view(self):
-        """测试消息选择视图"""
+        """Test message selection view"""
         self.client.force_login(self.user1)
         response = self.client.get(reverse('communication:message_selection'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'communication/message_selection.html')
 
     def test_one_to_one_chat_selection_view(self):
-        """测试1v1聊天用户选择视图"""
+        """Test 1v1 chat user selection view"""
         self.client.force_login(self.user1)
         response = self.client.get(reverse('communication:one_to_one_chat_selection'))
         self.assertEqual(response.status_code, 200)
@@ -151,7 +151,7 @@ class CommunicationViewTests(TestCase):
         self.assertContains(response, 'user2@example.com')
 
     def test_task_communication_view_client(self):
-        """测试任务发布者访问任务聊天室"""
+        """Test task creator accessing task chat room"""
         self.client.force_login(self.user1)
         response = self.client.get(reverse('communication:task_communication_view', args=[self.task.id]))
         self.assertEqual(response.status_code, 200)
@@ -162,7 +162,7 @@ class CommunicationViewTests(TestCase):
         self.assertIn('user4@example.com', response.context['participants'])
 
     def test_task_communication_view_accepted_volunteer(self):
-        """测试接受的志愿者访问任务聊天室"""
+        """Test accepted volunteer accessing task chat room"""
         self.client.force_login(self.user4)
         response = self.client.get(reverse('communication:task_communication_view', args=[self.task.id]))
         self.assertEqual(response.status_code, 200)
@@ -173,21 +173,21 @@ class CommunicationViewTests(TestCase):
         self.assertIn('user4@example.com', response.context['participants'])
 
     def test_task_communication_view_pending_volunteer(self):
-        """测试pending志愿者无法访问任务聊天室"""
+        """Test pending volunteer cannot access task chat room"""
         self.client.force_login(self.user2)
         response = self.client.get(reverse('communication:task_communication_view', args=[self.task.id]))
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('user:home'))
 
     def test_task_communication_view_unauthorized(self):
-        """测试无关用户无法访问任务聊天室"""
+        """Test unauthorized user cannot access task chat room"""
         self.client.force_login(self.user3)
         response = self.client.get(reverse('communication:task_communication_view', args=[self.task.id]))
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('user:home'))
 
     def test_task_communication_view_completed_task(self):
-        """测试已完成任务的聊天室不可访问"""
+        """Test completed task chat room is not accessible"""
         self.task.status = 'completed'
         self.task.save()
         self.client.force_login(self.user1)
@@ -196,7 +196,7 @@ class CommunicationViewTests(TestCase):
         self.assertRedirects(response, reverse('user:home'))
 
     def test_create_one_to_one_room_volunteer_to_client(self):
-        """测试志愿者与任务发布者创建1v1聊天室"""
+        """Test volunteer creating 1v1 chat room with task creator"""
         self.client.force_login(self.user2)
         self.client.get(reverse('communication:message_selection'))
         csrf_token = self.client.cookies.get('csrftoken', '').value
@@ -212,7 +212,7 @@ class CommunicationViewTests(TestCase):
         self.assertIn('url', data)
 
     def test_create_one_to_one_room_invalid_email(self):
-        """测试使用无效email创建1v1聊天室"""
+        """Test creating 1v1 chat room with invalid email"""
         self.client.force_login(self.user2)
         self.client.get(reverse('communication:message_selection'))
         csrf_token = self.client.cookies.get('csrftoken', '').value
@@ -226,7 +226,7 @@ class CommunicationViewTests(TestCase):
         self.assertEqual(response.json()['error'], 'Please enter a different valid email')
 
     def test_create_one_to_one_room_invalid_user(self):
-        """测试使用不存在用户创建1v1聊天室"""
+        """Test creating 1v1 chat room with non-existent user"""
         self.client.force_login(self.user2)
         self.client.get(reverse('communication:message_selection'))
         csrf_token = self.client.cookies.get('csrftoken', '').value
@@ -339,7 +339,7 @@ class ChatConsumerTests(TestCase):
         )
 
     async def test_chat_consumer_connect_and_auth(self):
-        """测试ChatConsumer连接和认证"""
+        """Test ChatConsumer connection and authentication"""
         communicator = WebsocketCommunicator(ChatConsumer.as_asgi(), "/ws/chat/1v1_1_2/")
         for _ in range(3):
             try:
@@ -361,7 +361,7 @@ class ChatConsumerTests(TestCase):
         await communicator.disconnect()
 
     async def test_chat_consumer_message(self):
-        """测试ChatConsumer消息发送和接收"""
+        """Test ChatConsumer message sending and receiving"""
         communicator1 = WebsocketCommunicator(ChatConsumer.as_asgi(), "/ws/chat/1v1_1_2/")
         communicator2 = WebsocketCommunicator(ChatConsumer.as_asgi(), "/ws/chat/1v1_1_2/")
         for _ in range(3):
@@ -414,7 +414,7 @@ class ChatConsumerTests(TestCase):
         await communicator2.disconnect()
 
     async def test_chat_consumer_unauthenticated(self):
-        """测试ChatConsumer未认证连接"""
+        """Test ChatConsumer unauthenticated connection"""
         communicator = WebsocketCommunicator(ChatConsumer.as_asgi(), "/ws/chat/1v1_1_2/")
         for _ in range(3):
             try:
@@ -435,7 +435,7 @@ class ChatConsumerTests(TestCase):
         await communicator.disconnect()
 
     async def test_task_chat_consumer_client(self):
-        """测试任务发布者连接任务聊天室"""
+        """Test task creator connecting to task chat room"""
         communicator = WebsocketCommunicator(ChatConsumer.as_asgi(), f"/ws/chat/chat_task_{self.task.id}/")
         for _ in range(3):
             try:
@@ -457,7 +457,7 @@ class ChatConsumerTests(TestCase):
         await communicator.disconnect()
 
     async def test_task_chat_consumer_accepted_volunteer(self):
-        """测试接受的志愿者连接任务聊天室"""
+        """Test accepted volunteer connecting to task chat room"""
         communicator = WebsocketCommunicator(ChatConsumer.as_asgi(), f"/ws/chat/chat_task_{self.task.id}/")
         for _ in range(3):
             try:
@@ -479,7 +479,7 @@ class ChatConsumerTests(TestCase):
         await communicator.disconnect()
 
     async def test_task_chat_consumer_unauthorized(self):
-        """测试无关用户无法连接任务聊天室"""
+        """Test unauthorized user cannot connect to task chat room"""
         communicator = WebsocketCommunicator(ChatConsumer.as_asgi(), f"/ws/chat/chat_task_{self.task.id}/")
         for _ in range(3):
             try:

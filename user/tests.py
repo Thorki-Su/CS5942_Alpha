@@ -12,6 +12,7 @@ from django.core.files.storage import FileSystemStorage
 
 @override_settings(STATICFILES_STORAGE='django.core.files.storage.FileSystemStorage', DEFAULT_FILE_STORAGE='django.core.files.storage.FileSystemStorage')
 class CustomUserModelTests(TestCase):
+    """Test cases for CustomUser model and related models"""
     def setUp(self):
         self.user_manager = CustomUser.objects
         self.client_user = self.user_manager.create_user(
@@ -60,6 +61,7 @@ class CustomUserModelTests(TestCase):
         )
 
     def test_custom_user_creation(self):
+        """Test custom user creation with basic attributes"""
         user = self.user_manager.create_user(
             email='testuser@test.com',
             password='testpass123',
@@ -73,6 +75,7 @@ class CustomUserModelTests(TestCase):
         self.assertFalse(user.is_staff)
 
     def test_superuser_creation(self):
+        """Test superuser creation with admin privileges"""
         superuser = self.user_manager.create_superuser(
             email='admin@test.com',
             password='adminpass123'
@@ -83,27 +86,33 @@ class CustomUserModelTests(TestCase):
         self.assertTrue(superuser.is_superuser)
 
     def test_user_str(self):
+        """Test user string representation"""
         self.assertEqual(str(self.client_user), 'client@test.com')
 
     def test_whether_in_task(self):
+        """Test whether_in_task method for users"""
         self.assertFalse(self.client_user.whether_in_task(1))
         self.assertFalse(self.volunteer_user.whether_in_task(1))
 
     def test_user_profile_creation(self):
+        """Test user profile creation and basic attributes"""
         self.assertEqual(self.user_profile_client.first_name, 'Client')
         self.assertEqual(self.user_profile_client.phone_number, '1234567890')
 
     def test_client_profile_creation(self):
+        """Test client profile creation and relationships"""
         self.assertEqual(self.client_profile.preferred_contact_method, 'email')
         self.assertTrue(self.client_profile.certifications.filter(name='PIP').exists())
 
     def test_volunteer_profile_creation(self):
+        """Test volunteer profile creation and attributes"""
         self.assertEqual(self.volunteer_profile.university_course, 'Computer Science')
         self.assertFalse(self.volunteer_profile.is_for_credit)
 
 
 @override_settings(STATICFILES_STORAGE='django.core.files.storage.FileSystemStorage', DEFAULT_FILE_STORAGE='django.core.files.storage.FileSystemStorage')
 class ClientRegisterFormTests(TestCase):
+    """Test cases for client registration form"""
     def setUp(self):
         self.cert_type = CertificationType.objects.create(name='PIP')
         self.form_data = {
@@ -120,6 +129,7 @@ class ClientRegisterFormTests(TestCase):
         }
 
     def test_client_register_form_valid(self):
+        """Test valid client registration form submission"""
         form = ClientRegisterForm(data=self.form_data)
         self.assertTrue(form.is_valid(), form.errors)
         user = form.save()
@@ -130,6 +140,7 @@ class ClientRegisterFormTests(TestCase):
         self.assertTrue(user.userprofile.clientprofile.certifications.filter(name='PIP').exists())
 
     def test_client_register_form_missing_consent(self):
+        """Test client registration form without consent"""
         invalid_data = self.form_data.copy()
         invalid_data['consent_safeguard'] = False
         form = ClientRegisterForm(data=invalid_data)
@@ -139,6 +150,7 @@ class ClientRegisterFormTests(TestCase):
 
 @override_settings(STATICFILES_STORAGE='django.core.files.storage.FileSystemStorage', DEFAULT_FILE_STORAGE='django.core.files.storage.FileSystemStorage')
 class VolunteerRegisterFormTests(TestCase):
+    """Test cases for volunteer registration form"""
     def setUp(self):
         self.form_data = {
             'email': 'newvolunteer@test.com',
@@ -155,6 +167,7 @@ class VolunteerRegisterFormTests(TestCase):
         }
 
     def test_volunteer_register_form_valid(self):
+        """Test valid volunteer registration form submission"""
         form = VolunteerRegisterForm(data=self.form_data)
         self.assertTrue(form.is_valid(), form.errors)
         user = form.save()
@@ -164,6 +177,7 @@ class VolunteerRegisterFormTests(TestCase):
         self.assertEqual(user.userprofile.volunteerprofile.university_course, 'Biology')
 
     def test_volunteer_register_form_missing_consent(self):
+        """Test volunteer registration form without consent"""
         invalid_data = self.form_data.copy()
         invalid_data['consent_safeguard'] = False
         form = VolunteerRegisterForm(data=invalid_data)
@@ -173,6 +187,7 @@ class VolunteerRegisterFormTests(TestCase):
 
 @override_settings(STATICFILES_STORAGE='django.core.files.storage.FileSystemStorage', DEFAULT_FILE_STORAGE='django.core.files.storage.FileSystemStorage')
 class ClientProfileFormTests(TestCase):
+    """Test cases for client profile editing form"""
     def setUp(self):
         self.user = CustomUser.objects.create_user(
             email='client@test.com',
@@ -229,12 +244,14 @@ class ClientProfileFormTests(TestCase):
     #     self.assertIsNotNone(self.client_profile.pip_certificate)
 
     def test_client_profile_form_dynamic_fields(self):
+        """Test client profile form dynamic field generation"""
         form = ClientProfileForm(instance=self.client_profile)
         self.assertIn('pip_certificate', form.fields)
 
 
 @override_settings(STATICFILES_STORAGE='django.core.files.storage.FileSystemStorage', DEFAULT_FILE_STORAGE='django.core.files.storage.FileSystemStorage')
 class VolunteerProfileFormTests(TestCase):
+    """Test cases for volunteer profile editing form"""
     def setUp(self):
         self.user = CustomUser.objects.create_user(
             email='volunteer@test.com',
@@ -287,6 +304,7 @@ class VolunteerProfileFormTests(TestCase):
 
 @override_settings(STATICFILES_STORAGE='django.core.files.storage.FileSystemStorage', DEFAULT_FILE_STORAGE='django.core.files.storage.FileSystemStorage')
 class UserViewsTests(TestCase):
+    """Test cases for user-related views"""
     def setUp(self):
         self.client = Client()
         self.user = CustomUser.objects.create_user(
@@ -326,16 +344,19 @@ class UserViewsTests(TestCase):
         )
 
     def test_home_view(self):
+        """Test home page view"""
         response = self.client.get(reverse('user:home'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'user/home.html')
 
     def test_login_view_get(self):
+        """Test login page GET request"""
         response = self.client.get(reverse('user:login'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'user/login.html')
 
     def test_login_view_post_success(self):
+        """Test successful login POST request"""
         response = self.client.post(reverse('user:login'), {
             'username': 'testuser@test.com',
             'password': 'testpass123'
@@ -352,17 +373,20 @@ class UserViewsTests(TestCase):
     #     self.assertFalse(response.wsgi_request.user.is_authenticated)
 
     def test_logout_view(self):
+        """Test user logout functionality"""
         self.client.login(email='testuser@test.com', password='testpass123')
         response = self.client.get(reverse('user:logout'))
         self.assertRedirects(response, reverse('user:login'))
         self.assertFalse(response.wsgi_request.user.is_authenticated)
 
     def test_client_register_view_get(self):
+        """Test client registration page GET request"""
         response = self.client.get(reverse('user:client_register'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'user/client_register.html')
 
     def test_client_register_view_post(self):
+        """Test client registration POST request"""
         cert_type = CertificationType.objects.create(name='PIP')
         response = self.client.post(reverse('user:client_register'), {
             'email': 'newclient@test.com',
@@ -382,11 +406,13 @@ class UserViewsTests(TestCase):
         self.assertTrue(CustomUser.objects.filter(email='newclient@test.com').exists())
 
     def test_volunteer_register_view_get(self):
+        """Test volunteer registration page GET request"""
         response = self.client.get(reverse('user:volunteer_register'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'user/volunteer_register.html')
 
     def test_volunteer_register_view_post(self):
+        """Test volunteer registration POST request"""
         response = self.client.post(reverse('user:volunteer_register'), {
             'email': 'newvolunteer@test.com',
             'password1': 'testpass123',
@@ -406,6 +432,7 @@ class UserViewsTests(TestCase):
         self.assertTrue(CustomUser.objects.filter(email='newvolunteer@test.com').exists())
 
     def test_client_profile_edit_view_get(self):
+        """Test client profile edit page GET request"""
         self.client.login(email='testuser@test.com', password='testpass123')
         response = self.client.get(reverse('user:client_profile_edit'))
         self.assertEqual(response.status_code, 200)
@@ -438,6 +465,7 @@ class UserViewsTests(TestCase):
     #     self.assertTrue(self.client_profile.conditions.filter(name='Diabetes').exists())
 
     def test_volunteer_profile_edit_view_get(self):
+        """Test volunteer profile edit page GET request"""
         self.client.login(email='volunteer@test.com', password='testpass123')
         response = self.client.get(reverse('user:volunteer_profile_edit'))
         self.assertEqual(response.status_code, 200)
@@ -463,6 +491,7 @@ class UserViewsTests(TestCase):
     #     self.assertEqual(self.volunteer_profile.skills, 'First Aid')
 
     def test_profile_detail_view_client(self):
+        """Test client profile detail view"""
         self.client.login(email='testuser@test.com', password='testpass123')
         response = self.client.get(reverse('user:profile_detail'))
         self.assertEqual(response.status_code, 200)
@@ -470,6 +499,7 @@ class UserViewsTests(TestCase):
         self.assertIn('client_profile', response.context)
 
     def test_profile_detail_view_volunteer(self):
+        """Test volunteer profile detail view"""
         self.client.login(email='volunteer@test.com', password='testpass123')
         response = self.client.get(reverse('user:profile_detail'))
         self.assertEqual(response.status_code, 200)
@@ -477,6 +507,7 @@ class UserViewsTests(TestCase):
         self.assertIn('volunteer_profile', response.context)
 
     def test_photo_edit_view_get(self):
+        """Test photo edit page GET request"""
         self.client.login(email='testuser@test.com', password='testpass123')
         response = self.client.get(reverse('user:photo_edit'))
         self.assertEqual(response.status_code, 200)
