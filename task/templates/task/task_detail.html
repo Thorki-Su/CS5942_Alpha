@@ -270,6 +270,10 @@
                     <span>{{ task.start_time|date:"M d, Y H:i" }} - {{ task.end_time|date:"M d, Y H:i" }}</span>
                 </div>
                 <div class="detail-item">
+                    <strong>Location:</strong>
+                    <span>{{ task.client.userprofile.location }}</span>
+                </div>
+                <div class="detail-item">
                     <strong>Volunteers Needed:</strong>
                     <span>{{ task.vol_number }}</span>
                 </div>
