@@ -112,7 +112,9 @@ class TaskModelTests(TestCase):
 
     def test_task_is_within_24h(self):
         """Test task is_within_24h method"""
-        # Task starts in 1 day, so not within 24h
+        # Set task to start in more than 24 hours
+        self.task.start_time = timezone.now() + timedelta(hours=25)
+        self.task.save()
         self.assertFalse(self.task.is_within_24h())
         
         # Change to start in 12 hours
@@ -401,8 +403,18 @@ class TaskViewTests(TestCase):
 
     def test_task_ongoing_view_client(self):
         """Test client viewing ongoing tasks"""
+        # Set task time to be currently ongoing
+        self.task.start_time = timezone.now() - timedelta(minutes=30)
+        self.task.end_time = timezone.now() + timedelta(minutes=30)
         self.task.status = 'ongoing'
         self.task.save()
+        
+        # Create accepted application to ensure task stays ongoing
+        TaskApplication.objects.create(
+            task=self.task,
+            volunteer=self.volunteer_user,
+            status='accepted'
+        )
         
         self.client.login(email='client@test.com', password='testpass123')
         response = self.client.get(reverse('task:task_ongoing'))
@@ -412,6 +424,9 @@ class TaskViewTests(TestCase):
 
     def test_task_ongoing_view_volunteer(self):
         """Test volunteer viewing ongoing tasks"""
+        # Set task time to be currently ongoing
+        self.task.start_time = timezone.now() - timedelta(minutes=30)
+        self.task.end_time = timezone.now() + timedelta(minutes=30)
         self.task.status = 'ongoing'
         self.task.save()
         
@@ -714,9 +729,9 @@ class TaskStatusUpdateTests(TestCase):
 
     def test_update_status_by_time_after_end_confirmed(self):
         """Test task status update after end time with client confirmation"""
-        # Set task to past
-        self.task.start_time = timezone.now() - timedelta(hours=4)
-        self.task.end_time = timezone.now() - timedelta(hours=1)
+        # Set task to past (more than 2 hours after end time)
+        self.task.start_time = timezone.now() - timedelta(hours=6)
+        self.task.end_time = timezone.now() - timedelta(hours=3)  # More than 2 hours ago
         self.task.confirmed_by_client = True
         self.task.save()
         
@@ -732,9 +747,9 @@ class TaskStatusUpdateTests(TestCase):
 
     def test_update_status_by_time_after_end_not_confirmed(self):
         """Test task status update after end time without client confirmation"""
-        # Set task to past
-        self.task.start_time = timezone.now() - timedelta(hours=4)
-        self.task.end_time = timezone.now() - timedelta(hours=1)
+        # Set task to past (more than 2 hours after end time)
+        self.task.start_time = timezone.now() - timedelta(hours=6)
+        self.task.end_time = timezone.now() - timedelta(hours=3)  # More than 2 hours ago
         self.task.confirmed_by_client = False
         self.task.save()
         
