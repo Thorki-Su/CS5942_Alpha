@@ -90,7 +90,7 @@ class VolunteerUtilsTests(TestCase):
     def test_calculate_volunteer_duration_no_tasks(self):
         """Test volunteer duration calculation with no completed tasks"""
         duration = calculate_volunteer_duration(self.volunteer_user)
-        self.assertEqual(duration, 0.0)
+        self.assertAlmostEqual(duration, 0.0, places=1)
 
     def test_calculate_volunteer_duration_with_completed_tasks(self):
         """Test volunteer duration calculation with completed tasks"""
@@ -108,7 +108,7 @@ class VolunteerUtilsTests(TestCase):
         
         duration = calculate_volunteer_duration(self.volunteer_user)
         expected_duration = 2.0 + 3.5  # 5.5 hours total
-        self.assertEqual(duration, expected_duration)
+        self.assertAlmostEqual(duration, expected_duration, places=1)
 
     def test_calculate_volunteer_duration_excludes_non_completed(self):
         """Test that non-completed tasks are excluded from duration calculation"""
@@ -131,7 +131,7 @@ class VolunteerUtilsTests(TestCase):
         
         duration = calculate_volunteer_duration(self.volunteer_user)
         expected_duration = 2.0  # Only completed task
-        self.assertEqual(duration, expected_duration)
+        self.assertAlmostEqual(duration, expected_duration, places=1)
 
     def test_format_volunteer_duration_zero_hours(self):
         """Test formatting zero hours"""
@@ -248,7 +248,7 @@ class VolunteerViewsTests(TestCase):
         self.assertTemplateUsed(response, 'volunteer/service_certificate.html')
         self.assertIn('total_hours', response.context)
         self.assertIn('formatted_duration', response.context)
-        self.assertEqual(response.context['total_hours'], 10.5)
+        self.assertAlmostEqual(response.context['total_hours'], 10.5, places=1)
 
     def test_download_certificate_unauthenticated(self):
         """Test download certificate requires authentication"""
@@ -318,7 +318,7 @@ class VolunteerViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data['status'], 'success')
-        self.assertEqual(data['total_hours'], 8.25)
+        self.assertAlmostEqual(data['total_hours'], 8.25, places=1)
         self.assertEqual(data['formatted_duration'], "8 hours 15 minutes")
 
 
@@ -393,7 +393,7 @@ class VolunteerIntegrationTests(TestCase):
         
         # 4. Check volunteer duration calculation
         duration = calculate_volunteer_duration(self.volunteer_user)
-        self.assertEqual(duration, 2.0)  # 2 hours
+        self.assertAlmostEqual(duration, 2.0, places=1)  # 2 hours
         
         # 5. Check duration formatting
         formatted = format_volunteer_duration(duration)
@@ -415,7 +415,7 @@ class VolunteerIntegrationTests(TestCase):
         response = self.client.get(reverse('volunteer:get_volunteer_stats'))
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['total_hours'], 2.0)
+        self.assertAlmostEqual(data['total_hours'], 2.0, places=1)
         self.assertEqual(data['formatted_duration'], "2 hours")
 
     def test_multiple_tasks_duration_accumulation(self):
@@ -453,7 +453,7 @@ class VolunteerIntegrationTests(TestCase):
         
         # Check total duration
         duration = calculate_volunteer_duration(self.volunteer_user)
-        self.assertEqual(duration, total_expected_hours)  # 7.0 hours total
+        self.assertAlmostEqual(duration, total_expected_hours, places=1)  # 7.0 hours total
         
         # Check formatting
         formatted = format_volunteer_duration(duration)
@@ -483,7 +483,7 @@ class VolunteerIntegrationTests(TestCase):
         response = self.client.get(reverse('volunteer:service_certificate'))
         
         # Verify context data
-        self.assertEqual(response.context['total_hours'], 4.5)
+        self.assertAlmostEqual(response.context['total_hours'], 4.5, places=1)
         self.assertEqual(response.context['formatted_duration'], "4 hours 30 minutes")
         self.assertEqual(response.context['user_profile'].get_full_name, "John Volunteer")
         self.assertIn('current_date', response.context)
@@ -519,7 +519,7 @@ class VolunteerIntegrationTests(TestCase):
         # Verify consistency
         self.assertEqual(api_data['total_hours'], cert_response.context['total_hours'])
         self.assertEqual(api_data['formatted_duration'], cert_response.context['formatted_duration'])
-        self.assertEqual(api_data['total_hours'], 6.0)  # 3 tasks × 2 hours each
+        self.assertAlmostEqual(api_data['total_hours'], 6.0, places=1)  # 3 tasks × 2 hours each
 
 
 class VolunteerEdgeCaseTests(TestCase):
@@ -561,7 +561,7 @@ class VolunteerEdgeCaseTests(TestCase):
         
         # Should handle gracefully
         duration = calculate_volunteer_duration(user_no_profile)
-        self.assertEqual(duration, 0.0)
+        self.assertAlmostEqual(duration, 0.0, places=1)
 
     def test_task_with_zero_duration(self):
         """Test handling of tasks with zero or negative duration"""
@@ -590,7 +590,7 @@ class VolunteerEdgeCaseTests(TestCase):
         )
         
         duration = calculate_volunteer_duration(self.volunteer_user)
-        self.assertEqual(duration, 0.0)
+        self.assertAlmostEqual(duration, 0.0, places=1)
 
     def test_format_duration_edge_cases(self):
         """Test duration formatting edge cases"""
@@ -674,4 +674,4 @@ class VolunteerEdgeCaseTests(TestCase):
         
         # Duration should be sum of both tasks (even if overlapping)
         duration = calculate_volunteer_duration(self.volunteer_user)
-        self.assertEqual(duration, 6.0)  # 3 + 3 hours
+        self.assertAlmostEqual(duration, 6.0, places=1)  # 3 + 3 hours

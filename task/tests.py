@@ -154,8 +154,8 @@ class TaskModelTests(TestCase):
         self.task.refresh_from_db()
         self.assertEqual(self.task.status, 'selected')
 
-class
- TaskViewTests(TestCase):
+
+class TaskViewTests(TestCase):
     """Test cases for Task views"""
     
     def setUp(self):
