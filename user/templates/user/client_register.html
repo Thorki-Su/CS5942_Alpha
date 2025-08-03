@@ -182,6 +182,27 @@
         margin-top: 5px;
         font-style: italic;
     }
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+        background: white;
+        margin: 10% auto;
+        padding: 20px;
+        width: 60%;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .close-btn {
+        float: right;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
 </style>
 {% endblock %}
 
@@ -263,15 +284,33 @@
                 {{ form.certifications.errors }}<br><br>
             </div>
 
-            <div class="checkbox-group">
+            {% comment %} <div class="checkbox-group">
                 {{ form.consent_safeguard }}
                 <label for="id_consent_safeguard">{{ form.consent_safeguard.label }}</label>
+            </div> {% endcomment %}
+            <div class="form-group">
+                <div class="checkbox-group">
+                    {{ form.consent_safeguard }}
+                    <label for="id_consent_safeguard">
+                        I agree to the <a href="#" id="show-agreement">agreement</a>
+                    </label>
+                </div>
+                {% if form.consent_safeguard.errors %}
+                    {% for error in form.consent_safeguard.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
             </div>
-            {% comment %} <strong>{{form.consent_safeguard.label_tag}}</strong>{{ form.consent_safeguard }}<br><br> {% endcomment %}
 
-            {% comment %} <input type="submit" value="Register"> {% endcomment %}
             <button type="submit" class="submit-btn">Register</button>
         </form>
+        <div id="agreement-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <h2>Agreement</h2>
+                <p>这里写协议内容，比如使用条款、隐私政策等。</p>
+            </div>
+        </div>
 
     </div>
 
@@ -376,6 +415,21 @@
                 msg.innerText = 'Location access denied or unavailable.';
             }
         }
+    
+        document.getElementById("show-agreement").addEventListener("click", function(e) {
+            e.preventDefault();
+            document.getElementById("agreement-modal").style.display = "block";
+        });
+
+        document.querySelector(".close-btn").addEventListener("click", function() {
+            document.getElementById("agreement-modal").style.display = "none";
+        });
+
+        window.addEventListener("click", function(e) {
+            if (e.target.classList.contains("modal")) {
+                document.getElementById("agreement-modal").style.display = "none";
+            }
+        });
     </script>
 
 {% endblock %}

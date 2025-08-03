@@ -3,27 +3,113 @@
 
 {% block title %}Task List{% endblock %}
 
-{% block content %}
-    <div style="margin: 50px;">
-        <h2>Task List</h2>
+{% block style %}
+<style>
+    .task-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .task-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .task-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .task-background {
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    .task-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1rem;
+        color: #333;
+    }
+    .task-table thead {
+        background: #30574e;
+        color: white;
+    }
+    .task-table th,
+    .task-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .task-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .task-table th:first-child,
+    .task-table td:first-child {
+        border-top-left-radius: 8px;
+    }
+    .task-table th:last-child,
+    .task-table td:last-child {
+        border-top-right-radius: 8px;
+    }
+    .task-table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+    }
+    .task-table td {
+        font-size: 0.95rem;
+    }
+    .task-table td a {
+        color: #30574e;
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px dashed #30574e;
+        transition: all 0.3s ease;
+    }
+    .task-table td a:hover {
+        color: white;
+        background: #30574e;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
 
-        <table border="1" cellpadding="8" cellspacing="0">
-            <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Creater</th>
-                <th>Status</th>
-                <th>Detail</th>
-            </tr>
-            {% for task in tasks %}
-            <tr>
-                <td>{{ task.id }}</td>
-                <td>{{ task.title }}</td>
-                <td>{{ task.client }}</td>
-                <td>{{ task.status }}</td>
-                <td><a href="{% url 'adminpanel:task_detail' task.id %}">see details</a></td>
-            </tr>
-            {% endfor %}
-        </table>
+{% block content %}
+    <div class="task-container">
+        <div class="task-header">
+            <h2>Task List</h2>
+        </div>
+        <div class="task-background">
+            <table class="task-table">
+                <thead>
+                    <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Creater</th>
+                    <th>Status</th>
+                    <th>Detail</th>
+                    </tr>
+                </thead>
+                {% for task in tasks %}
+                <tr>
+                    <td>{{ task.id }}</td>
+                    <td>{{ task.title }}</td>
+                    <td>{{ task.client }}</td>
+                    <td>{{ task.status }}</td>
+                    <td><a href="{% url 'adminpanel:task_detail' task.id %}">see details</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
     </div>
 {% endblock %}

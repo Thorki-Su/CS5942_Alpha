@@ -38,7 +38,6 @@
             font-style: italic;
             color: #FFFFFF;
         }
-
         .mission-section, .services-section, .apply-section, section:last-child {
             max-width: 800px;
             margin: 40px auto;
@@ -56,7 +55,6 @@
             color: #333333;
             line-height: 1.6;
         }
-
         .offer-title {
             font-size: 23px;
             color: #000000;
@@ -72,6 +70,65 @@
         .offer-grid p {
             margin: 0;
             text-align: center;
+        }
+        .faq-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .faq-container h2 {
+            color: #30574e;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .faq-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .faq-question {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f5f5f5;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .faq-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+            background: #ccc;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+        .faq-question:hover .faq-number {
+            background: #30574e;
+        }
+        .faq-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        .faq-answer {
+            display: none;
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #ddd;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .faq-item.active .faq-answer {
+            display: block;
         }
     </style>
 {% endblock %}
@@ -106,4 +163,219 @@
     <section class="mission-section">
         <p class="section-text">Shallion serves both paying clients and those who qualify for free services. We extend this support to individuals on <b>Personal Independence Payment (PIP)</b> or with <b>Limited Capability for Work</b> through Universal Credit.</p>
     </section>
+
+    <div class="faq-container">
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">01</span>
+            <span class="faq-text">What is this website for?</span>
+            </div>
+            <div class="faq-answer">
+            <p>Answer content goes here...</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">02</span>
+            <span class="faq-text">Why didn't I receive a verification email after registering?</span>
+            </div>
+            <div class="faq-answer">
+            <p>The email component we are currently using is still a free version, which may result in our emails being classified as spam. Please check the trash bin in your email.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">03</span>
+            <span class="faq-text">Why can't I access some pages/use some features?</span>
+            </div>
+            <div class="faq-answer">
+            <p>We have set audit requirements for accounts, and only accounts that have passed the audit can use the full functionality. Please complete your information on the personal information page, especially photos and various files, and wait for review.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">04</span>
+            <span class="faq-text">As a client, how can I post a task?</span>
+            </div>
+            <div class="faq-answer">
+            <p>Click on 'My Task' in the navigation bar, and at the top of the new page, you will find the link to 'Create a new task'. After filling in the relevant information, click 'submit' to create a new task. We also provide various task templates, which can be automatically filled in by clicking on the corresponding image, making the process of creating tasks more convenient and fast.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">05</span>
+            <span class="faq-text">As a client, how can I view applications for a task?</span>
+            </div>
+            <div class="faq-answer">
+            <p>Click on 'My Task' and select the task you want to view. After entering the task details page, you can see 'View applied volunteers' and click on it. You can choose to accept or reject the application.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">06</span>
+            <span class="faq-text">As a client, what should I do if I don't want a task that has already been published?</span>
+            </div>
+            <div class="faq-answer">
+            <p>Similarly, on the task details page, you can find the 'Cancel This Task' button. However, please note that tasks that are less than 24 hours away from the start time cannot be cancelled.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">07</span>
+            <span class="faq-text">As a client, why can't I find ongoing tasks in 'My Task'?</span>
+            </div>
+            <div class="faq-answer">
+            <p>They will be placed in 'Ongoing Task', which you can find in the navigation bar.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">08</span>
+            <span class="faq-text">As a client, how should I evaluate volunteers?</span>
+            </div>
+            <div class="faq-answer">
+            <p>After the task is completed, you can find the link for 'Give Feedback' on the task details page. You can choose whether you are satisfied or not, and if you want, you can also provide a written evaluation. If you are satisfied with a volunteer, you can add a star to them, which will make the matching between you easier. Don't worry, the star can be cancelled in the next evaluation, and it will only affect the match between you two.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">09</span>
+            <span class="faq-text">As a client, why do some tasks in 'Onboard Task' have a 'timeout' status?</span>
+            </div>
+            <div class="faq-answer">
+            <p>This is because you did not confirm the completion of the task before it ended. However, as long as confirmation is made on the task details page, the task will become 'completed'.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">10</span>
+            <span class="faq-text">As a client, how can I confirm that the task has been completed?</span>
+            </div>
+            <div class="faq-answer">
+            <p>In the task details page, click on 'View task records' to see the work records submitted by volunteers. There is a' Confirm Task Completion 'button on the confirm page.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">11</span>
+            <span class="faq-text">As a client, how do I send a message in a chat room?</span>
+            </div>
+            <div class="faq-answer">
+            <p>Navigate to the chat room(one to one chat or task chat) via the message selection page and type your messages in the input field at the botoom, then click "Send".</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">12</span>
+            <span class="faq-text">As a client, how do I start a video/audio call?</span>
+            </div>
+            <div class="faq-answer">
+            <p>In the chat room, click the blue botton(start a video call/ audio call), your browser will request a permission for the camera or microphone. With your permission, the video/audio call would start.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">13</span>
+            <span class="faq-text">As a client, how do I join a task chat?</span>
+            </div>
+            <div class="faq-answer">
+            <p>if you are the client, when you request a task, you would be in the task chat.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">14</span>
+            <span class="faq-text">As a volunteer, how can I apply for a task?</span>
+            </div>
+            <div class="faq-answer">
+            <p>You have two ways to apply for the task. The first method is to browse all available tasks on the 'Task List' page, select one, and click the apply button on the details page. The second method is to join the schedule. Click on 'Join Shift' in the navigation bar and fill in the relevant information. The system will then match you with the required tasks and automatically create an application.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">15</span>
+            <span class="faq-text">As a volunteer, how can I cancell an application?</span>
+            </div>
+            <div class="faq-answer">
+            <p>On the 'My Application' page, you can see all created applications. Find the application you want to cancel and go to the details page where you will see the 'Cancel This Application' button. However, please note that applications of the task less than 24 hours before the start time cannot be cancelled.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">16</span>
+            <span class="faq-text">As a volunteer, why do I sometimes fail to apply for tasks?</span>
+            </div>
+            <div class="faq-answer">
+            <p>In order to ensure a reasonable schedule, we have added restrictions to the task application. You cannot apply for tasks that have time conflicts or are less than 1 hour apart from the applied tasks.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">17</span>
+            <span class="faq-text">As a volunteer, what should be the process of completing a task?</span>
+            </div>
+            <div class="faq-answer">
+            <p>You should establish contact with the patient through the task chat room before starting the task, discuss specific work content, and start working on time. After completing the work, you should click on 'Submit task records' on the task details page and submit your work records. If desired, after the task is completed, you can find the location to submit feedback on the details page.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">18</span>
+            <span class="faq-text">As a volunteer, what can I gain from volunteer activities?</span>
+            </div>
+            <div class="faq-answer">
+            <p>We will record your volunteer service duration and provide proof of volunteer service.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">19</span>
+            <span class="faq-text">As a volunteer, how do I join a task chat?</span>
+            </div>
+            <div class="faq-answer">
+            <p>If you are a volunteer, only when you accept the task, you can join the task chat.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+            <span class="faq-number">20</span>
+            <span class="faq-text">As a volunteer, how do I contact with the client before I accepting a task.</span>
+            </div>
+            <div class="faq-answer">
+            <p>If you are a volunteer and you did not accept a task, you can go to the task detail page, and there is a link to the private chat for you to contact the client.</p>
+            </div>
+        </div>
+
+        <!-- 继续添加更多问题 -->
+    </div>
+
+    <script>
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+            const item = question.parentElement;
+            item.classList.toggle('active');
+            });
+        });
+    </script>
 {% endblock %}

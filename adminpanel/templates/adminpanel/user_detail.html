@@ -3,53 +3,232 @@
 
 {% block title %}User details{% endblock %}
 
+{% block style %}
+<style>
+    .user-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .user-details, .user-tasks, .user-stars {
+        margin: 30px auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    .user-details-title, .user-tasks-title, .user-stars-title {
+        text-align: center;
+        background: #30574e;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .user-details-title h1, .user-tasks-title h1, .user-stars-title h1 {
+        color: white;
+        font-weight: 500;
+    }
+    .user-details-title a {
+        background: #30574e;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    .user-details-title a:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+        text-decoration: none;
+    }
+    .user-details-photo {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .user-details-photo img {
+        border-radius: 50%;
+        border: 5px solid #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        max-width: 200px;
+        height: 200px;
+        object-fit: cover;
+    }
+    .user-details-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .user-details-item {
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 3px solid #30574e;
+    }
+    .user-details-item strong {
+        color: #495057;
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    .user-tasks-board {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 25px;
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .user-tasks-card {
+        display: flex;
+        flex-direction: column;
+        border-radius: 12px;
+        padding: 15px;
+        gap: 10px;
+        border: 4px solid #30574e;
+    }
+    .user-tasks-card a {
+        background: #30574e;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 400;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    .user-tasks-card a:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+    }
+    .user-stars h3 {
+        color: #30574e;
+    }
+    .no-tasks {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .no-tasks p {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style="margin: 50px;">
-        <div>
-            <h1>User details</h1>
-            <div>
+    <div class="user-container">
+        <div class="user-details">
+            <div class="user-details-title">
+                <h1>User's details</h1>
                 <p><a href="{% url 'adminpanel:user_file' user.id %}">User's file</a></p>
             </div>
-            <p><strong>ID:</strong> {{ user.id }}</p>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Name:</strong> {{ user.userprofile.get_full_name }}</p>
-            <p><strong>Role:</strong> {{ user.role }}</p>
-            <p><strong>Activated or not:</strong> {{ user.is_active }}</p>
-            <p><strong>Age:</strong> {{ user.userprofile.age|default:"unfilled" }}</p>
-            <p><strong>Gender:</strong> {{ user.userprofile.gender|default:"unfilled" }}</p>
-            <p><strong>Phone Number:</strong> {{ user.userprofile.phone_number|default:"unfilled" }}</p>
-            <p><strong>Location:</strong> {{ user.userprofile.location }}</p>
-            {% if user.role == 'volunteer' %}
-                <p><strong>In scheduling or not:</strong> {{ user.userprofile.volunteerprofile.is_scheduled }}</p>
-            {% endif %}
-            <p><strong>Photo:</strong></p>
-            {% if user.userprofile.profile_photo %}
-                <p><img src="{{ user.userprofile.profile_photo.url }}" alt="Profile Photo" width="200"></p>
-            {% else %}
-                <p>No photos</p>
-            {% endif %}
-            <p><strong>Emergency Contact:</strong> {{ user.userprofile.emergency_contact|default:"unfilled" }}</p>
+            <div class="user-details-photo">
+                <p><strong>Photo:</strong></p>
+                {% if user.userprofile.profile_photo %}
+                    <p><img src="{{ user.userprofile.profile_photo.url }}" alt="Profile Photo" width="200"></p>
+                {% else %}
+                    <p>No photos</p>
+                {% endif %}
+            </div>
+            <div class="user-details-info">
+                <div class="user-details-item">
+                    <p><strong>ID:</strong> {{ user.id }}</p>
+                </div>
+                <div class="user-details-item">
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                </div>
+                <div class="user-details-item">
+                    <p><strong>Name:</strong> {{ user.userprofile.get_full_name }}</p>
+                </div>
+                <div class="user-details-item">
+                    <p><strong>Role:</strong> {{ user.role }}</p>
+                </div>
+                <div class="user-details-item">
+                    <p><strong>Activated or not:</strong> {{ user.is_active }}</p>
+                </div>
+                <div class="user-details-item">
+                    <p><strong>Age:</strong> {{ user.userprofile.age|default:"unfilled" }}</p>
+                </div>
+                <div class="user-details-item">
+                    <p><strong>Gender:</strong> {{ user.userprofile.gender|default:"unfilled" }}</p>
+                </div>
+                <div class="user-details-item">
+                    <p><strong>Phone Number:</strong> {{ user.userprofile.phone_number|default:"unfilled" }}</p>
+                </div>
+                <div class="user-details-item">
+                    <p><strong>Location:</strong> {{ user.userprofile.location }}</p>
+                </div>
+                {% if user.role == 'volunteer' %}
+                    <div class="user-details-item">
+                        <p><strong>In scheduling or not:</strong> {{ user.userprofile.volunteerprofile.is_scheduled }}</p>
+                    </div>
+                {% endif %}
+                <div class="user-details-item">
+                    <p><strong>Emergency Contact:</strong> {{ user.userprofile.emergency_contact|default:"unfilled" }}</p>
+                </div>
+            </div>
         </div>
-        <div>
+        <div class="user-tasks">
             {% if user.role == 'client' %}
-                <h2>User's Task</h2>
-                {% for task in tasks %}
-                    <p><strong>Title:</strong> {{ task.title }}</p>
-                    <p><strong>Status:</strong> {{ task.status }}</p>
-                    <p><strong>Created At:</strong> {{ task.created_at }}</p>
-                    <p><strong>Detail:</strong> <a href="{% url 'adminpanel:task_detail' task.id %}">check out</a></p><br><br>
-                {% endfor %}
+                <div class="user-tasks-title">
+                    <h1>User's Task</h1>
+                </div>
+                {% if tasks %}
+                    <div class="user-tasks-board">
+                        {% for task in tasks %}
+                            <div class="user-tasks-card">
+                                <p><strong>Title:</strong> {{ task.title }}</p>
+                                <p><strong>Status:</strong> {{ task.status }}</p>
+                                <p><strong>Created At:</strong> {{ task.created_at }}</p>
+                                <p><strong>Detail:</strong> <a href="{% url 'adminpanel:task_detail' task.id %}">check out</a></p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-tasks">
+                        <p>The user doesn't have any tasks.</p>
+                    </div>
+                {% endif %}
             {% elif user.role == 'volunteer' %}
-                <h2>User's Application</h2>
-                {% for app in applications %}
-                    <p><strong>Task:</strong> <a href="{% url 'adminpanel:task_detail' app.task.id %}">{{ app.task.title }}</a></p>
-                    <p><strong>Status:</strong> {{ app.status }}</p>
-                    <p><strong>Apply At:</strong> {{ app.applied_at }}</p><br><br>
-                {% endfor %}
+                <div class="user-tasks-title">
+                    <h1>User's Application</h1>
+                </div>
+                {% if applications %}
+                    <div class="user-tasks-board">
+                        {% for app in applications %}
+                            <div class="user-tasks-card">
+                                <p><strong>Task:</strong> <a href="{% url 'adminpanel:task_detail' app.task.id %}">{{ app.task.title }}</a></p>
+                                <p><strong>Status:</strong> {{ app.status }}</p>
+                                <p><strong>Apply At:</strong> {{ app.applied_at }}</p><br><br>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-tasks">
+                        <p>The user doesn't have any applications.</p>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
-        <div>
-            <h2>Stars</h2>
+        <div class="user-stars">
+            <div class="user-stars-title">
+                <h1>User's Stars</h1>
+            </div>
             <h3>Stars Given</h3>
             {% if give_stars %}
                 {% for star in give_stars %}

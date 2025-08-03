@@ -3,17 +3,115 @@
 
 {% block title %}Donation Records{% endblock %}
 
+{% block style %}
+<style>
+    .donation-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .donation-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .donation-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .donation-background {
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    .donation-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1rem;
+        color: #333;
+    }
+    .donation-table thead {
+        background: #30574e;
+        color: white;
+    }
+    .donation-table th,
+    .donation-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .donation-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .donation-table th:first-child,
+    .donation-table td:first-child {
+        border-top-left-radius: 8px;
+    }
+    .donation-table th:last-child,
+    .donation-table td:last-child {
+        border-top-right-radius: 8px;
+    }
+    .donation-table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+    }
+    .donation-table td {
+        font-size: 0.95rem;
+    }
+    .no-donations {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .no-donations p {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style="margin: 50px;">
+    <div class="donation-container">
+        <div class="donation-header">
+            <h2>Donation List</h2>
+        </div>       
         {% if donations %}
-            {% for don in donations %}
-                <p>{{ don.donor_name }}</p>
-                <p>{{ don.donor_email }}</p>
-                <p>{{ don.amount }}</p>
-                <p>{{ don.completed_at }}</p><br><br>
-            {% endfor %}
+            <div class="donation-background">
+                <table class="donation-table">
+                    <thead>
+                        <tr>
+                        <th>Donor</th>
+                        <th>Email</th>
+                        <th>Amount</th>
+                        <th>Time</th>
+                        </tr>
+                    </thead>
+                    {% for don in donations %}
+                    <tr>
+                        <td>{{ don.donor_name }}</td>
+                        <td>{{ don.donor_email }}</td>
+                        <td>{{ don.amount }}</td>
+                        <td>{{ don.completed_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
         {% else %}
+        <div class="no-donations">
             <p>There is no donations yet!</p>
+        </div>
         {% endif %}
     </div>
 {% endblock %}
