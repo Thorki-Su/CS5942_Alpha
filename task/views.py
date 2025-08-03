@@ -340,7 +340,7 @@ def task_confirm(request, task_id):
         print("task creater:", task.client)
         return redirect('task:task_detail', task_id=task.id)
     
-    record = getattr(task, 'record', None)
+    records = task.records.all()
     if request.method == 'POST':
         task.confirmed_by_client = True
         task.status = 'completed'
@@ -348,7 +348,7 @@ def task_confirm(request, task_id):
         task.save()
         return redirect('task:mytask')
     
-    return render(request, 'task/task_confirm.html', {'task': task, 'record': record})
+    return render(request, 'task/task_confirm.html', {'task': task, 'records': records})
 
 @eligibility_required
 @volunteer_required

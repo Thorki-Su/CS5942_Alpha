@@ -2,37 +2,141 @@
 
 {% block title %}Applications{% endblock %}
 
-{% block content %}
-    <div style='margin:50px;'>
-        <h2>Applications</h2>
-        <p>Needed Volunteer Number: {{ task.vol_number }}</p>
-        {% if applications %}
-            <ul>
-                {% for app in applications %}
-                    <li>
-                        Volunteer: {{ app.volunteer.userprofile.get_full_name }} [{{ app.volunteer.email }}]
-                        <br><img src="{{ app.volunteer.userprofile.profile_photo.url }}" alt="The photo of creater" width="100">
-                        <br>— Status: {{ app.status }}
-                        {% if app.is_auto_matched %}
-                            <br>(Automatically matched by the system)
-                        {% endif %}
+{% block style %}
+<style>
+    .application-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .application-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .application-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .application-header p {
+        margin-top: 10px;
+    }
+    .volunteer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+    .volunteer-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border-left: 4px solid #30574e;
+    }
+    .volunteer-title {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 15px;
+        text-decoration: none;
+    }
+    .bottom {
+        display: flex;
+        width: 100%;
+        gap: 50px;
+    }
+    .bottom-right {
+        border-left: 2px solid #30574e;
+        padding-left: 10px;
+    }
+    button {
+        background: #30574e;
+        color: white;
+        width: 85px;
+        border-radius: 8px !important;
+    }
+    button:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+        text-decoration: none;
+    }
+    .volunteer-photo {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #30574e;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .no-applications {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .no-applications p {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin: 0;
+    }
+</style>
+{% endblock %}
 
-                        {% if app.status == 'pending' %}
-                            <form method="post" action="{% url 'task:approve_application' app.id %}" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit">Approve</button>
-                            </form>
-                            <form method="post" action="{% url 'task:reject_application' app.id %}" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit">Reject</button>
-                            </form>
-                        {% endif %}
-                    </li>
+{% block content %}
+    <div class="application-container">
+        <div class="application-header">
+            <h2>Applications</h2>
+            <p>Needed Volunteer Number: {{ task.vol_number }}</p>
+        </div>
+        {% if applications %} 
+            <div class="volunteer-grid">
+                {% for app in applications %}
+                    <div class="volunteer-card">
+                        <div class="top">
+                            <p class="volunteer-title">{{ app.volunteer.userprofile.get_full_name }} [{{ app.volunteer.email }}]</p>
+                        </div>
+                        <div class="bottom">
+                            <div class="bottom-left">
+                                <img src="{{ app.volunteer.userprofile.profile_photo.url }}" alt="The photo of volunteer" class="volunteer-photo">
+                            </div>
+                            <div class="bottom-right">
+                                <p>Status: {{ app.status }}</p>
+                                {% if app.is_auto_matched %}
+                                    <p>(Automatically matched by the system)</p>
+                                {% endif %}
+
+                                {% if app.status == 'pending' %}
+                                    <form method="post" action="{% url 'task:approve_application' app.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit">Approve</button>
+                                    </form>
+                                    <form method="post" action="{% url 'task:reject_application' app.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit">Reject</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 {% endfor %}
-            </ul>
+            </div>   
         {% else %}
-            <p>No volunteers have applied for this task now.</p>
-        {% endif %}
-        
+            <div class="no-applications">
+                <p>No volunteers have applied for this task now.</p>
+            </div>
+        {% endif %}  
     </div>
 {% endblock %}
