@@ -3,66 +3,209 @@
 
 {% block title %}Task Detail{% endblock %}
 
+{% block style %}
+<style>
+    .task-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .task-details,
+    .task-applications,
+    .task-records,
+    .task-feedbacks {
+        margin: 30px auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    .task-details-title,
+    .task-applications-title,
+    .task-records-title,
+    .task-feedbacks-title {
+        text-align: center;
+        background: #30574e;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .task-details-title h1,
+    .task-applications-title h1,
+    .task-records-title h1,
+    .task-feedbacks-title h1 {
+        color: white;
+        font-weight: 500;
+    }
+    .task-details-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .task-details-item {
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 3px solid #30574e;
+    }
+    .task-details-item strong {
+        color: #495057;
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    .task-applications-board,
+    .task-records-board,
+    .task-feedbacks-board {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 25px;
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .task-applications-card,
+    .task-records-card,
+    .task-feedbacks-card {
+        display: flex;
+        flex-direction: column;
+        border-radius: 12px;
+        padding: 15px;
+        gap: 10px;
+        border: 4px solid #30574e;
+    }
+    .no-applications p,
+    .no-records p,
+    .no-feedbacks p {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style="margin: 50px;">
-        <div>
-            <h1>Task details</h1>
-            <p><strong>ID:</strong> {{ task.id }}</p>
-            <p><strong>Title:</strong> {{ task.title }}</p>
-            <p><strong>Description:</strong> {{ task.description }}</p>
-            <p><strong>Work Area:</strong> {{ task.work_area }}</p>
-            <p><strong>Start Time:</strong> {{ task.start_time }}</p>
-            <p><strong>End Time:</strong> {{ task.end_time }}</p>
-            <p><strong>Needed Volunteer:</strong> {{ task.vol_number }}</p>
-            <p><strong>Status:</strong> {{ task.status }}</p>
-            <p><strong>Creater:</strong> {{ task.client }} [{{ task.client.userprofile.get_full_name }}]</p>
-            <p><strong>Created At:</strong> {{ task.created_at }}</p>
-            <p><strong>Closed At:</strong> {{ task.closed_at }}</p>
+    <div class="task-container">
+        <div class="task-details">
+            <div class="task-details-title">
+                <h1>Task details</h1>
+            </div>
+            <div class="task-details-info">
+                <div class="task-details-item">
+                    <p><strong>ID:</strong> {{ task.id }}</p>
+                </div>
+                <div class="task-details-item">
+                    <p><strong>Title:</strong> {{ task.title }}</p>
+                </div>
+                <div class="task-details-item">
+                    <p><strong>Description:</strong> {{ task.description }}</p>
+                </div>
+                <div class="task-details-item">
+                    <p><strong>Work Area:</strong> {{ task.work_area }}</p>
+                </div>
+                <div class="task-details-item">
+                    <p><strong>Start Time:</strong> {{ task.start_time }}</p>
+                </div>
+                <div class="task-details-item">
+                    <p><strong>End Time:</strong> {{ task.end_time }}</p>
+                </div>
+                <div class="task-details-item">
+                    <p><strong>Needed Volunteer:</strong> {{ task.vol_number }}</p>
+                </div>
+                <div class="task-details-item">
+                    <p><strong>Status:</strong> {{ task.status }}</p>
+                </div>
+                <div class="task-details-item">
+                    <p><strong>Creater:</strong> {{ task.client }} [{{ task.client.userprofile.get_full_name }}]</p>
+                </div>
+                <div class="task-details-item">
+                    <p><strong>Created At:</strong> {{ task.created_at }}</p>
+                </div>
+                <div class="task-details-item">
+                    <p><strong>Closed At:</strong> {{ task.closed_at }}</p>
+                </div>
+            </div>
         </div>
-        <div>
-            {% if applications %}
-            <h2>Applications for this task.</h2><br>
-                {% for app in applications %}
-                    <p><strong>Applicant:</strong> {{ app.volunteer }} [{{ app.volunteer.userprofile.get_full_name }}]</p>
-                    <p><strong>Status:</strong> {{ app.status }}</p>
-                    <p><strong>Apply At:</strong> {{ app.applied_at }}</p>
-                    {% if app.completed_at %}
-                        <p><strong>Completed At:</strong> {{ app.completed_at }}</p>
-                    {% elif app.cancelled_at %}
-                        <p><strong>Cancelled At:</strong> {{ app.cancelled_at }}</p>
-                    {% endif %}
-                    <p><strong>Auto-match or not:</strong> {{ app.is_auto_matched }}</p><br><br>
-                {% endfor %}
-            {% endif %}
+        <div class="task-applications">
+            <div class="task-applications-title">
+                <h1>Applications for this task</h1>
+            </div>
+            <div class="task-applications-board">
+                {% if applications %}
+                    {% for app in applications %}
+                        <div class="task-applications-card">
+                            <p><strong>Applicant:</strong> {{ app.volunteer }} [{{ app.volunteer.userprofile.get_full_name }}]</p>
+                            <p><strong>Status:</strong> {{ app.status }}</p>
+                            <p><strong>Apply At:</strong> {{ app.applied_at }}</p>
+                            {% if app.completed_at %}
+                                <p><strong>Completed At:</strong> {{ app.completed_at }}</p>
+                            {% elif app.cancelled_at %}
+                                <p><strong>Cancelled At:</strong> {{ app.cancelled_at }}</p>
+                            {% endif %}
+                            <p><strong>Auto-match or not:</strong> {{ app.is_auto_matched }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-applications">
+                        <p>There is no applications for this task yet.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
-        <div>
-            {% if records %}
-                <h2>Records for this task.</h2><br>
-                {% for record in records %}
-                    <p><strong>Volunteer:</strong> {{ record.volunteer }} [{{ record.volunteer.userprofile.get_full_name }}]</p>
-                    <p><strong>Records:</strong></p>
-                    <ul>
-                        {% for item in record.records %}
-                            <li>{{ item }}</li>
-                        {% endfor %}
-                    </ul>
-                    <p><strong>Submitted At:</strong> {{ record.submitted_at }}</p><br><br>
-                {% endfor %}
-            {% endif %}
+        <div class="task-records">
+            <div class="task-records-title">
+                <h1>Records for this task</h1>
+            </div>
+            <div class="task-records-board">
+                {% if records %}
+                    {% for record in records %}
+                        <div class="task-records-card">
+                            <p><strong>Volunteer:</strong> {{ record.volunteer }} [{{ record.volunteer.userprofile.get_full_name }}]</p>
+                            <p><strong>Records:</strong></p>
+                            <ul>
+                                {% for item in record.records %}
+                                    <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                            <p><strong>Submitted At:</strong> {{ record.submitted_at }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-records">
+                        <p>There is no records for this task yet.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
-        <div>
-            {% if feedbacks %}
-                <h2>Feedbacks for this task.</h2><br>
-                {% for feedback in feedbacks %}
-                    <p><strong>From:</strong> {{ feedback.from_user }} [{{ feedback.from_user.userprofile.get_full_name }}]</p>
-                    <p><strong>To:</strong> {{ feedback.to_user }} [{{ feedback.to_user.userprofile.get_full_name }}]</p>
-                    <p><strong>Satisfied or not:</strong> {{ feedback.is_satisfied }}</p>
-                    {% if feedback.comment %}
-                        <p><strong>Comments:</strong> {{ feedback.comment }}</p>
-                    {% endif %}
-                    <p><strong>Submitted At:</strong> {{ feedback.submitted_at }}</p><br><br>
-                {% endfor %}
-            {% endif %}
+        <div class="task-feedbacks">
+            <div class="task-feedbacks-title">
+                <h1>Feedbacks for this task</h1>
+            </div>
+            <div class="task-feedbacks-board">
+                {% if feedbacks %}
+                    {% for feedback in feedbacks %}
+                        <div class="task-feedbacks-card">
+                            <p><strong>From:</strong> {{ feedback.from_user }} [{{ feedback.from_user.userprofile.get_full_name }}]</p>
+                            <p><strong>To:</strong> {{ feedback.to_user }} [{{ feedback.to_user.userprofile.get_full_name }}]</p>
+                            <p><strong>Satisfied or not:</strong> {{ feedback.is_satisfied }}</p>
+                            {% if feedback.comment %}
+                                <p><strong>Comments:</strong> {{ feedback.comment }}</p>
+                            {% endif %}
+                            <p><strong>Submitted At:</strong> {{ feedback.submitted_at }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-feedbacks">
+                        <p>There is no feedbacks for this task yet.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 {% endblock %}

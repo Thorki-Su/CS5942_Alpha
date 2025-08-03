@@ -3,26 +3,111 @@
 
 {% block title %}Operations Records{% endblock %}
 
+{% block style %}
+<style>
+    .record-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .record-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .record-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .record-background {
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    .record-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1rem;
+        color: #333;
+    }
+    .record-table thead {
+        background: #30574e;
+        color: white;
+    }
+    .record-table th,
+    .record-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .record-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .record-table th:first-child,
+    .record-table td:first-child {
+        border-top-left-radius: 8px;
+    }
+    .record-table th:last-child,
+    .record-table td:last-child {
+        border-top-right-radius: 8px;
+    }
+    .record-table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+    }
+    .record-table td {
+        font-size: 0.95rem;
+    }
+    .record-table td a {
+        color: #30574e;
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px dashed #30574e;
+        transition: all 0.3s ease;
+    }
+    .record-table td a:hover {
+        color: white;
+        background: #30574e;
+        padding: 2px 2px;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style="margin: 50px;">
-        <h2>Record of all operations</h2>
-        <table>
-            <thead>
-                <tr>
-                <th>Time</th>
-                <th>User</th>
-                <th>Operation</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for log in logs %}
-                <tr>
-                <td>{{ log.timestamp|date:"Y-m-d H:i" }}</td>
-                <td>{{ log.user.email }}</td>
-                <td>{{ log.action|safe }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="record-container">
+        <div class="record-header">
+            <h2>Record of all operations</h2>
+        </div>
+        <div class="record-background">
+            <table class="record-table">
+                <thead>
+                    <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Operation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                    <td>{{ log.timestamp|date:"Y-m-d H:i" }}</td>
+                    <td>{{ log.user.email }}</td>
+                    <td>{{ log.action|safe }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 {% endblock %}
