@@ -2,23 +2,91 @@
 
 {% block title %}Task Complete Confirm{% endblock %}
 
+{% block style %}
+<style>
+    .task-confirm-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .task-confirm-header {
+        background: #30574e;
+        color: white;
+        padding: 40px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .task-confirm-header h2 {
+        margin: 0 0 15px 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    #big-title {
+        color: #30574e;
+        margin-bottom: 25px;
+    }
+    .record-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border-left: 4px solid #30574e;
+        margin-bottom: 20px;
+    }
+    .no-records {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    button {
+        background: #30574e;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px !important;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    button:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style="margin: 50px;">
-        <h2>Confirm Task Completion</h2>
-
-        <p><strong>Task:</strong> {{ task.title }}</p>
-        <p><strong>Time:</strong> {{ task.start_time }} - {{ task.end_time }}</p>
-
-        {% if record %}
-            <h3>Submitted Records:</h3>
-            <p><strong>Submitted by:</strong> {{ record.volunteer.userprofile.get_full_name }}[{{ record.volunteer.email }}]</p>
-            <ul>
-                {% for item in record.records %}
-                    <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
+    <div class="task-confirm-container">
+        <div class="task-confirm-header">
+            <h2>Confirm Task Completion</h2>
+            <p><strong>Task:</strong> {{ task.title }}</p>
+            <p><strong>Time:</strong> {{ task.start_time }} - {{ task.end_time }}</p>
+        </div>
+        {% if records %}
+            <h3 id="big-title">Submitted Records:</h3>
+            {% for record in records %}
+                <div class="record-card">
+                    <p><strong>Submitted by:</strong> {{ record.volunteer.userprofile.get_full_name }}[{{ record.volunteer.email }}]</p>
+                    <ul>
+                        {% for item in record.records %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
         {% else %}
-            <p>No records submitted yet.</p>
+            <div class="no-records">
+                <p>No records submitted yet.</p>
+            </div>
         {% endif %}
 
         <form method="post">

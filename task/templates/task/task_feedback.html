@@ -2,24 +2,94 @@
 
 {% block title %}Submit Feedback{% endblock %}
 
-{% block content %}
-    <div style="margin:50px;">
-        <h2>Give Feedback for {{ to_user.userprofile.get_full_name }}</h2>
-        <p>Task: {{ task.title }}</p>
+{% block style %}
+<style>
+    .task-feedback-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .task-feedback-header {
+        background: #30574e;
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .task-feedback-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+        margin-bottom: 30px;
+    }
+    .feedback-form {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border-left: 4px solid #30574e;
+    }
+    .form-group {
+        margin-bottom: 25px;
+    }
+    .form-group label {
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #495057;
+        font-size: 1.1rem;
+    }
+    .form-group textarea {
+        width: 100%;
+        resize: none;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+    button {
+        background: #30574e;
+        color: white;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 30px;
+    }
+    button:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+    }
+</style>
+{% endblock %}
 
-        <form method="post">
+{% block content %}
+    <div class="task-feedback-container">
+        <div class="task-feedback-header">
+            <h2>Give Feedback for {{ to_user.userprofile.get_full_name }}</h2>
+            <p>Task: {{ task.title }}</p>
+        </div>
+
+        <form method="post" class="feedback-form">
             {% csrf_token %}
             {{ form.to_user }}
-            <p>
+            <div class="form-group">
                 {{ form.satisfied.label_tag }}<br>
                 {{ form.satisfied }}
-            </p>
-            <p>
-                {{ form.starred }} {{ form.starred.label_tag }}
-            </p>
-            <p>
+            </div>
+            <div class="form-group">
+                {{ form.starred.label_tag }} {{ form.starred }}
+            </div>
+            <div class="form-group">
                 {{ form.comment.label_tag }}<br>{{ form.comment }}
-            </p>
+            </div>
 
             <button type="submit">Submit Feedback</button>
         </form>

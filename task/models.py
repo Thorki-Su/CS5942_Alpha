@@ -152,13 +152,16 @@ class TaskTemplate(models.Model):
         return self.name
 
 class TaskRecord(models.Model):
-    task = models.OneToOneField(Task, on_delete=models.CASCADE, related_name='record')
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='records')
     volunteer = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     records = models.JSONField(default=list)
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Record for {self.task.title} by {self.volunteer.userprofile.get_full_name} [{self.volunteer.email}]"
+
+    class Meta:
+        unique_together = ('task', 'volunteer')
 
 class Feedback(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='feedbacks')

@@ -2,8 +2,82 @@
 
 {% block title %}Task Complete Record{% endblock %}
 
+{% block style %}
+<style>
+    .task-record-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .task-record-header {
+        background: #30574e;
+        color: white;
+        padding: 40px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .task-record-header h2 {
+        margin: 0 0 15px 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    #record-form {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border-left: 4px solid #30574e;
+    }
+    label, input {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    label {
+        font-weight: 600;
+        font-size: 1.2rem;
+        color: #30574e;
+    }
+    input {
+        border-color: #30574e;
+        box-shadow: 0 0 0 3px rgba(48, 87, 78, 0.1);
+    }
+    .record-item {
+        margin-bottom: 15px;
+    }
+    .buttons {
+        display:flex;
+        margin-top: 50px;
+        gap: 100px;
+        justify-content: space-between;
+        padding: 0 30px;
+    }
+    .buttons button {
+        background: #30574e;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .buttons button:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+    } 
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style="margin: 50px;">
+    <div class="task-record-container">
+        <div class="task-record-header">
+            <h2>Submit Your Work Records</h2>
+        </div>
         <form method="post" id="record-form">
             {% csrf_token %}
             <div id="record-list">
@@ -12,9 +86,10 @@
                     <input type="text" name="record_0" required>
                 </div>
             </div>
-            <button type="button" onclick="addRecord()">+ Add Another</button>
-            <br><br>
-            <button type="submit">Submit Records</button>
+            <div class="buttons">
+                <button type="button" onclick="addRecord()" id="add-btn">+ Add Another</button>
+                <button type="submit" id="submit-btn">Submit Records</button>
+            </div>
         </form>
     </div>
 
