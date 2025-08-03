@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TestCase, SimpleTestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -190,21 +190,14 @@ class DonationCampaignModelTests(TestCase):
         self.assertEqual(self.campaign.current_amount, Decimal('250.00'))
 
 
-class DonationFormTests(TestCase):
+class DonationFormTests(SimpleTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            email='user@test.com',
-            password='testpass123',
-            role='client',
-            is_active=True
-        )
-        self.user_profile = UserProfile.objects.create(
-            user=self.user,
-            first_name='Test',
-            last_name='User',
-            phone_number='1234567890',
-            location='AB12 3CD'
-        )
+        # Mock user for form testing (no database needed)
+        self.mock_user = Mock()
+        self.mock_user.email = 'user@test.com'
+        self.mock_user_profile = Mock()
+        self.mock_user_profile.get_full_name = 'Test User'
+        self.mock_user.userprofile = self.mock_user_profile
 
     def test_form_with_preset_amount(self):
         """Test form with preset amount"""
@@ -276,7 +269,7 @@ class DonationFormTests(TestCase):
 
     def test_form_prefill_authenticated_user(self):
         """Test form prefill for authenticated user"""
-        form = DonationForm(user=self.user)
+        form = DonationForm(user=self.mock_user)
         self.assertEqual(form.fields['donor_name'].initial, 'Test User')
         self.assertEqual(form.fields['donor_email'].initial, 'user@test.com')
 

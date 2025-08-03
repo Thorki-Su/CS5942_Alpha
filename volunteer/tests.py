@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TestCase, SimpleTestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -15,8 +15,48 @@ from .views import service_certificate, download_certificate, get_volunteer_stat
 User = get_user_model()
 
 
+class VolunteerUtilsFormattingTests(SimpleTestCase):
+    """Test cases for volunteer utility formatting functions (no database needed)"""
+
+    def test_format_volunteer_duration_zero_hours(self):
+        """Test formatting zero hours"""
+        formatted = format_volunteer_duration(0)
+        self.assertEqual(formatted, "0 hours")
+
+    def test_format_volunteer_duration_less_than_hour(self):
+        """Test formatting duration less than an hour"""
+        formatted = format_volunteer_duration(0.5)  # 30 minutes
+        self.assertEqual(formatted, "30 minutes")
+
+    def test_format_volunteer_duration_exact_hours(self):
+        """Test formatting exact hours"""
+        formatted = format_volunteer_duration(2.0)
+        self.assertEqual(formatted, "2 hours")
+        
+        formatted = format_volunteer_duration(1.0)
+        self.assertEqual(formatted, "1 hour")
+
+    def test_format_volunteer_duration_hours_and_minutes(self):
+        """Test formatting hours and minutes"""
+        formatted = format_volunteer_duration(2.5)  # 2 hours 30 minutes
+        self.assertEqual(formatted, "2 hours 30 minutes")
+
+    def test_format_volunteer_duration_days(self):
+        """Test formatting days and hours"""
+        formatted = format_volunteer_duration(25.0)  # 1 day 1 hour
+        self.assertEqual(formatted, "1 day 1 hour")
+        
+        formatted = format_volunteer_duration(48.0)  # 2 days
+        self.assertEqual(formatted, "2 days")
+
+    def test_format_volunteer_duration_days_no_minutes(self):
+        """Test that minutes are not shown when duration includes days"""
+        formatted = format_volunteer_duration(24.5)  # 1 day 30 minutes
+        self.assertEqual(formatted, "1 day")
+
+
 class VolunteerUtilsTests(TestCase):
-    """Test cases for volunteer utility functions"""
+    """Test cases for volunteer utility functions that need database"""
     
     def setUp(self):
         # Create test users
@@ -132,42 +172,6 @@ class VolunteerUtilsTests(TestCase):
         duration = calculate_volunteer_duration(self.volunteer_user)
         expected_duration = 2.0  # Only completed task
         self.assertAlmostEqual(duration, expected_duration, places=1)
-
-    def test_format_volunteer_duration_zero_hours(self):
-        """Test formatting zero hours"""
-        formatted = format_volunteer_duration(0)
-        self.assertEqual(formatted, "0 hours")
-
-    def test_format_volunteer_duration_less_than_hour(self):
-        """Test formatting duration less than an hour"""
-        formatted = format_volunteer_duration(0.5)  # 30 minutes
-        self.assertEqual(formatted, "30 minutes")
-
-    def test_format_volunteer_duration_exact_hours(self):
-        """Test formatting exact hours"""
-        formatted = format_volunteer_duration(2.0)
-        self.assertEqual(formatted, "2 hours")
-        
-        formatted = format_volunteer_duration(1.0)
-        self.assertEqual(formatted, "1 hour")
-
-    def test_format_volunteer_duration_hours_and_minutes(self):
-        """Test formatting hours and minutes"""
-        formatted = format_volunteer_duration(2.5)  # 2 hours 30 minutes
-        self.assertEqual(formatted, "2 hours 30 minutes")
-
-    def test_format_volunteer_duration_days(self):
-        """Test formatting days and hours"""
-        formatted = format_volunteer_duration(25.0)  # 1 day 1 hour
-        self.assertEqual(formatted, "1 day 1 hour")
-        
-        formatted = format_volunteer_duration(48.0)  # 2 days
-        self.assertEqual(formatted, "2 days")
-
-    def test_format_volunteer_duration_days_no_minutes(self):
-        """Test that minutes are not shown when duration includes days"""
-        formatted = format_volunteer_duration(24.5)  # 1 day 30 minutes
-        self.assertEqual(formatted, "1 day")
 
 
 class VolunteerViewsTests(TestCase):
@@ -523,8 +527,30 @@ class VolunteerIntegrationTests(TestCase):
         self.assertAlmostEqual(api_data['total_hours'], 6.0, places=1)  # 3 tasks × 2 hours each
 
 
+class VolunteerEdgeCaseFormattingTests(SimpleTestCase):
+    """Test edge cases for volunteer formatting functions (no database needed)"""
+
+    def test_format_duration_edge_cases(self):
+        """Test duration formatting edge cases"""
+        # Test very small duration
+        formatted = format_volunteer_duration(0.01)  # 0.6 minutes
+        self.assertEqual(formatted, "0 hours")  # Should round down
+        
+        # Test exactly 1 minute
+        formatted = format_volunteer_duration(1/60)  # 1 minute
+        self.assertEqual(formatted, "1 minute")
+        
+        # Test exactly 1 hour
+        formatted = format_volunteer_duration(1.0)
+        self.assertEqual(formatted, "1 hour")
+        
+        # Test exactly 1 day
+        formatted = format_volunteer_duration(24.0)
+        self.assertEqual(formatted, "1 day")
+
+
 class VolunteerEdgeCaseTests(TestCase):
-    """Test edge cases and error conditions for volunteer functionality"""
+    """Test edge cases and error conditions for volunteer functionality that need database"""
     
     def setUp(self):
         self.client = Client()
@@ -592,24 +618,6 @@ class VolunteerEdgeCaseTests(TestCase):
         
         duration = calculate_volunteer_duration(self.volunteer_user)
         self.assertAlmostEqual(duration, 0.0, places=1)
-
-    def test_format_duration_edge_cases(self):
-        """Test duration formatting edge cases"""
-        # Test very small duration
-        formatted = format_volunteer_duration(0.01)  # 0.6 minutes
-        self.assertEqual(formatted, "0 hours")  # Should round down
-        
-        # Test exactly 1 minute
-        formatted = format_volunteer_duration(1/60)  # 1 minute
-        self.assertEqual(formatted, "1 minute")
-        
-        # Test exactly 1 hour
-        formatted = format_volunteer_duration(1.0)
-        self.assertEqual(formatted, "1 hour")
-        
-        # Test exactly 1 day
-        formatted = format_volunteer_duration(24.0)
-        self.assertEqual(formatted, "1 day")
 
     @patch('volunteer.views.calculate_volunteer_duration')
     def test_certificate_download_with_special_characters_in_name(self, mock_calculate):

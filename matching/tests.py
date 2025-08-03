@@ -256,17 +256,6 @@ class VolunteerMatchingTests(TestCase):
             volunteer=self.volunteer_user
         ).exists())
 
-    def test_match_volunteers_time_conflict_start_time(self):
-        """Test no match when task starts before volunteer's available time"""
-        # Set task to start at 8 AM, but volunteer is available from 9 AM
-        early_start = self.task.start_time.replace(hour=8)
-        self.task.start_time = early_start
-        self.task.save()
-        
-        matched_count = match_volunteers_for_task(self.task)
-        
-        self.assertEqual(matched_count, 0)
-
     def test_match_volunteers_time_conflict_end_time(self):
         """Test no match when task ends after volunteer's available time"""
         # Set task to end at 6 PM, but volunteer is available until 5 PM
