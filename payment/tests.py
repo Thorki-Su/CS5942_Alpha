@@ -98,19 +98,23 @@ class DonationModelTests(TestCase):
         self.donation.refresh_from_db()
         self.assertEqual(self.donation.status, 'failed')
 
-    # def test_donation_ordering(self):
-    #     """Test donation records ordered by creation time descending"""
-    #     donation2 = Donation.objects.create(
-    #         donor_name='Jane Doe',
-    #         donor_email='jane@test.com',
-    #         amount=Decimal('100.00'),
-    #         stripe_payment_intent_id='pi_test789',
-    #         status='completed'
-    #     )
+    def test_donation_ordering(self):
+        """Test donation records ordered by creation time descending"""
+        # Add a small delay to ensure different creation times
+        import time
+        time.sleep(0.01)
         
-    #     donations = list(Donation.objects.all())
-    #     self.assertEqual(donations[0], donation2)  # Latest first
-    #     self.assertEqual(donations[1], self.donation)
+        donation2 = Donation.objects.create(
+            donor_name='Jane Doe',
+            donor_email='jane@test.com',
+            amount=Decimal('100.00'),
+            stripe_payment_intent_id='pi_test789',
+            status='completed'
+        )
+        
+        donations = list(Donation.objects.all())
+        self.assertEqual(donations[0], donation2)  # Latest first
+        self.assertEqual(donations[1], self.donation)
 
 
 class DonationCampaignModelTests(TestCase):
@@ -350,38 +354,7 @@ class DonationViewTests(TestCase):
         self.assertEqual(response.context['total_donated'], Decimal('100.00'))
         self.assertEqual(response.context['total_donors'], 1)
 
-    # @patch('stripe.PaymentIntent.create')
-    # def test_donation_page_post_success(self, mock_stripe_create):
-    #     """Test successful donation POST request"""
-    #     mock_payment_intent = Mock()
-    #     mock_payment_intent.id = 'pi_test123'
-    #     mock_payment_intent.client_secret = 'pi_test123_secret'
-    #     mock_stripe_create.return_value = mock_payment_intent
 
-    #     form_data = {
-    #         'amount_choice': '50',
-    #         'donor_name': 'John Doe',
-    #         'donor_email': 'john@test.com',
-    #         'message': 'Test donation',
-    #         'is_anonymous': False
-    #     }
-        
-    #     response = self.client.post(
-    #         reverse('payment:donation_page'),
-    #         data=form_data,
-    #         content_type='application/x-www-form-urlencoded'
-    #     )
-        
-    #     self.assertEqual(response.status_code, 200)
-    #     data = response.json()
-    #     self.assertTrue(data['success'])
-    #     self.assertEqual(data['client_secret'], 'pi_test123_secret')
-    #     self.assertIn('donation_id', data)
-        
-    #     # Verify donation record created
-    #     donation = Donation.objects.get(stripe_payment_intent_id='pi_test123')
-    #     self.assertEqual(donation.amount, Decimal('50.00'))
-    #     self.assertEqual(donation.donor_name, 'John Doe')
 
     @patch('stripe.PaymentIntent.create')
     def test_donation_page_post_stripe_error(self, mock_stripe_create):
