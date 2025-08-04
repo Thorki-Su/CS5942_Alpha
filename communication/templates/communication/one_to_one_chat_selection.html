@@ -111,7 +111,7 @@
         margin-bottom: 20px;
         background-color: #30574e; /* 深绿色按钮 */
         color: #FFFFFF; /* 白色文字 */
-        border: none;
+        border: 1px solid #30574e; /* 深绿色边框 */
         transition: background-color 0.3s, color 0.3s;
     }
     .friends-btn:hover {
@@ -119,16 +119,27 @@
         color: #30574e; /* 文字变深绿色 */
         border: 1px solid #30574e; /* 深绿色边框 */
     }
-    .btn-primary, .btn-outline-primary {
+    .btn-primary {
         background-color: #30574e; /* 深绿色按钮 */
         color: #FFFFFF; /* 白色文字 */
-        border-color: #30574e;
+        border: 1px solid #30574e; /* 深绿色边框 */
         transition: background-color 0.3s, color 0.3s;
     }
-    .btn-primary:hover, .btn-outline-primary:hover {
+    .btn-primary:hover {
         background-color: #FFFFFF; /* 悬停变白色 */
         color: #30574e; /* 文字变深绿色 */
-        border-color: #30574e;
+        border: 1px solid #30574e; /* 深绿色边框 */
+    }
+    .btn-outline-primary {
+        background-color: #30574e; /* 深绿色按钮 */
+        color: #FFFFFF; /* 白色文字 */
+        border: 1px solid #30574e; /* 深绿色边框 */
+        transition: background-color 0.3s, color 0.3s;
+    }
+    .btn-outline-primary:hover {
+        background-color: #FFFFFF; /* 悬停变白色 */
+        color: #30574e; /* 文字变深绿色 */
+        border: 1px solid #30574e; /* 深绿色边框 */
     }
     .list-group-item {
         background-color: #FFFFFF; /* 白色背景 */
@@ -137,22 +148,37 @@
 </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="container mt-5">
     <h1>Select a User for 1v1 Chat</h1>
     
     <!-- Search Bar -->
     <div class="search-bar">
-        <input type="text" id="user-search" class="form-control" placeholder="Search by email..." onkeyup="searchUsers()">
+        <input type="text" id="user-search" class="form-control d-inline-block w-75" placeholder="Search by email..." onkeyup="searchUsers()">
+        <button class="btn btn-primary ms-2" onclick="searchUsers()">Search</button>
     </div>
+    
+    <!-- Recent Chats -->
+    <div class="recent-chats">
+        <h3>Recent Chats</h3>
+        <div class="list-group" id="recent-chat-list">
+            <!-- Recent chats loaded via JS -->
+        </div>
+    </div>
+    
+    <!-- Contacts Button -->
+    <a href="{% url 'communication:friend_list' %}" class="btn btn-primary friends-btn">Contacts</a>
     
     <!-- User List -->
     <div class="chat-user-list list-group" id="user-list">
         {% for user in users %}
-            <a href="#" class="list-group-item list-group-item-action" onclick="createOneToOneRoom('{{ user.email }}')">
-                Chat with {{ user.email }}
-            </a>
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <a href="#" onclick="createOneToOneRoom('{{ user.email }}')">Chat with {{ user.email }}</a>
+                <span>
+                    <span class="badge bg-danger rounded-pill unread-count" data-email="{{ user.email }}"></span>
+                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="sendFriendRequest('{{ user.email }}'); event.stopPropagation();">Add Friend</button>
+                </span>
+            </div>
         {% empty %}
             <div class="list-group-item">No other users available.</div>
         {% endfor %}
@@ -211,39 +237,41 @@
         return cookieValue;
     }
     const csrftoken = getCookie('csrftoken');
-    console.log('CSRF Token:', csrftoken); // 调试输出
+    console.log('CSRF Token:', csrftoken);
 
     function createOneToOneRoom(user2Email) {
+        console.log('Creating room for:', user2Email);
         if (!csrftoken) {
             console.error('CSRF token not found');
             alert('CSRF token missing. Please reload the page.');
             return;
         }
-
-        const url = '/communication/create-1v1-room/';
-        const params = new URLSearchParams({
-            'user2_email': user2Email
-        }).toString();
-
-        console.log('Fetch URL:', url);
-        console.log('Fetch Params:', params);
-
+        const url = '{% url "communication:create_one_to_one_room" %}';
+        const params = new URLSearchParams({ 'user2_email': user2Email }).toString();
         fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-CSRFToken': csrftoken,
             },
-            credentials: 'same-origin', // 确保携带认证 Cookie
+            credentials: 'same-origin',
             body: params
         })
         .then(response => {
-            console.log('Fetch response status:', response.status);
+            console.log('Create room response:', response.status);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return response.json();
         })
         .then(data => {
-            console.log('Fetch response data:', data);
+            console.log('Create room data:', data);
+            if (data.room_name) {
+                window.location.href = data.url;
+            } else {
+                alert(data.error || 'Failed to create room');
+            }
+        })
+        .then(data => {
+            console.log('Create room data:', data);
             if (data.room_name) {
                 window.location.href = data.url;
             } else {
@@ -256,16 +284,117 @@
         });
     }
 
-    // 搜索功能
+    function sendFriendRequest(toEmail) {
+        console.log('Sending friend request to:', toEmail);
+        if (!csrftoken) {
+            console.error('CSRF token missing');
+            alert('CSRF token missing.');
+            return;
+        }
+        const url = '{% url "communication:send_friend_request" %}';
+        const params = new URLSearchParams({ 'to_email': toEmail }).toString();
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken,
+            },
+            credentials: 'same-origin',
+            body: params
+        })
+        .then(response => {
+            console.log('Friend request response:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Friend request data:', data);
+            if (data.success) {
+                alert('Friend request sent!');
+                location.reload();
+            } else {
+                alert(data.error || 'Failed to send request');
+            }
+        })
+        .catch(error => {
+            console.error('Error sending friend request:', error);
+            alert('An error occurred.');
+        });
+    }
+
     function searchUsers() {
+        console.log('Searching users...');
         const input = document.getElementById('user-search').value.toLowerCase();
         const userList = document.getElementById('user-list');
-        const items = userList.getElementsByTagName('a');
-
+        const items = userList.getElementsByClassName('list-group-item');
         for (let i = 0; i < items.length; i++) {
             const text = items[i].textContent.toLowerCase();
             items[i].style.display = text.includes(input) ? '' : 'none';
         }
     }
+
+    const ws = new WebSocket(`${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/user/${'{{ request.user.email }}'.replace('@', '_')}/`);
+    ws.onopen = () => {
+        console.log('WebSocket opened');
+        ws.send(JSON.stringify({ type: 'auth', user_email: '{{ request.user.email }}' }));
+    };
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log('WebSocket message:', data);
+        if (data.type === 'unread_notification' && !data.is_group) {
+            updateUnreadDetails();
+        } else if (data.type === 'friend_request_notification') {
+            alert(`New friend request from ${data.from_email}`);
+        }
+    };
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+    ws.onclose = () => {
+        console.log('WebSocket closed');
+    };
+
+    function updateUnreadDetails() {
+        console.log('Updating unread details...');
+        fetch('{% url "communication:get_unread_details" %}')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Unread details:', data);
+                document.querySelectorAll('.unread-count').forEach(span => {
+                    span.textContent = '';
+                    const email = span.dataset.email;
+                    const unread = data.one_to_one.find(item => item.sender__email === email);
+                    if (unread && unread.count > 0) {
+                        span.textContent = unread.count;
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching unread details:', error));
+    }
+
+    function loadRecentChats() {
+        console.log('Loading recent chats...');
+        fetch('{% url "communication:get_recent_chats" %}')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Recent chats:', data);
+                const recentList = document.getElementById('recent-chat-list');
+                recentList.innerHTML = '';
+                data.recent_chats.forEach(chat => {
+                    const item = document.createElement('a');
+                    item.href = '#';
+                    item.classList.add('list-group-item', 'list-group-item-action');
+                    item.onclick = () => createOneToOneRoom(chat.email);
+                    item.innerHTML = `Chat with ${chat.email} (Last: ${chat.last_message_time}) <span class="badge bg-danger rounded-pill">${chat.unread_count}</span>`;
+                    recentList.appendChild(item);
+                });
+            })
+            .catch(error => console.error('Error loading recent chats:', error));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('Page loaded, initializing...');
+        loadRecentChats();
+        updateUnreadDetails();
+    });
 </script>
 {% endblock %}
