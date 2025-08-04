@@ -12,7 +12,7 @@ import logging
 
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(os.path.join(BASE_DIR, '.env'))  # Load .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Email configuration
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
@@ -23,7 +23,7 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "shallion9527@gmail.com")
 
-# AWS S3 configuration
+# AWS S3 configuration (for media, not static)
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = 'shallion-support-files'
@@ -37,14 +37,14 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Security settings
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-i!o^^a8m_sz=(_5e_c07nyutwzr(fdu+uihy5=gpr^lwvwpotb')
-DEBUG = os.getenv('DJANGO_DEVELOPMENT', '0') == '1'  # Dynamic DEBUG based on env
+DEBUG = os.getenv('DJANGO_DEVELOPMENT', '0') == '1'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     'mangoairport-artistbanana-8000.codio-box.uk',
     'cs5942-alpha.onrender.com',
     'cs5942-alpha-test.onrender.com',
-    '*.onrender.com',  # Add wildcard for future subdomains
+    '*.onrender.com',
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
@@ -84,7 +84,7 @@ IS_DEVELOPMENT = os.getenv('DJANGO_DEVELOPMENT') == '1'
 if IS_TESTING:
     CHANNEL_LAYERS = {
         'default': {
-            'BACKEND': 'channels.layers.InMemoryChannelLayer',  # Use in-memory for tests
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
         },
     }
 else:
@@ -98,6 +98,7 @@ else:
     }
 
 # Logging configuration - reduced verbosity
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -116,7 +117,8 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'WARNING',  # Only show warnings and errors
+            'level': 'INFO',
+
         },
         'channels': {
             'handlers': ['console'],
@@ -133,6 +135,7 @@ AUTH_USER_MODEL = 'user.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise 中间件
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -166,9 +169,9 @@ if IS_TESTING:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',  # Use in-memory SQLite for tests
+            'NAME': ':memory:',
             'TEST': {
-                'NAME': ':memory:',  # Explicitly set test database
+                'NAME': ':memory:',
             },
         }
     }
@@ -202,7 +205,7 @@ LOGIN_URL = '/login/'
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'  # Explicit static storage
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # 使用 WhiteNoise
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

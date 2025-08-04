@@ -4,9 +4,110 @@
 <div class="container mt-5">
     <h1>Messages</h1>
     <div class="list-group">
-        <a href="{% url 'communication:one_to_one_chat_selection' %}" class="list-group-item list-group-item-action">1v1 Chat</a>
-        <a href="{% url 'communication:group_chats' %}" class="list-group-item list-group-item-action">Task Chat</a>
+        <a href="{% url 'communication:one_to_one_chat_selection' %}" class="list-group-item list-group-item-action btn-primary">
+            1v1 Chat
+            {% if one_to_one_unread %}
+                <span class="badge bg-danger rounded-pill">{{ one_to_one_unread }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'communication:group_chats' %}" class="list-group-item list-group-item-action btn-primary">
+            Task Chat
+            {% if task_unread %}
+                <span class="badge bg-danger rounded-pill">{{ task_unread }}</span>
+            {% endif %}
+        </a>
     </div>
-    <a href="{% url 'communication:message_selection' %}" class="btn btn-secondary mt-3">Back to Messages</a> <!-- 修正为 communication:message_selection -->
+    <style>
+        .container {
+            background-color: #FFFFFF; /* 白色背景 */
+        }
+        .list-group-item {
+            background-color: #FFFFFF; /* 白色背景 */
+            border: 1px solid #e0e0e0;
+            color: #FFFFFF; /* 白色文字 */
+            background-color: #30574e; /* 深绿色按钮 */
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .list-group-item:hover {
+            background-color: #FFFFFF; /* 悬停变白色 */
+            color: #30574e; /* 文字变深绿色 */
+            border: 1px solid #30574e; /* 深绿色边框 */
+        }
+        .badge.bg-danger {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+        console.log('CSRF Token:', csrftoken);
+
+        const ws = new WebSocket(`${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/user/${'{{ request.user.email }}'.replace('@', '_')}/`);
+        ws.onopen = () => {
+            console.log('WebSocket opened');
+            ws.send(JSON.stringify({ type: 'auth', user_email: '{{ request.user.email }}' }));
+        };
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('WebSocket message:', data);
+            if (data.type === 'unread_notification') {
+                fetch('{% url "communication:get_unread_details" %}')
+                    .then(response => response.json())
+                    .then(data => updateUnreadUI(data))
+                    .catch(error => console.error('Error fetching unread details:', error));
+            } else if (data.type === 'friend_request_notification') {
+                alert(`New friend request from ${data.from_email}`);
+            }
+        };
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+        ws.onclose = () => {
+            console.log('WebSocket closed');
+        };
+
+        function updateUnreadUI(data) {
+            console.log('Updating unread UI:', data);
+            const oneToOneLink = document.querySelector('a[href="{% url "communication:one_to_one_chat_selection" %}"]');
+            const taskLink = document.querySelector('a[href="{% url "communication:group_chats" %}"]');
+            oneToOneLink.querySelector('.badge')?.remove();
+            taskLink.querySelector('.badge')?.remove();
+            if (data.one_to_one.length > 0) {
+                const count = data.one_to_one.reduce((sum, item) => sum + item.count, 0);
+                oneToOneLink.innerHTML += `<span class="badge bg-danger rounded-pill">${count}</span>`;
+            }
+            if (data.task.length > 0) {
+                const count = data.task.reduce((sum, item) => sum + item.count, 0);
+                taskLink.innerHTML += `<span class="badge bg-danger rounded-pill">${count}</span>`;
+            }
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Page loaded, fetching unread details...');
+            fetch('{% url "communication:get_unread_details" %}')
+                .then(response => response.json())
+                .then(data => updateUnreadUI(data))
+                .catch(error => console.error('Error loading unread details:', error));
+        });
+    </script>
 </div>
 {% endblock %}

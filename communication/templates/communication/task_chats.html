@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}  <!-- 加载 static 标签 -->
+{% load static %}
 {% block title %}Task Chats{% endblock %}
 {% block content %}
 <div class="container mt-5">
@@ -8,7 +8,10 @@
         <ul class="list-group">
             {% for task in tasks %}
                 <li class="list-group-item">
-                    <a href="{% url 'communication:task_communication_view' task.id %}?mode=chat" class="btn btn-primary">Task Chat (Task {{ task.id }}: {{ task.title }})</a>
+                    <a href="{% url 'communication:task_communication_view' task.id %}?mode=chat" class="btn btn-primary">
+                        Task Chat (Task {{ task.id }}: {{ task.title }})
+                        <span class="badge bg-danger rounded-pill unread-count" data-task-id="{{ task.id }}"></span>
+                    </a>
                     <a href="{% url 'communication:task_communication_view' task.id %}?mode=video" class="btn btn-secondary ms-3">Task Video</a>
                 </li>
             {% endfor %}
@@ -17,5 +20,42 @@
         <p>No active tasks available for Task Chat.</p>
     {% endif %}
     <a href="{% url 'communication:message_selection' %}" class="btn btn-secondary mt-3">Back to Messages</a>
+    <style>
+        .badge.bg-danger {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+    <script>
+        const ws = new WebSocket(`${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/user/${'{{ request.user.email }}'.replace('@', '_')}/`);
+        ws.onopen = () => {
+            ws.send(JSON.stringify({ type: 'auth', user_email: '{{ request.user.email }}' }));
+        };
+        function updateUnreadDetails() {
+            fetch('{% url "communication:get_unread_details" %}')
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelectorAll('.unread-count').forEach(span => {
+                        span.textContent = '';
+                        const taskId = span.dataset.taskId;
+                        const unread = data.task.find(item => item.task__id == taskId);
+                        if (unread && unread.count > 0) {
+                            span.textContent = unread.count;
+                        }
+                    });
+                });
+        }
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'unread_notification' && data.is_group) {
+                updateUnreadDetails();
+            }
+        };
+        updateUnreadDetails();
+    </script>
 </div>
 {% endblock %}

@@ -1,14 +1,49 @@
+databases:
+  - name: AlphaPostgreSQL
+    plan: free
+    databaseName: postgres
+    user: postgres.fdxjsfjsqpciwutbzjhz
 services:
   - type: web
+    plan: free
     name: CS5942_Alpha
     env: python
-    buildCommand: pip install -r requirements.txt
-    preDeployCommand: |
-      python manage.py makemigrations
-      python manage.py migrate --noinput
-    startCommand: gunicorn final_project.wsgi:application --bind 0.0.0.0:$PORT
+    buildCommand: './build.sh'
+    startCommand: 'gunicorn final_project.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT'
     envVars:
       - key: DATABASE_URL
         fromDatabase:
           name: AlphaPostgreSQL
           property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4
+      - key: DJANGO_SETTINGS_MODULE
+        value: final_project.settings
+      - key: REDIS_URL
+        sync: true  # 从 Dashboard 同步
+      - key: AWS_ACCESS_KEY_ID
+        sync: true
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: true
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        value: smtp.sendgrid.net
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USE_TLS
+        value: True
+      - key: EMAIL_HOST_USER
+        value: apikey
+      - key: EMAIL_HOST_PASSWORD
+        sync: true
+      - key: DEFAULT_FROM_EMAIL
+        value: shallion9527@gmail.com
+      - key: STRIPE_PUBLIC_KEY
+        value: pk_test_51RnnvIFjwEOyCCab3Em45YU3sBzGrOOKrCqY6EPFSnXJvfVfSzn0LIBGyjJSoOkfQ0t1kcqGZKcegYtm3dDhQrzl00jkAkeXxI
+      - key: STRIPE_SECRET_KEY
+        sync: true
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: true

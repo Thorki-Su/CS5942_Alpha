@@ -1,0 +1,92 @@
+<!-- communication/friend_list.html (新模板：好友列表) -->
+{% extends 'base.html' %}
+{% block title %}Friends List{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h1>My Contacts</h1>
+    <h2>Friends</h2>
+    <ul class="list-group">
+        {% for friend in friends %}
+            <li class="list-group-item">
+                {{ friend.email }}
+                <a href="#" onclick="createOneToOneRoom('{{ friend.email }}')" class="btn btn-primary btn-sm float-end">Chat</a>
+            </li>
+        {% empty %}
+            <li class="list-group-item">No friends yet.</li>
+        {% endfor %}
+    </ul>
+    <h2>Pending Requests</h2>
+    <ul class="list-group">
+        {% for req in pending_requests %}
+            <li class="list-group-item">
+                From: {{ req.from_user.email }}
+                <form method="post" action="{% url 'communication:accept_friend_request' req.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                </form>
+                <form method="post" action="{% url 'communication:reject_friend_request' req.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                </form>
+            </li>
+        {% empty %}
+            <li class="list-group-item">No pending requests.</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'communication:one_to_one_chat_selection' %}" class="btn btn-secondary mt-3">Back to Chat Selection</a>
+</div>
+<script>
+    // 复用 createOneToOneRoom 函数，从 one_to_one_chat_selection.html 复制
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    function createOneToOneRoom(user2Email) {
+        if (!csrftoken) {
+            console.error('CSRF token not found');
+            alert('CSRF token missing. Please reload the page.');
+            return;
+        }
+        const url = '/communication/create-1v1-room/';
+        const params = new URLSearchParams({
+            'user2_email': user2Email
+        }).toString();
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken,
+            },
+            credentials: 'same-origin',
+            body: params
+        })
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            if (data.room_name) {
+                window.location.href = data.url;
+            } else {
+                alert(data.error || 'Failed to create room');
+            }
+        })
+        .catch(error => {
+            console.error('Error creating room:', error);
+            alert('An error occurred. Check the console for details.');
+        });
+    }
+</script>
+{% endblock %}
