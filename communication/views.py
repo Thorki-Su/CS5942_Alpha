@@ -134,28 +134,38 @@ def one_to_one_communication_view(request, room_name):
         session = OneToOneChatSession.objects.get(room_name=room_name)
         if request.user not in [session.user1, session.user2]:
             logger.warning(f"User {request.user.email} unauthorized for room {room_name}")
-            return redirect('user:home')
+            return JsonResponse({'error': 'Unauthorized'}, status=403)
+        users = [session.user1.email, session.user2.email]
+        user2_email = users[0] if users[0] != request.user.email else users[1]
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            messages = ChatMessage.objects.filter(
+                sender__email__in=users,
+                receiver__email__in=users
+            ).order_by('timestamp')
+            ChatMessage.objects.filter(
+                receiver=request.user, is_group=False, is_read=False,
+                sender__email=user2_email
+            ).update(is_read=True)
+            return JsonResponse({
+                'messages': [
+                    {
+                        'sender': msg.sender.email,
+                        'content': msg.content,
+                        'timestamp': msg.timestamp.isoformat()
+                    } for msg in messages
+                ],
+                'user2_email': user2_email,
+                'participants': [request.user.email, user2_email]
+            })
+        logger.debug(f"Loaded one-to-one communication view for room {room_name} in {time.time() - start_time:.3f}s")
+        return render(request, 'communication/communication.html', {
+            'room_name': room_name,
+            'user2_email': user2_email,
+            'participants': [request.user.email, user2_email]
+        })
     except OneToOneChatSession.DoesNotExist:
         logger.error(f"OneToOneChatSession {room_name} not found")
         return redirect('communication:one_to_one_chat_selection')
-    users = [session.user1.email, session.user2.email]
-    user2_email = users[0] if users[0] != request.user.email else users[1]
-    messages = ChatMessage.objects.filter(
-        sender__email__in=users,
-        receiver__email__in=users
-    ).order_by('timestamp')
-    # Mark 1v1 messages as read
-    ChatMessage.objects.filter(
-        receiver=request.user, is_group=False, is_read=False,
-        sender__email=user2_email
-    ).update(is_read=True)
-    logger.debug(f"Loaded one-to-one communication view for room {room_name} in {time.time() - start_time:.3f}s")
-    return render(request, 'communication/communication.html', {
-        'room_name': room_name,
-        'messages': messages,
-        'user2_email': user2_email,
-        'participants': [request.user.email, user2_email]
-    })
 
 @login_required
 def create_one_to_one_room(request):
