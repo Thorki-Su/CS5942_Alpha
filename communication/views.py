@@ -5,13 +5,18 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from task.models import Task, TaskApplication
-from .models import OneToOneChatSession, ChatMessage
+from .models import OneToOneChatSession, ChatMessage, FriendRelation
 from asgiref.sync import sync_to_async, async_to_sync
 from django.urls import reverse
 from django.core.paginator import Paginator
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Max, Case, When, F, CharField  # 修正导入
 import asyncio
 import logging
+from channels.layers import get_channel_layer
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404
+
+User = get_user_model()
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +24,6 @@ logger = logging.getLogger(__name__)
 def get_or_create_one_to_one_room(user1_email, user2_email):
     start_time = time.time()
     try:
-        User = get_user_model()
         user1 = User.objects.get(email=user1_email, is_active=True)
         user2 = User.objects.get(email=user2_email, is_active=True)
         users = sorted([user1, user2], key=lambda x: x.id)
@@ -64,9 +68,17 @@ def message_selection_view(request):
 @login_required
 def one_to_one_chat_selection_view(request):
     start_time = time.time()
-    User = get_user_model()
     search_query = request.GET.get('q', '').strip()
     users = User.objects.exclude(email=request.user.email).filter(is_active=True).order_by('id')
+    # 排除已添加好友
+    friends = FriendRelation.objects.filter(
+        Q(from_user=request.user, status='accepted') | Q(to_user=request.user, status='accepted')
+    )
+    friends_emails = list(set(
+        [rel.to_user.email for rel in friends if rel.from_user == request.user] +
+        [rel.from_user.email for rel in friends if rel.to_user == request.user]
+    ))
+    users = users.exclude(email__in=friends_emails)
     if search_query:
         users = users.filter(email__icontains=search_query)
     
@@ -159,7 +171,7 @@ def create_one_to_one_room(request):
         url = reverse('communication:one_to_one_communication_view', kwargs={'room_name': room_name})
         logger.info(f"Created room {room_name} for {user1_email} and {user2_email} in {time.time() - start_time:.3f}s")
         return JsonResponse({'room_name': room_name, 'url': url})
-    except get_user_model().DoesNotExist as e:
+    except User.DoesNotExist as e:
         logger.error(f"User {user2_email} not found or inactive: {e}")
         return JsonResponse({'error': f'User {user2_email} not found or inactive: {str(e)}'}, status=404)
     except asyncio.TimeoutError:
@@ -185,3 +197,122 @@ def get_unread_details(request):
         'one_to_one': list(one_to_one_unread),
         'task': list(task_unread)
     })
+
+@login_required
+def get_recent_chats(request):
+    user = request.user
+    # 获取最近聊天的房间（基于消息时间）
+    recent_messages = ChatMessage.objects.filter(
+        Q(sender=user) | Q(receiver=user),
+        is_group=False
+    ).annotate(
+        other_email=Case(
+            When(sender=user, then=F('receiver__email')),
+            default=F('sender__email'),
+            output_field=CharField()
+        )
+    ).values('other_email').annotate(
+        last_timestamp=Max('timestamp')
+    ).order_by('-last_timestamp')[:10]
+
+    recent_chats = []
+    for msg in recent_messages:
+        other_email = msg['other_email']
+        unread_count = ChatMessage.objects.filter(
+            sender__email=other_email, receiver=user, is_read=False, is_group=False
+        ).count()
+        recent_chats.append({
+            'email': other_email,
+            'last_message_time': msg['last_timestamp'].strftime('%Y-%m-%d %H:%M') if msg['last_timestamp'] else 'N/A',
+            'unread_count': unread_count
+        })
+
+    return JsonResponse({'recent_chats': recent_chats})
+
+@login_required
+def friend_list(request):
+    user = request.user
+    # 已接受的好友
+    friends = FriendRelation.objects.filter(
+        Q(from_user=user, status='accepted') | Q(to_user=user, status='accepted')
+    )
+    friend_users = []
+    for rel in friends:
+        friend = rel.to_user if rel.from_user == user else rel.from_user
+        friend_users.append(friend)
+
+    # 待处理请求
+    pending_requests = FriendRelation.objects.filter(to_user=user, status='pending')
+
+    context = {
+        'friends': friend_users,
+        'pending_requests': pending_requests,
+    }
+    return render(request, 'communication/friend_list.html', context)
+
+@login_required
+@require_POST
+def send_friend_request(request):
+    to_email = request.POST.get('to_email')
+    try:
+        to_user = User.objects.get(email=to_email)
+        if FriendRelation.objects.filter(from_user=request.user, to_user=to_user).exists():
+            return JsonResponse({'error': 'Request already sent'}, status=400)
+        friend_request = FriendRelation.objects.create(from_user=request.user, to_user=to_user)
+        
+        # 发送实时通知
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'user_{to_user.email.replace("@", "_")}',
+            {
+                'type': 'friend_request_notification',
+                'from_email': request.user.email,
+                'request_id': friend_request.id
+            }
+        )
+        
+        return JsonResponse({'success': True})
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+
+@login_required
+@require_POST
+def accept_friend_request(request, request_id):
+    friend_request = get_object_or_404(FriendRelation, id=request_id, to_user=request.user, status='pending')
+    friend_request.status = 'accepted'
+    friend_request.save()
+    # 创建1v1房间
+    room_name = async_to_sync(get_or_create_one_to_one_room)(request.user.email, friend_request.from_user.email)
+    
+    # 发送实时更新通知给发送者
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f'user_{friend_request.from_user.email.replace("@", "_")}',
+        {
+            'type': 'friend_update_notification',
+            'from_email': request.user.email,
+            'status': 'accepted'
+        }
+    )
+    
+    return JsonResponse({'success': True, 'room_name': room_name})
+
+@login_required
+@require_POST
+def reject_friend_request(request, request_id):
+    friend_request = get_object_or_404(FriendRelation, id=request_id, to_user=request.user, status='pending')
+    friend_request.status = 'rejected'
+    friend_request.save()
+    
+    # 发送实时更新通知给发送者
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f'user_{friend_request.from_user.email.replace("@", "_")}',
+        {
+            'type': 'friend_update_notification',
+            'from_email': request.user.email,
+            'status': 'rejected'
+        }
+    )
+    
+    return JsonResponse({'success': True})

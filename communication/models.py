@@ -45,3 +45,20 @@ class OneToOneChatSession(models.Model):
         constraints = [
             models.CheckConstraint(check=models.Q(user1__lt=models.F('user2')), name='user1_less_than_user2')
         ]
+
+class FriendRelation(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ]
+    from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend_requests_sent')
+    to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend_requests_received')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('from_user', 'to_user')
+
+    def __str__(self):
+        return f"{self.from_user.email} -> {self.to_user.email} ({self.status})"

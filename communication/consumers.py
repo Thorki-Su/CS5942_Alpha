@@ -25,6 +25,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.user_email = path.split('/')[3].replace('_', '@')
                 self.user_channel_name = f'user_{self.user_email.replace("@", "_")}'
                 await self.channel_layer.group_add(self.user_channel_name, self.channel_name)
+                logger.debug(f"Connected to user channel {self.user_channel_name} (awaiting authentication)")
             else:
                 self.room_name = path.split('/')[3]
                 self.room_group_name = f'chat_{self.room_name}'
@@ -33,7 +34,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.user_channel_name = f'user_{self.scope["user"].email.replace("@", "_")}'
                 await self.channel_layer.group_add(self.room_group_name, self.channel_name)
                 await self.channel_layer.group_add(self.user_channel_name, self.channel_name)
-            logger.debug(f"Connected to {self.room_name or self.user_channel_name} (awaiting authentication)")
+                logger.debug(f"Connected to {self.room_name} (awaiting authentication)")
             await self.accept()
         except Exception as e:
             logger.error(f"Error in connect: {e}")
@@ -45,7 +46,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
             if hasattr(self, 'user_channel_name'):
                 await self.channel_layer.group_discard(self.user_channel_name, self.channel_name)
-            logger.debug(f"Disconnected from {self.room_name or self.user_channel_name} with code {close_code}")
+            logger.debug(f"Disconnected from {getattr(self, 'room_name', 'unknown') or getattr(self, 'user_channel_name', 'unknown')} with code {close_code}")
         except Exception as e:
             logger.error(f"Error in disconnect: {e}")
 
@@ -65,11 +66,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 authenticated = await self.authenticate_user()
                 logger.debug(f"Authentication result for {self.user_email}: {authenticated}")
                 if not authenticated:
-                    logger.error(f"Authentication failed for user {self.user_email} in room {self.room_name}")
+                    logger.error(f"Authentication failed for user {self.user_email} in room {getattr(self, 'room_name', 'unknown')}")
                     await self.close()
                     return
                 await self.send(json.dumps({'type': 'auth_ack', 'status': 'authenticated', 'user': self.user_email}))
-                logger.debug(f"Authenticated user {self.user_email} in room {self.room_name}")
+                logger.debug(f"Authenticated user {self.user_email} in room {getattr(self, 'room_name', 'unknown')}")
 
             if not self.user_email:
                 logger.warning("User not authenticated, closing connection")
@@ -158,7 +159,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding JSON: {e}")
         except Exception as e:
-            logger.error(f"Unexpected error in receive for room {self.room_name}: {e}")
+            logger.error(f"Unexpected error in receive for room {getattr(self, 'room_name', 'unknown')}: {e}")
             await self.close()
 
     @database_sync_to_async
@@ -187,7 +188,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def authenticate_user(self):
         try:
-            if self.is_task_group:
+            if hasattr(self, 'is_task_group') and self.is_task_group:
                 task_id = int(self.room_name.split('_')[2])
                 task = Task.objects.get(id=task_id)
                 if task.status in ['completed', 'cancelled']:
@@ -195,7 +196,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 User = get_user_model()
                 user = User.objects.get(email=self.user_email)
                 return task.client == user or TaskApplication.objects.filter(task=task, volunteer=user, status='accepted').exists()
-            elif self.is_one_to_one:
+            elif hasattr(self, 'is_one_to_one') and self.is_one_to_one:
                 try:
                     session = OneToOneChatSession.objects.get(room_name=self.room_name)
                     valid_emails = [session.user1.email, session.user2.email]
@@ -203,19 +204,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 except OneToOneChatSession.DoesNotExist:
                     logger.error(f"OneToOneChatSession {self.room_name} not found")
                     return False
+            elif path.startswith('/ws/user/'):  # 用户通知路径，无需房间认证
+                return True  # 只需auth user_email
             return False
         except (ValueError, ObjectDoesNotExist) as e:
-            logger.error(f"Authentication error in room {self.room_name}: {e}")
+            logger.error(f"Authentication error in room {getattr(self, 'room_name', 'unknown')}: {e}")
             return False
         except Exception as e:
-            logger.error(f"Authentication error in room {self.room_name}: {e}")
+            logger.error(f"Authentication error in room {getattr(self, 'room_name', 'unknown')}: {e}")
             return False
 
     @database_sync_to_async
     def get_receiver(self):
         start_time = time.time()
         try:
-            if self.is_one_to_one:
+            if hasattr(self, 'is_one_to_one') and self.is_one_to_one:
                 session = OneToOneChatSession.objects.get(room_name=self.room_name)
                 if self.user_email == session.user1.email:
                     result = session.user2.email
@@ -305,6 +308,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }))
         except Exception as e:
             logger.error(f"Error in unread_notification: {e}")
+
+    # 新增：好友请求通知
+    async def friend_request_notification(self, event):
+        try:
+            await self.send(text_data=json.dumps({
+                'type': 'friend_request_notification',
+                'from_email': event['from_email'],
+                'request_id': event['request_id']
+            }))
+        except Exception as e:
+            logger.error(f"Error in friend_request_notification: {e}")
+
+    # 新增：好友更新通知（接受/拒绝）
+    async def friend_update_notification(self, event):
+        try:
+            await self.send(text_data=json.dumps({
+                'type': 'friend_update_notification',
+                'from_email': event['from_email'],
+                'status': event['status']  # 'accepted' or 'rejected'
+            }))
+        except Exception as e:
+            logger.error(f"Error in friend_update_notification: {e}")
 
 class VideoCallConsumer(AsyncWebsocketConsumer):
     async def connect(self):
