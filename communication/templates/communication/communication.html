@@ -27,13 +27,19 @@
         height: 60vh; 
         overflow-y: auto; 
         padding: 20px; 
+        display: flex;
+        flex-direction: column;
+    }
+    #message-list {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
     }
     .message { 
         max-width: 70%; 
         margin-bottom: 15px; 
         padding: 10px 15px; 
         border-radius: 10px; 
-        display: block; 
         width: fit-content; 
     }
     .sent { 
@@ -63,6 +69,7 @@
         margin: 20px auto; 
         justify-content: space-between; 
         flex-wrap: wrap; 
+        z-index: 10;
     }
     video, audio { 
         width: 45%; 
@@ -82,22 +89,8 @@
             <span class="text-gray-600">You: {{ request.user.email }}</span>
         </div>
         <div class="chat-container" id="chat-container">
-            {% for message in messages %}
-                {% if message.sender.email == request.user.email %}
-                    <div class="message sent">
-                        <p>{{ message.content }}</p>
-                        <div class="message-time">{{ message.timestamp|date:"H:i" }}</div>
-                    </div>
-                {% else %}
-                    <div class="message received">
-                        <p>{{ message.content }}</p>
-                        <div class="message-time">{{ message.timestamp|date:"H:i" }}</div>
-                    </div>
-                {% endif %}
-            {% empty %}
-                <p class="text-center text-gray-500">No messages yet. Start the conversation!</p>
-            {% endfor %}
             <div id="message-list"></div>
+            <p id="no-messages" class="text-center text-gray-500" style="display: none;">No messages yet. Start the conversation!</p>
         </div>
         <div class="input-area flex items-center">
             <input type="text" id="message-input" class="flex-1 p-2 border rounded-l-lg focus:outline-none" placeholder="Type a message..." required>
@@ -115,15 +108,12 @@
         </div>
     </div>
 
-{{ participants|json_script:"participants-data" }}  <!-- 修复：用json_script输出 -->
+    {{ participants|json_script:"participants-data" }}
 {% endblock %}
 
 {% block script %}
-
     <script>
         const chatContainer = document.getElementById('chat-container');
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-
         const roomName = "{{ room_name }}";
         const userEmail = "{{ request.user.email }}";
         const participantsData = document.getElementById('participants-data');
@@ -133,7 +123,7 @@
         }
         if (participants.length === 0 && roomName.startsWith('1v1_')) {
             console.warn('No participants found for 1v1 room, using fallback');
-            participants = ['fallback@example.com']; // 临时占位，需由视图提供
+            participants = ['fallback@example.com'];
         }
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
         const wsPath = `${wsScheme}://${window.location.host}/ws/chat/${roomName}/`;
@@ -144,6 +134,35 @@
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
         const reconnectInterval = 2000;
+        let authTimeout;
+
+        function formatTimestamp(isoString) {
+            return new Date(isoString).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function loadHistory() {
+            fetch(`/communication/one-to-one/${roomName}/`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const messageList = document.getElementById('message-list');
+                    messageList.innerHTML = '';
+                    if (data.messages.length === 0) {
+                        document.getElementById('no-messages').style.display = 'block';
+                    } else {
+                        document.getElementById('no-messages').style.display = 'none';
+                        data.messages.forEach(msg => {
+                            const messageElement = document.createElement('div');
+                            messageElement.classList.add('message', msg.sender === userEmail ? 'sent' : 'received');
+                            messageElement.innerHTML = `<p>${msg.content}</p><div class="message-time">${formatTimestamp(msg.timestamp)}</div>`;
+                            messageList.appendChild(messageElement);
+                        });
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    }
+                })
+                .catch(err => console.error('Failed to load history:', err));
+        }
 
         function reconnect() {
             if (reconnectAttempts < maxReconnectAttempts) {
@@ -151,6 +170,7 @@
                     console.log(`Reconnecting (${reconnectAttempts + 1}/${maxReconnectAttempts})...`);
                     ws = new WebSocket(wsPath);
                     setupWebSocket();
+                    loadHistory();
                     reconnectAttempts++;
                 }, reconnectInterval);
             } else {
@@ -161,16 +181,12 @@
         function setupWebSocket() {
             ws.onopen = () => {
                 console.log('WebSocket opened, sending auth...');
-                const authMsg = {
-                    type: 'auth',
-                    user_email: userEmail
-                };
-                console.log('Sending auth:', authMsg);
-                ws.send(JSON.stringify(authMsg));
+                ws.send(JSON.stringify({ type: 'auth', user_email: userEmail }));
                 authTimeout = setTimeout(() => {
                     console.error('Authentication timeout');
                     ws.close();
                 }, 30000);
+                loadHistory();
             };
 
             ws.onmessage = (event) => {
@@ -183,13 +199,13 @@
                 }
                 if (data.type === 'ping') {
                     console.log('Received ping');
-                    return; // 忽略 ping 响应
+                    return;
                 }
-                if (data.message && data.sender !== userEmail) { // 只渲染他人消息
+                if (data.message) {
                     const messageList = document.getElementById('message-list');
                     const messageElement = document.createElement('div');
                     messageElement.classList.add('message', data.sender === userEmail ? 'sent' : 'received');
-                    messageElement.innerHTML = `<p>${data.message}</p><div class="message-time">${new Date(data.timestamp).toLocaleTimeString()}</div>`;
+                    messageElement.innerHTML = `<p>${data.message}</p><div class="message-time">${formatTimestamp(data.timestamp)}</div>`;
                     messageList.appendChild(messageElement);
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                 }
@@ -223,7 +239,7 @@
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ type: 'ping' }));
             }
-        }, 30000); // 每 30 秒发送 ping
+        }, 30000);
 
         setupWebSocket();
 
@@ -233,16 +249,9 @@
             if (message && ws.readyState === WebSocket.OPEN) {
                 const data = { 'message': message, 'timestamp': new Date().toISOString() };
                 if (roomName.startsWith('1v1_')) {
-                    data['receiver'] = participants[0]; // 1v1 只有一个 peer
+                    data['receiver'] = participants[0];
                 }
                 ws.send(JSON.stringify(data));
-                // 渲染自己发送的消息
-                const messageList = document.getElementById('message-list');
-                const messageElement = document.createElement('div');
-                messageElement.classList.add('message', 'sent');
-                messageElement.innerHTML = `<p>${message}</p><div class="message-time">${new Date().toLocaleTimeString()}</div>`;
-                messageList.appendChild(messageElement);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
                 messageInput.value = '';
             } else if (ws.readyState !== WebSocket.OPEN) {
                 alert('WebSocket not connected. Wait for reconnection.');
