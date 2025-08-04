@@ -2,89 +2,439 @@
 
 {% block title %}Task Detail{% endblock %}
 
+{% block style %}
+<style>
+    .task-detail-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .task-header {
+        background: #30574e;
+        color: white;
+        padding: 40px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .task-header h2 {
+        margin: 0 0 15px 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .task-description {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        line-height: 1.6;
+    }
+    .task-info-section {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+        border-left: 4px solid #30574e;
+    }
+    .creator-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 25px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+    }
+    .creator-photo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .creator-details h4 {
+        margin: 0;
+        color: #333;
+        font-size: 1.2rem;
+    }
+    .creator-details p {
+        margin: 5px 0 0 0;
+        color: #6c757d;
+    }
+    .task-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+    .detail-item {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 3px solid #30574e;
+    }
+    .detail-item strong {
+        color: #495057;
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    .detail-item span {
+        color: #333;
+        font-size: 1rem;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .status-pending {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        color: white;
+    }
+    .status-ongoing {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+    .status-completed {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+    .status-cancelled {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+    .support-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .support-tag {
+        background: #30574e;
+        color: white !important;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .actions-section {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+        border-left: 4px solid #30574e;
+    }
+    .actions-section h3 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.4rem;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+    }
+    .btn-custom {
+        padding: 12px 24px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+    .btn-primary-custom {
+        background: #30574e;
+        color: white;
+    }
+    .btn-primary-custom:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+        text-decoration: none;
+    }
+    .btn-success-custom {
+        background: #30574e;
+        color: white;
+    }
+    .btn-success-custom:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+        text-decoration: none;
+    }
+    .btn-danger-custom {
+        background: #30574e;
+        color: white;
+    }
+    .btn-danger-custom:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+        text-decoration: none;
+    }
+    .btn-warning-custom {
+        background: #30574e;
+        color: white;
+    }
+    .btn-warning-custom:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+        text-decoration: none;
+    }
+    .notice-text {
+        background: #fff3cd;
+        color: #856404;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        font-size: 0.9rem;
+        border-left: 4px solid #ffc107;
+    }
+    .feedback-section {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+        border-left: 4px solid #ffc107;
+    }
+    .feedback-section h3 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.4rem;
+    }
+    .volunteer-list {
+        list-style: none;
+        padding: 0;
+    }
+    .volunteer-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    .volunteer-name {
+        font-weight: 600;
+        color: #333;
+    }
+    .application-status {
+        color: #6c757d;
+        font-style: italic;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style='margin:50px;'>
-        <h2>{{ task.title }}</h2>
-        <p>{{ task.description }}</p>
-        <p>Creater: {{ task.client.userprofile.get_full_name }}</p>
-        <p>Time: {{ task.start_time }} - {{ task.end_time }}</p>
-        <p>Support needed: {{ task.work_area.all|join:", " }}</p>
-        <p>Volunteer needed: {{ task.vol_number }}</p>
-        <p>Status: {{ task.status }}</p>
-        <p>Created at: {{ task.created_at }}</p>
-        {% if task.is_active %}
-            {% if is_client %}
-                <a href="{% url 'task:task_application' task.id %}">View applied volunteers</a>
-                <form method="post" action="{% url 'task:cancel_task' task.id %}" style="margin-top:10px;">
-                    {% csrf_token %}
-                    <button type="submit" onclick="return confirm('Are you sure you want to cancel this task?');">Cancel This Task</button>
-                </form>
-                <p>Notice: You can't cancel a task less than 24 hours before it starts.</p>
-            {% elif has_applied %}
-                <p>You have applied. Application status: {{ application_status }}</p>
-                <form method="post" action="{% url 'task:cancel_application' task.id %}" style="margin-top:10px;">
-                    {% csrf_token %}
-                    <button type="submit" onclick="return confirm('Are you sure you want to cancel this application?');">Cancel This Application</button>
-                </form>
-                <p>Notice: You can't cancel this application within 24 hours of task start.</p>
-            {% else %}
-                <form method="post" action="{% url 'task:task_apply' task.id %}">
-                    {% csrf_token %}
-                    <button type="submit">Apply for this task</button>
-                </form>
-                <p>Notice: You can't apply for time-conflicting tasks. Please leave at least one hour between tasks.</p>
-            {% endif %}
-            {% if not is_client %}
-                <a href="{% url 'communication:create_one_to_one_room' %}?user2_email={{ task.client.email }}"
-                   class="btn btn-primary btn-sm mt-3"
-                   onclick="createOneToOneRoom('{{ task.client.email }}'); return false;">
-                    Chat with Task Creator ({{ task.client.email }})
-                </a>
-            {% endif %}
-        {% elif task.is_ongoing %}
-            {% if is_client %}
-                <a href="{% url 'task:task_confirm' task.id %}">View task records</a>
-                <h3>Feedback for Volunteers:</h3>
-                <ul>
-                    {% for volunteer in accepted_volunteers %}
-                        <li>
-                            {{ volunteer.userprofile.get_full_name }} 
-                            <a href="{% url 'task:task_feedback' task.id volunteer.id %}">Give Feedback</a>
-                        </li>
-                    {% empty %}
-                        <li>No volunteers accepted yet.</li>
+    <div class="task-detail-container">
+        <div class="task-header">
+            <h2>{{ task.title }}</h2>
+            <p class="task-description">{{ task.description }}</p>
+        </div>
+
+        <div class="task-info-section">
+            <div class="creator-info">
+                {% if task.client.userprofile.profile_photo %}
+                    <img src="{{ task.client.userprofile.profile_photo.url }}" alt="Creator photo" class="creator-photo">
+                {% else %}
+                    <div class="creator-photo" style="background: #e9ecef; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 2rem;">👤</div>
+                {% endif %}
+                <div class="creator-details">
+                    <h4>{{ task.client.userprofile.get_full_name }}</h4>
+                    <p>Task Creator</p>
+                </div>
+            </div>
+
+            <div class="task-details-grid">
+                <div class="detail-item">
+                    <strong>Time:</strong>
+                    <span>From: {{ task.start_time|date:"M d, Y H:i" }}</span><br>
+                    <span>To: {{ task.end_time|date:"M d, Y H:i" }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Location:</strong>
+                    <span>{{ task.client.userprofile.location }}</span>
+                </div>
+                {% with task.client.userprofile.clientprofile.conditions.all as conds %}
+                    <div class="detail-item">
+                        <strong>Condition:</strong>
+                        <span>{{ conds|join:", " }}</span>
+                    </div>
+                    {% for condition in conds %}
+                        {% if condition.name == "Others" %}
+                            <div class="detail-item">
+                                <strong>Other Condition:</strong>
+                                <span>{{ task.client.userprofile.clientprofile.other_conditions }}</span>
+                            </div>
+                        {% endif %}
                     {% endfor %}
-                </ul>
+                {% endwith %}
+                <div class="detail-item">
+                    <strong>Volunteers Needed:</strong>
+                    <span>{{ task.vol_number }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Status:</strong>
+                    <span class="status-badge status-{{ task.status|lower }}">{{ task.status }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Created at:</strong>
+                    <span>{{ task.created_at|date:"M d, Y H:i" }}</span>
+                </div>
+            </div>
+
+            <div class="detail-item">
+                <strong>Support Areas:</strong>
+                <div class="support-tags">
+                    {% for area in task.work_area.all %}
+                        <span class="support-tag">{{ area }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% if task.is_active %}
+            <div class="actions-section">
+                <h3>Available Actions</h3>
+                {% if is_client %}
+                    <div class="action-buttons">
+                        <a href="{% url 'task:task_application' task.id %}" class="btn-custom btn-primary-custom">View Applied Volunteers</a>
+                        <form method="post" action="{% url 'task:cancel_task' task.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-custom btn-danger-custom" onclick="return confirm('Are you sure you want to cancel this task?');">Cancel This Task</button>
+                        </form>
+                    </div>
+                    <div class="notice-text">
+                        Notice: You can't cancel a task less than 24 hours before it starts.
+                    </div>
+                {% elif has_applied %}
+                    <div class="application-status">
+                        You have applied. Application status: <strong>{{ application_status }}</strong>
+                    </div>
+                    <div class="action-buttons">
+                        <form method="post" action="{% url 'task:cancel_application' task.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-custom btn-warning-custom" onclick="return confirm('Are you sure you want to cancel this application?');">Cancel This Application</button>
+                        </form>
+                    </div>
+                    <div class="notice-text">
+                        Notice: You can't cancel this application within 24 hours of task start.
+                    </div>
+                {% else %}
+                    <div class="action-buttons">
+                        <form method="post" action="{% url 'task:task_apply' task.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-custom btn-success-custom">Apply for this Task</button>
+                        </form>
+                    </div>
+                    <div class="notice-text">
+                        Notice: You can't apply for time-conflicting tasks. Please leave at least one hour between tasks.
+                    </div>
+                {% endif %}
+                {% if not is_client %}
+                    <div class="action-buttons" style="margin-top: 20px;">
+                        <a href="{% url 'communication:create_one_to_one_room' %}?user2_email={{ task.client.email }}"
+                           class="btn-custom btn-primary-custom"
+                           onclick="createOneToOneRoom('{{ task.client.email }}'); return false;">
+                            💬 Chat with Task Creator
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        {% elif task.is_ongoing %}
+            <div class="actions-section">
+                <h3>Task Management</h3>
+                {% if is_client %}
+                    <div class="action-buttons">
+                        <a href="{% url 'task:task_confirm' task.id %}" class="btn-custom btn-primary-custom">View Task Records</a>
+                    </div>
+                {% elif be_accepted %}
+                    <div class="action-buttons">
+                        <a href="{% url 'task:task_record' task.id %}" class="btn-custom btn-success-custom">Submit Task Records</a>
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if is_client and accepted_volunteers %}
+                <div class="feedback-section">
+                    <h3>Feedback for Volunteers</h3>
+                    <ul class="volunteer-list">
+                        {% for volunteer in accepted_volunteers %}
+                            <li class="volunteer-item">
+                                <span class="volunteer-name">{{ volunteer.userprofile.get_full_name }}</span>
+                                <a href="{% url 'task:task_feedback' task.id volunteer.id %}" class="btn-custom btn-warning-custom">Give Feedback</a>
+                            </li>
+                        {% empty %}
+                            <li class="volunteer-item">No volunteers accepted yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
             {% elif be_accepted %}
-                <a href="{% url 'task:task_record' task.id %}">Submit task records</a>
-                <h3>Feedback for Client:</h3>
-                <p>
-                    <a href="{% url 'task:task_feedback' task.id task.client.id %}">Give Feedback to Client</a>
-                </p>
+                <div class="feedback-section">
+                    <h3>Feedback for Client</h3>
+                    <div class="action-buttons">
+                        <a href="{% url 'task:task_feedback' task.id task.client.id %}" class="btn-custom btn-warning-custom">Give Feedback to Client</a>
+                    </div>
+                </div>
             {% endif %}
         {% elif task.is_closed %}
-            <p>Closed at: {{ task.closed_at }}</p>
-            {% if is_client %}
-                <h3>Feedback for Volunteers:</h3>
-                <ul>
-                    {% for volunteer in accepted_volunteers %}
-                        <li>
-                            {{ volunteer.userprofile.get_full_name }} 
-                            <a href="{% url 'task:task_feedback' task.id volunteer.id %}">Give Feedback</a>
-                        </li>
-                    {% empty %}
-                        <li>No volunteers accepted yet.</li>
-                    {% endfor %}
-                </ul>
+            <div class="task-info-section">
+                <div class="detail-item">
+                    <strong>Closed at:</strong>
+                    <span>{{ task.closed_at|date:"M d, Y H:i" }}</span>
+                </div>
+            </div>
+            
+            {% if is_client and accepted_volunteers %}
+                <div class="feedback-section">
+                    <h3>Feedback for Volunteers</h3>
+                    <ul class="volunteer-list">
+                        {% for volunteer in accepted_volunteers %}
+                            <li class="volunteer-item">
+                                <span class="volunteer-name">{{ volunteer.userprofile.get_full_name }}</span>
+                                <a href="{% url 'task:task_feedback' task.id volunteer.id %}" class="btn-custom btn-warning-custom">Give Feedback</a>
+                            </li>
+                        {% empty %}
+                            <li class="volunteer-item">No volunteers accepted yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
             {% elif be_accepted %}
-                <h3>Feedback for Client:</h3>
-                <p>
-                    <a href="{% url 'task:task_feedback' task.id task.client.id %}">Give Feedback to Client</a>
-                </p>
+                <div class="feedback-section">
+                    <h3>Feedback for Client</h3>
+                    <div class="action-buttons">
+                        <a href="{% url 'task:task_feedback' task.id task.client.id %}" class="btn-custom btn-warning-custom">Give Feedback to Client</a>
+                    </div>
+                </div>
             {% endif %}
         {% endif %}
+        
         {% if be_accepted or is_client %}
-            <a href="{% url 'communication:task_communication_view' task.id %}" class="btn btn-primary mt-3">Join Task Chat</a>
+            <div class="actions-section">
+                <h3>Communication</h3>
+                <div class="action-buttons">
+                    <a href="{% url 'communication:task_communication_view' task.id %}" class="btn-custom btn-primary-custom">💬 Join Task Chat</a>
+                </div>
+            </div>
         {% endif %}
     </div>
 

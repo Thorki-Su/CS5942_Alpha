@@ -1,0 +1,1685 @@
+[
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "admin",
+    "model": "logentry"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "auth",
+    "model": "permission"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "auth",
+    "model": "group"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "contenttypes",
+    "model": "contenttype"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "sessions",
+    "model": "session"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "user",
+    "model": "certificationtype"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "user",
+    "model": "conditiontype"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "user",
+    "model": "customuser"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "user",
+    "model": "userprofile"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "user",
+    "model": "clientprofile"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "user",
+    "model": "adminprofile"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "user",
+    "model": "volunteerprofile"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "user",
+    "model": "supporttype"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "payment",
+    "model": "donationcampaign"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "payment",
+    "model": "donation"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "communication",
+    "model": "chatmessage"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "communication",
+    "model": "videocallsession"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "communication",
+    "model": "onetoonechatsession"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "task",
+    "model": "task"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "task",
+    "model": "taskapplication"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "task",
+    "model": "tasktemplate"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "task",
+    "model": "taskrecord"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "task",
+    "model": "feedback"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "task",
+    "model": "starrelation"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "q87120dvzilcatkg7yavc9guzcygjr1c",
+  "fields": {
+    "session_data": ".eJxVjDEOwjAMRe-SGUVKmrg1IztniOLYJgXUSk07Ie4OlTrA-t97_2VS3taatiZLGtmcDZjT70a5PGTaAd_zdJttmad1Gcnuij1os9eZ5Xk53L-Dmlv91hj7HnXoAxcXC_noFVWCEKOC852Ao8wDcMeEg8OiGgQLKXgIxGDeH_aiOMI:1uSigf:0ZyPrYCwljbP9vDUT7u0hf03gzGzJLNaQb607seImHs",
+    "expire_date": "2025-07-04T20:50:13.777Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "r6y30238xs91dc4iaphx8os4tw20xn4t",
+  "fields": {
+    "session_data": ".eJxVjDEOwjAMRe-SGUVKmrg1IztniOLYJgXUSk07Ie4OlTrA-t97_2VS3taatiZLGtmcDZjT70a5PGTaAd_zdJttmad1Gcnuij1os9eZ5Xk53L-Dmlv91hj7HnXoAxcXC_noFVWCEKOC852Ao8wDcMeEg8OiGgQLKXgIxGDeH_aiOMI:1uSig5:E5Th02BVpfJq1ykBlCZC7VKheGoDlX-ReXYV1xt4dtw",
+    "expire_date": "2025-07-04T20:49:37.359Z"
+  }
+},
+{
+  "model": "user.certificationtype",
+  "pk": 1,
+  "fields": {
+    "name": "PIP"
+  }
+},
+{
+  "model": "user.certificationtype",
+  "pk": 2,
+  "fields": {
+    "name": "ADP"
+  }
+},
+{
+  "model": "user.certificationtype",
+  "pk": 3,
+  "fields": {
+    "name": "LWC"
+  }
+},
+{
+  "model": "user.conditiontype",
+  "pk": 1,
+  "fields": {
+    "name": "M.E/CFS"
+  }
+},
+{
+  "model": "user.conditiontype",
+  "pk": 2,
+  "fields": {
+    "name": "Fibromyalgia"
+  }
+},
+{
+  "model": "user.conditiontype",
+  "pk": 3,
+  "fields": {
+    "name": "PTSD"
+  }
+},
+{
+  "model": "user.conditiontype",
+  "pk": 4,
+  "fields": {
+    "name": "Long Covid"
+  }
+},
+{
+  "model": "user.conditiontype",
+  "pk": 5,
+  "fields": {
+    "name": "Lupus"
+  }
+},
+{
+  "model": "user.conditiontype",
+  "pk": 6,
+  "fields": {
+    "name": "Cutaneous Lupus"
+  }
+},
+{
+  "model": "user.conditiontype",
+  "pk": 7,
+  "fields": {
+    "name": "Others"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 1,
+  "fields": {
+    "name": "Housekeeping"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 2,
+  "fields": {
+    "name": "Meal preparation"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 3,
+  "fields": {
+    "name": "Administrative Help"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 4,
+  "fields": {
+    "name": "Companionship"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 5,
+  "fields": {
+    "name": "Transport Assistance"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 6,
+  "fields": {
+    "name": "Laundry Assistance"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 7,
+  "fields": {
+    "name": "Garden Maintenance"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 8,
+  "fields": {
+    "name": "Reading Aloud"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 9,
+  "fields": {
+    "name": "Pet Care"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 10,
+  "fields": {
+    "name": "Childcare"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 11,
+  "fields": {
+    "name": "Prescription Pick-Up"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 12,
+  "fields": {
+    "name": "Shopping Assistance"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 13,
+  "fields": {
+    "name": "Cooking and Meal Planning"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 14,
+  "fields": {
+    "name": "Technology Assistance"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 15,
+  "fields": {
+    "name": "Organisation and Decluttering"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 16,
+  "fields": {
+    "name": "Crafts and Hobbies"
+  }
+},
+{
+  "model": "user.supporttype",
+  "pk": 17,
+  "fields": {
+    "name": "Others"
+  }
+},
+{
+  "model": "user.clientprofile",
+  "pk": 3,
+  "fields": {
+    "user_profile": 3,
+    "pip_certificate": "",
+    "adp_certificate": "",
+    "lwc_certificate": "",
+    "nhs_certificate": "",
+    "diagnosis": "",
+    "preferred_contact_method": "email",
+    "other_conditions": null,
+    "other_support": null,
+    "preferred_times": {
+      "Monday": [
+        "08:00-11:00",
+        "11:00-14:00"
+      ],
+      "Tuesday": [
+        "08:00-11:00",
+        "11:00-14:00"
+      ]
+    },
+    "allergies": "None",
+    "dietary_needs": "None",
+    "has_pets": true,
+    "pets_type": "Dog",
+    "certifications": [
+      1
+    ],
+    "conditions": [
+      3
+    ],
+    "support_areas": [
+      7,
+      9
+    ]
+  }
+},
+{
+  "model": "user.volunteerprofile",
+  "pk": 1,
+  "fields": {
+    "user_profile": 4,
+    "university_course": "UoA",
+    "profession": "IT",
+    "is_for_credit": true,
+    "skills": "writing codes",
+    "interests": "video games",
+    "pvg_level": "do_not_have",
+    "pvg_file": "",
+    "availability": {},
+    "motivation": "",
+    "is_scheduled": false,
+    "available_days": [],
+    "available_start_time": null,
+    "available_end_time": null,
+    "preferred_distance_km": 10,
+    "accept_pets": true,
+    "preferred_tasks": []
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "add_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "change_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "delete_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "view_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "add_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "change_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "delete_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "view_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "add_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "change_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "delete_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "view_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "add_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "change_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "delete_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "view_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "add_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "change_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "delete_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "view_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add certification type",
+    "content_type": [
+      "user",
+      "certificationtype"
+    ],
+    "codename": "add_certificationtype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change certification type",
+    "content_type": [
+      "user",
+      "certificationtype"
+    ],
+    "codename": "change_certificationtype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete certification type",
+    "content_type": [
+      "user",
+      "certificationtype"
+    ],
+    "codename": "delete_certificationtype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view certification type",
+    "content_type": [
+      "user",
+      "certificationtype"
+    ],
+    "codename": "view_certificationtype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add condition type",
+    "content_type": [
+      "user",
+      "conditiontype"
+    ],
+    "codename": "add_conditiontype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change condition type",
+    "content_type": [
+      "user",
+      "conditiontype"
+    ],
+    "codename": "change_conditiontype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete condition type",
+    "content_type": [
+      "user",
+      "conditiontype"
+    ],
+    "codename": "delete_conditiontype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view condition type",
+    "content_type": [
+      "user",
+      "conditiontype"
+    ],
+    "codename": "view_conditiontype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add custom user",
+    "content_type": [
+      "user",
+      "customuser"
+    ],
+    "codename": "add_customuser"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change custom user",
+    "content_type": [
+      "user",
+      "customuser"
+    ],
+    "codename": "change_customuser"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete custom user",
+    "content_type": [
+      "user",
+      "customuser"
+    ],
+    "codename": "delete_customuser"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view custom user",
+    "content_type": [
+      "user",
+      "customuser"
+    ],
+    "codename": "view_customuser"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add user profile",
+    "content_type": [
+      "user",
+      "userprofile"
+    ],
+    "codename": "add_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change user profile",
+    "content_type": [
+      "user",
+      "userprofile"
+    ],
+    "codename": "change_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete user profile",
+    "content_type": [
+      "user",
+      "userprofile"
+    ],
+    "codename": "delete_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view user profile",
+    "content_type": [
+      "user",
+      "userprofile"
+    ],
+    "codename": "view_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add client profile",
+    "content_type": [
+      "user",
+      "clientprofile"
+    ],
+    "codename": "add_clientprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change client profile",
+    "content_type": [
+      "user",
+      "clientprofile"
+    ],
+    "codename": "change_clientprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete client profile",
+    "content_type": [
+      "user",
+      "clientprofile"
+    ],
+    "codename": "delete_clientprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view client profile",
+    "content_type": [
+      "user",
+      "clientprofile"
+    ],
+    "codename": "view_clientprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add admin profile",
+    "content_type": [
+      "user",
+      "adminprofile"
+    ],
+    "codename": "add_adminprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change admin profile",
+    "content_type": [
+      "user",
+      "adminprofile"
+    ],
+    "codename": "change_adminprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete admin profile",
+    "content_type": [
+      "user",
+      "adminprofile"
+    ],
+    "codename": "delete_adminprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view admin profile",
+    "content_type": [
+      "user",
+      "adminprofile"
+    ],
+    "codename": "view_adminprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add volunteer profile",
+    "content_type": [
+      "user",
+      "volunteerprofile"
+    ],
+    "codename": "add_volunteerprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change volunteer profile",
+    "content_type": [
+      "user",
+      "volunteerprofile"
+    ],
+    "codename": "change_volunteerprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete volunteer profile",
+    "content_type": [
+      "user",
+      "volunteerprofile"
+    ],
+    "codename": "delete_volunteerprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view volunteer profile",
+    "content_type": [
+      "user",
+      "volunteerprofile"
+    ],
+    "codename": "view_volunteerprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add support type",
+    "content_type": [
+      "user",
+      "supporttype"
+    ],
+    "codename": "add_supporttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change support type",
+    "content_type": [
+      "user",
+      "supporttype"
+    ],
+    "codename": "change_supporttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete support type",
+    "content_type": [
+      "user",
+      "supporttype"
+    ],
+    "codename": "delete_supporttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view support type",
+    "content_type": [
+      "user",
+      "supporttype"
+    ],
+    "codename": "view_supporttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add donation campaign",
+    "content_type": [
+      "payment",
+      "donationcampaign"
+    ],
+    "codename": "add_donationcampaign"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change donation campaign",
+    "content_type": [
+      "payment",
+      "donationcampaign"
+    ],
+    "codename": "change_donationcampaign"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete donation campaign",
+    "content_type": [
+      "payment",
+      "donationcampaign"
+    ],
+    "codename": "delete_donationcampaign"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view donation campaign",
+    "content_type": [
+      "payment",
+      "donationcampaign"
+    ],
+    "codename": "view_donationcampaign"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add donation",
+    "content_type": [
+      "payment",
+      "donation"
+    ],
+    "codename": "add_donation"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change donation",
+    "content_type": [
+      "payment",
+      "donation"
+    ],
+    "codename": "change_donation"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete donation",
+    "content_type": [
+      "payment",
+      "donation"
+    ],
+    "codename": "delete_donation"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view donation",
+    "content_type": [
+      "payment",
+      "donation"
+    ],
+    "codename": "view_donation"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add chat message",
+    "content_type": [
+      "communication",
+      "chatmessage"
+    ],
+    "codename": "add_chatmessage"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change chat message",
+    "content_type": [
+      "communication",
+      "chatmessage"
+    ],
+    "codename": "change_chatmessage"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete chat message",
+    "content_type": [
+      "communication",
+      "chatmessage"
+    ],
+    "codename": "delete_chatmessage"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view chat message",
+    "content_type": [
+      "communication",
+      "chatmessage"
+    ],
+    "codename": "view_chatmessage"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add video call session",
+    "content_type": [
+      "communication",
+      "videocallsession"
+    ],
+    "codename": "add_videocallsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change video call session",
+    "content_type": [
+      "communication",
+      "videocallsession"
+    ],
+    "codename": "change_videocallsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete video call session",
+    "content_type": [
+      "communication",
+      "videocallsession"
+    ],
+    "codename": "delete_videocallsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view video call session",
+    "content_type": [
+      "communication",
+      "videocallsession"
+    ],
+    "codename": "view_videocallsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add one to one chat session",
+    "content_type": [
+      "communication",
+      "onetoonechatsession"
+    ],
+    "codename": "add_onetoonechatsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change one to one chat session",
+    "content_type": [
+      "communication",
+      "onetoonechatsession"
+    ],
+    "codename": "change_onetoonechatsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete one to one chat session",
+    "content_type": [
+      "communication",
+      "onetoonechatsession"
+    ],
+    "codename": "delete_onetoonechatsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view one to one chat session",
+    "content_type": [
+      "communication",
+      "onetoonechatsession"
+    ],
+    "codename": "view_onetoonechatsession"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add task",
+    "content_type": [
+      "task",
+      "task"
+    ],
+    "codename": "add_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change task",
+    "content_type": [
+      "task",
+      "task"
+    ],
+    "codename": "change_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete task",
+    "content_type": [
+      "task",
+      "task"
+    ],
+    "codename": "delete_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view task",
+    "content_type": [
+      "task",
+      "task"
+    ],
+    "codename": "view_task"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add task application",
+    "content_type": [
+      "task",
+      "taskapplication"
+    ],
+    "codename": "add_taskapplication"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change task application",
+    "content_type": [
+      "task",
+      "taskapplication"
+    ],
+    "codename": "change_taskapplication"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete task application",
+    "content_type": [
+      "task",
+      "taskapplication"
+    ],
+    "codename": "delete_taskapplication"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view task application",
+    "content_type": [
+      "task",
+      "taskapplication"
+    ],
+    "codename": "view_taskapplication"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add task template",
+    "content_type": [
+      "task",
+      "tasktemplate"
+    ],
+    "codename": "add_tasktemplate"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change task template",
+    "content_type": [
+      "task",
+      "tasktemplate"
+    ],
+    "codename": "change_tasktemplate"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete task template",
+    "content_type": [
+      "task",
+      "tasktemplate"
+    ],
+    "codename": "delete_tasktemplate"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view task template",
+    "content_type": [
+      "task",
+      "tasktemplate"
+    ],
+    "codename": "view_tasktemplate"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add task record",
+    "content_type": [
+      "task",
+      "taskrecord"
+    ],
+    "codename": "add_taskrecord"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change task record",
+    "content_type": [
+      "task",
+      "taskrecord"
+    ],
+    "codename": "change_taskrecord"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete task record",
+    "content_type": [
+      "task",
+      "taskrecord"
+    ],
+    "codename": "delete_taskrecord"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view task record",
+    "content_type": [
+      "task",
+      "taskrecord"
+    ],
+    "codename": "view_taskrecord"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add feedback",
+    "content_type": [
+      "task",
+      "feedback"
+    ],
+    "codename": "add_feedback"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change feedback",
+    "content_type": [
+      "task",
+      "feedback"
+    ],
+    "codename": "change_feedback"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete feedback",
+    "content_type": [
+      "task",
+      "feedback"
+    ],
+    "codename": "delete_feedback"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view feedback",
+    "content_type": [
+      "task",
+      "feedback"
+    ],
+    "codename": "view_feedback"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add star relation",
+    "content_type": [
+      "task",
+      "starrelation"
+    ],
+    "codename": "add_starrelation"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change star relation",
+    "content_type": [
+      "task",
+      "starrelation"
+    ],
+    "codename": "change_starrelation"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete star relation",
+    "content_type": [
+      "task",
+      "starrelation"
+    ],
+    "codename": "delete_starrelation"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view star relation",
+    "content_type": [
+      "task",
+      "starrelation"
+    ],
+    "codename": "view_starrelation"
+  }
+},
+{
+  "model": "user.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$QacugLlzx6Y2XZrJOAgbrC$DJ/kuBH5M5EzPwJbcOiWmyQqpM65ib0KX/6hJBEr6Rg=",
+    "last_login": "2025-06-21T15:33:40.965Z",
+    "is_superuser": true,
+    "email": "t01ps24@abdn.ac.uk",
+    "role": "",
+    "is_active": true,
+    "is_staff": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "user.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$KYyTczvbJTx4f3ehMUVe0i$WdDcoSEqeN0BLcdUTIFFUFADZnp7xBtVYrLNNihKs/8=",
+    "last_login": "2025-06-26T22:07:18.261Z",
+    "is_superuser": false,
+    "email": "applejuice@gmail.com",
+    "role": "client",
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "user.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$47dkKcmYPtQK3Zy2a4lCOL$K2BkBndJ6JdCMK99bDc6Tka2YRS6ZQRCqT6X+GI8TAY=",
+    "last_login": "2025-06-22T13:51:57.261Z",
+    "is_superuser": false,
+    "email": "bananamilk@gmail.com",
+    "role": "volunteer",
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "user.userprofile",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "applejuice@gmail.com"
+    ],
+    "first_name": "Apple",
+    "last_name": "Juice",
+    "age": "55+",
+    "gender": "male",
+    "phone_number": "01234567890",
+    "location": "AB25 3DD",
+    "location_lat": null,
+    "location_lng": null,
+    "profile_photo": "profile_photos/applejuice@gmail.com/user_5_cropped.jpeg",
+    "emergency_contact": null,
+    "eligibility_confirmed": false,
+    "consent_safeguard": true
+  }
+},
+{
+  "model": "user.userprofile",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "bananamilk@gmail.com"
+    ],
+    "first_name": "Banana",
+    "last_name": "Milk",
+    "age": "18-24",
+    "gender": "Female",
+    "phone_number": "09876543210",
+    "location": "056000",
+    "location_lat": null,
+    "location_lng": null,
+    "profile_photo": "profile_photos/bananamilk@gmail.com/user_6_cropped.jpeg",
+    "emergency_contact": null,
+    "eligibility_confirmed": false,
+    "consent_safeguard": true
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 33,
+  "fields": {
+    "action_time": "2025-06-20T17:18:21.765Z",
+    "user": [
+      "t01ps24@abdn.ac.uk"
+    ],
+    "content_type": [
+      "user",
+      "customuser"
+    ],
+    "object_id": "4",
+    "object_repr": "applejuice@gmail.com",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 34,
+  "fields": {
+    "action_time": "2025-06-20T20:15:22.644Z",
+    "user": [
+      "t01ps24@abdn.ac.uk"
+    ],
+    "content_type": [
+      "user",
+      "userprofile"
+    ],
+    "object_id": "3",
+    "object_repr": "UserProfile object (3)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Profile photo\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 35,
+  "fields": {
+    "action_time": "2025-06-20T20:15:31.308Z",
+    "user": [
+      "t01ps24@abdn.ac.uk"
+    ],
+    "content_type": [
+      "user",
+      "userprofile"
+    ],
+    "object_id": "3",
+    "object_repr": "UserProfile object (3)",
+    "action_flag": 2,
+    "change_message": "[]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 36,
+  "fields": {
+    "action_time": "2025-06-20T20:15:41.398Z",
+    "user": [
+      "t01ps24@abdn.ac.uk"
+    ],
+    "content_type": [
+      "user",
+      "userprofile"
+    ],
+    "object_id": "3",
+    "object_repr": "UserProfile object (3)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Profile photo\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 37,
+  "fields": {
+    "action_time": "2025-06-21T15:34:16.667Z",
+    "user": [
+      "t01ps24@abdn.ac.uk"
+    ],
+    "content_type": [
+      "user",
+      "userprofile"
+    ],
+    "object_id": "4",
+    "object_repr": "UserProfile object (4)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Profile photo\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 38,
+  "fields": {
+    "action_time": "2025-06-21T15:34:21.915Z",
+    "user": [
+      "t01ps24@abdn.ac.uk"
+    ],
+    "content_type": [
+      "user",
+      "userprofile"
+    ],
+    "object_id": "3",
+    "object_repr": "UserProfile object (3)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Profile photo\"]}}]"
+  }
+}
+]

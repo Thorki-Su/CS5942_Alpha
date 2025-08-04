@@ -26,23 +26,38 @@
                                 <div class="col-6 col-md-3 mb-2">
                                     <div class="form-check">
                                         {{ choice.tag }}
-                                        <label class="form-check-label btn btn-outline-success w-100"
+                                        <label class="form-check-label btn btn-outline-success w-100 {% if 'custom' in choice.tag %}btn-outline-warning{% endif %}"
                                             for="{{ choice.id_for_label }}">
-                                            {{ choice.choice_label }}
+                                            {% if 'custom' in choice.tag %}
+                                                <i class="fas fa-edit"></i> {{ choice.choice_label }}
+                                            {% else %}
+                                                {{ choice.choice_label }}
+                                            {% endif %}
                                         </label>
                                     </div>
                                 </div>
                                 {% endfor %}
                             </div>
+                            <small class="text-muted">Choose a preset amount or select "Custom Amount" to enter your own</small>
                         </div>
 
                         <!-- Custom Amount -->
                         <div class="mb-4" id="custom-amount-section" style="display: none;">
-                            <label for="{{ form.custom_amount.id_for_label }}" class="form-label fw-bold">Custom Amount (£)</label>
-                            {{ form.custom_amount }}
-                            {% if form.custom_amount.errors %}
-                            <div class="text-danger">{{ form.custom_amount.errors }}</div>
-                            {% endif %}
+                            <div class="card border-success">
+                                <div class="card-body">
+                                    <label for="{{ form.custom_amount.id_for_label }}" class="form-label fw-bold text-success">
+                                        <i class="fas fa-pound-sign"></i> Enter Your Custom Amount
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">£</span>
+                                        {{ form.custom_amount }}
+                                    </div>
+                                    <small class="form-text text-muted">Enter any amount between £1 and £10,000</small>
+                                    {% if form.custom_amount.errors %}
+                                    <div class="text-danger mt-2">{{ form.custom_amount.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Donor Information -->
@@ -236,15 +251,33 @@
     }
 
     // Show/hide custom amount field
-    document.querySelectorAll('input[name="amount_choice"]').forEach(radio => {
-        radio.addEventListener('change', function () {
-            const customSection = document.getElementById('custom-amount-section');
-            if (this.value === 'custom') {
-                customSection.style.display = 'block';
-            } else {
-                customSection.style.display = 'none';
-            }
+    function toggleCustomAmount() {
+        const customSection = document.getElementById('custom-amount-section');
+        const customRadio = document.querySelector('input[name="amount_choice"][value="custom"]');
+        
+        if (customRadio && customRadio.checked) {
+            customSection.style.display = 'block';
+            // Focus on the custom amount input
+            setTimeout(() => {
+                const customInput = document.getElementById('id_custom_amount');
+                if (customInput) {
+                    customInput.focus();
+                }
+            }, 100);
+        } else {
+            customSection.style.display = 'none';
+        }
+    }
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listeners to all radio buttons
+        document.querySelectorAll('input[name="amount_choice"]').forEach(radio => {
+            radio.addEventListener('change', toggleCustomAmount);
         });
+        
+        // Check initial state
+        toggleCustomAmount();
     });
 
     // Handle card errors
@@ -357,4 +390,153 @@
 
 <!-- Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    /* Override Bootstrap colors with #30574e theme */
+    .container {
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin: 20px auto;
+    }
+    
+    .card {
+        border: 2px solid #30574e;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.2);
+    }
+    
+    .card-header {
+        background-color: #30574e !important;
+        color: white !important;
+        border-bottom: 2px solid #30574e;
+    }
+    
+    .bg-success, .btn-success {
+        background-color: #30574e !important;
+        border-color: #30574e !important;
+    }
+    
+    .bg-info {
+        background-color: #30574e !important;
+    }
+    
+    .bg-secondary {
+        background-color: #30574e !important;
+    }
+    
+    .text-success {
+        color: #30574e !important;
+    }
+    
+    .text-info {
+        color: #30574e !important;
+    }
+    
+    .border-success {
+        border-color: #30574e !important;
+    }
+    
+    .btn-outline-success {
+        color: #30574e !important;
+        border-color: #30574e !important;
+    }
+    
+    .btn-outline-success:hover {
+        background-color: #30574e !important;
+        border-color: #30574e !important;
+        color: white !important;
+    }
+    
+    .btn-outline-secondary {
+        color: #30574e !important;
+        border-color: #30574e !important;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #30574e !important;
+        border-color: #30574e !important;
+        color: white !important;
+    }
+    
+    .badge.bg-success {
+        background-color: #30574e !important;
+    }
+    
+    .spinner-border.text-success {
+        color: #30574e !important;
+    }
+    
+    /* Hide the default radio buttons */
+    .form-check input[type="radio"] {
+        display: none;
+    }
+    
+    /* Style the labels as buttons */
+    .form-check-label {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: #30574e !important;
+        border-color: #30574e !important;
+    }
+    
+    /* When radio is checked, change button appearance */
+    .form-check input[type="radio"]:checked + .form-check-label {
+        background-color: #30574e !important;
+        color: white !important;
+        border-color: #30574e !important;
+    }
+    
+    /* Special styling for custom amount button */
+    .form-check input[type="radio"]:checked + .btn-outline-warning {
+        background-color: #30574e !important;
+        color: white !important;
+        border-color: #30574e !important;
+    }
+    
+    .btn-outline-warning {
+        color: #30574e !important;
+        border-color: #30574e !important;
+    }
+    
+    /* Custom amount section animation */
+    #custom-amount-section {
+        transition: all 0.3s ease;
+    }
+    
+    /* Highlight the custom amount input when focused */
+    #custom-amount-section .form-control:focus {
+        border-color: #30574e;
+        box-shadow: 0 0 0 0.2rem rgba(48, 87, 78, 0.25);
+    }
+    
+    /* Center all content */
+    .row {
+        justify-content: center;
+    }
+    
+    /* Button styling */
+    .btn {
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Form controls */
+    .form-control:focus {
+        border-color: #30574e;
+        box-shadow: 0 0 0 0.2rem rgba(48, 87, 78, 0.25);
+    }
+    
+    /* Alert styling */
+    .alert-danger {
+        border-color: #30574e;
+        background-color: rgba(48, 87, 78, 0.1);
+        color: #30574e;
+    }
+</style>
 {% endblock %}

@@ -89,12 +89,19 @@ def donation_page(request):
     
     total_donors = Donation.objects.filter(status='completed').values('donor_email').distinct().count()
     
+    # Debug: Print Stripe public key to ensure it's loaded
+    stripe_public_key = settings.STRIPE_PUBLIC_KEY
+    if not stripe_public_key:
+        logger.error("STRIPE_PUBLIC_KEY is empty or not set!")
+    else:
+        logger.info(f"STRIPE_PUBLIC_KEY loaded: {stripe_public_key[:20]}...")
+    
     context = {
         'form': form,
         'recent_donations': recent_donations,
         'total_donated': total_donated,
         'total_donors': total_donors,
-        'stripe_public_key': getattr(settings, 'STRIPE_PUBLIC_KEY', ''),
+        'stripe_public_key': stripe_public_key,
     }
     
     return render(request, 'payment/donation_page.html', context)

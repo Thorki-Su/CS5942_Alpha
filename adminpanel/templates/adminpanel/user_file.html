@@ -3,56 +3,106 @@
 
 {% block title %}User Files{% endblock %}
 
+{% block style %}
+<style>
+    .file-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .file-board, .button-board {
+        margin: 30px auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    .file-title, .button-title {
+        text-align: center;
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .buttons {
+        display: flex;
+        justify-content: space-around;
+        padding: 15px 0;
+    }
+    button {
+        background: #30574e;
+        color: white;
+        border-radius: 10px !important;
+    }
+    button:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style="margin: 50px;">
-        <div>
+    <div class="file-container">
+        <div class="file-board">
             {% if user.role == 'client' %}
-                <p><strong>Certification Types:</strong> 
-                    {{ user.userprofile.clientprofile.certifications.all|join:", " }}
-                </p>
+                <div class="file-title">
+                    <h2><strong>Certification Types: </strong>
+                        {{ user.userprofile.clientprofile.certifications.all|join:", " }}
+                    </h2>
+                </div>
                 {% if user.userprofile.clientprofile.pip_certificate %}
                     <p><strong>PIP File</strong>:</p>
-                    <embed src="{{ user.userprofile.clientprofile.pip_certificate.url }}" width="600px" height="500px" type="application/pdf">
+                    <embed src="{{ user.userprofile.clientprofile.pip_certificate.url }}" width="100%" height="500px" type="application/pdf">
                 {% endif %}
                 {% if user.userprofile.clientprofile.adp_certificate %}
                     <p><strong>ADP File</strong>:</p>
-                    <embed src="{{ user.userprofile.clientprofile.adp_certificate.url }}" width="600px" height="500px" type="application/pdf">
+                    <embed src="{{ user.userprofile.clientprofile.adp_certificate.url }}" width="100%" height="500px" type="application/pdf">
                 {% endif %}
                 {% if user.userprofile.clientprofile.lwc_certificate %}
                     <p><strong>LWC File</strong>:</p>
-                    <embed src="{{ user.userprofile.clientprofile.lwc_certificate.url }}" width="600px" height="500px" type="application/pdf">
+                    <embed src="{{ user.userprofile.clientprofile.lwc_certificate.url }}" width="100%" height="500px" type="application/pdf">
                 {% endif %}
                 {% if user.userprofile.clientprofile.nhs_certificate %}
                     <p><strong>NHS File</strong>:</p>
-                    <embed src="{{ user.userprofile.clientprofile.nhs_certificate.url }}" width="600px" height="500px" type="application/pdf">
+                    <embed src="{{ user.userprofile.clientprofile.nhs_certificate.url }}" width="100%" height="500px" type="application/pdf">
                 {% endif %}
                 {% if user.userprofile.clientprofile.diagnosis %}
                     <p><strong>Diagnosi File</strong>:</p>
-                    <embed src="{{ user.userprofile.clientprofile.diagnosis.url }}" width="600px" height="500px" type="application/pdf">
+                    <embed src="{{ user.userprofile.clientprofile.diagnosis.url }}" width="100%" height="500px" type="application/pdf">
                 {% endif %}
             {% endif %}
             {% if user.role == 'volunteer' %}
-                <p><strong>PVG Level</strong>: {{ user.userprofile.volunteerprofile.pvg_level }}</p>
+                <div class="file-title">
+                    <p><strong>PVG Level</strong>: {{ user.userprofile.volunteerprofile.pvg_level }}</p>
+                </div>
                 {% if user.userprofile.volunteerprofile.pvg_file %}
                     <p><strong>PVG File</strong>:</p>
-                    <embed src="{{ user.userprofile.volunteerprofile.pvg_file.url }}" width="600px" height="500px" type="application/pdf">
+                    <embed src="{{ user.userprofile.volunteerprofile.pvg_file.url }}" width="100%" height="500px" type="application/pdf">
                 {% endif %}
             {% endif %}
         </div>
-        <div>
-            <p><strong>Eligibility Confirmed:</strong> {{ user.userprofile.eligibility_confirmed }}</p>
-
-            <form method="post" action="{% url 'adminpanel:update_eligibility' user.id %}">
-                {% csrf_token %}
-                <input type="hidden" name="eligibility" value="true">
-                <button type="submit">Confirm the eligibility</button>
-            </form><br>
-
-            <form method="post" action="{% url 'adminpanel:update_eligibility' user.id %}">
-                {% csrf_token %}
-                <input type="hidden" name="eligibility" value="false">
-                <button type="submit">Cancell the eligibility</button>
-            </form>
+        <div class="button-board">
+            <div class="button-title">
+                <h2><strong>Eligibility Confirmed:</strong> {{ user.userprofile.eligibility_confirmed }}</h2>
+            </div>
+            <div class="buttons">
+                <form method="post" action="{% url 'adminpanel:update_eligibility' user.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="eligibility" value="true">
+                    <button type="submit">Confirm the eligibility</button>
+                </form><br>
+                <form method="post" action="{% url 'adminpanel:update_eligibility' user.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="eligibility" value="false">
+                    <button type="submit">Cancell the eligibility</button>
+                </form>
+            </div>
         </div>
     </div>
 {% endblock %}

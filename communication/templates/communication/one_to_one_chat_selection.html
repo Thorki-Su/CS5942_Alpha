@@ -1,412 +1,271 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1v1 Chat Selection</title>
-    {% load static %}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #FFFFFF; /* 白色背景 */
-        }
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: #FFFFFF; /* 白色背景 */
-            padding: 10px 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .navbar {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        .navbar a, .navbar button {
-            text-decoration: none;
-            color: #333;
-            font-weight: bold;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 5px 10px;
-            white-space: nowrap;
-            transition: color 0.3s;
-        }
-        .navbar a:hover, .navbar button:hover {
-            color: #30574e; /* 深绿色悬停 */
-        }
-        .navbar a.disabled {
-            color: #ccc;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-        .logo {
-            height: 40px;
-            vertical-align: middle;
-        }
-        .content-wrapper {
-            margin-top: 60px;
-            padding: 20px;
-            background-color: #FFFFFF; /* 白色背景 */
-        }
-        .footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            text-align: center;
-            padding: 10px 0;
-            background-color: #FFFFFF; /* 白色背景 */
-            font-size: 14px;
-            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .messages {
-            margin-top: 80px;
-            margin-left: 20px;
-        }
-        .chat-user-list {
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-        .search-bar {
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .pagination {
-            margin-top: 20px;
-        }
-        .badge.bg-danger {
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-        .recent-chats {
-            border: 1px solid #ccc;
-            padding: 15px;
-            border-radius: 8px;
-            background-color: #FFFFFF; /* 白色背景 */
-            margin-bottom: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .recent-chats h3 {
-            margin-top: 0;
-            color: #333;
-        }
-        .recent-chats .list-group-item {
-            cursor: pointer;
-            background-color: #FFFFFF; /* 白色背景 */
-        }
-        .friends-btn {
-            margin-bottom: 20px;
-            background-color: #30574e; /* 深绿色按钮 */
-            color: #FFFFFF; /* 白色文字 */
-            border: none;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .friends-btn:hover {
-            background-color: #FFFFFF; /* 悬停变白色 */
-            color: #30574e; /* 文字变深绿色 */
-            border: 1px solid #30574e; /* 深绿色边框 */
-        }
-        .btn-primary, .btn-outline-primary {
-            background-color: #30574e; /* 深绿色按钮 */
-            color: #FFFFFF; /* 白色文字 */
-            border-color: #30574e;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .btn-primary:hover, .btn-outline-primary:hover {
-            background-color: #FFFFFF; /* 悬停变白色 */
-            color: #30574e; /* 文字变深绿色 */
-            border-color: #30574e;
-        }
-        .list-group-item {
-            background-color: #FFFFFF; /* 白色背景 */
-            border: 1px solid #e0e0e0;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="navbar">
-            <img src="{% static 'images/ShallionLogoTransparent.png' %}" alt="Shallion Logo" class="logo">
-            <a href="{% url 'user:home' %}">Home</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'user:profile_detail' %}">Profile</a>
-                <a href="{% url 'communication:message_selection' %}">Message</a>
-                {% if user.role == 'volunteer' %}
-                    <a href="{% url 'matching:shift' %}">Join Shift</a>
-                    <a href="{% url 'task:tasklist' %}">Task List</a>
-                    <a href="{% url 'task:myapplication' %}">My Application</a>
-                {% elif user.role == 'client' %}
-                    <a href="{% url 'task:mytask' %}">My Task</a>
+{% extends 'base.html' %}
+
+{% block title %}1v1 Chat Selection{% endblock %}
+
+{% block style %}
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #FFFFFF; /* 白色背景 */
+    }
+    .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: #FFFFFF; /* 白色背景 */
+        padding: 10px 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .navbar {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    .navbar a, .navbar button {
+        text-decoration: none;
+        color: #333;
+        font-weight: bold;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px 10px;
+        white-space: nowrap;
+        transition: color 0.3s;
+    }
+    .navbar a:hover, .navbar button:hover {
+        color: #30574e; /* 深绿色悬停 */
+    }
+    .navbar a.disabled {
+        color: #ccc;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    .logo {
+        height: 40px;
+        vertical-align: middle;
+    }
+    .content-wrapper {
+        margin-top: 60px;
+        padding: 20px;
+        background-color: #FFFFFF; /* 白色背景 */
+    }
+    .footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        text-align: center;
+        padding: 10px 0;
+        background-color: #FFFFFF; /* 白色背景 */
+        font-size: 14px;
+        box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .messages {
+        margin-top: 80px;
+        margin-left: 20px;
+    }
+    .chat-user-list {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+    .search-bar {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .pagination {
+        margin-top: 20px;
+    }
+    .badge.bg-danger {
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+    .recent-chats {
+        border: 1px solid #ccc;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #FFFFFF; /* 白色背景 */
+        margin-bottom: 20px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .recent-chats h3 {
+        margin-top: 0;
+        color: #333;
+    }
+    .recent-chats .list-group-item {
+        cursor: pointer;
+        background-color: #FFFFFF; /* 白色背景 */
+    }
+    .friends-btn {
+        margin-bottom: 20px;
+        background-color: #30574e; /* 深绿色按钮 */
+        color: #FFFFFF; /* 白色文字 */
+        border: none;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    .friends-btn:hover {
+        background-color: #FFFFFF; /* 悬停变白色 */
+        color: #30574e; /* 文字变深绿色 */
+        border: 1px solid #30574e; /* 深绿色边框 */
+    }
+    .btn-primary, .btn-outline-primary {
+        background-color: #30574e; /* 深绿色按钮 */
+        color: #FFFFFF; /* 白色文字 */
+        border-color: #30574e;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    .btn-primary:hover, .btn-outline-primary:hover {
+        background-color: #FFFFFF; /* 悬停变白色 */
+        color: #30574e; /* 文字变深绿色 */
+        border-color: #30574e;
+    }
+    .list-group-item {
+        background-color: #FFFFFF; /* 白色背景 */
+        border: 1px solid #e0e0e0;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Select a User for 1v1 Chat</h1>
+    
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <input type="text" id="user-search" class="form-control" placeholder="Search by email..." onkeyup="searchUsers()">
+    </div>
+    
+    <!-- User List -->
+    <div class="chat-user-list list-group" id="user-list">
+        {% for user in users %}
+            <a href="#" class="list-group-item list-group-item-action" onclick="createOneToOneRoom('{{ user.email }}')">
+                Chat with {{ user.email }}
+            </a>
+        {% empty %}
+            <div class="list-group-item">No other users available.</div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if users.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if users.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">« First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ users.previous_page_number }}">Previous</a>
+                    </li>
                 {% endif %}
-                <a href="{% url 'task:task_ongoing' %}">Ongoing Task</a>
-                <form action="{% url 'user:logout' %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-link">Log Out</button>
-                </form>
-            {% else %}
-                <a href="{% url 'user:login' %}">Login</a>
-            {% endif %}
-        </div>
-    </div>
-
-    {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <div class="content-wrapper">
-        <div class="container mt-5">
-            <h1>Select a User for 1v1 Chat</h1>
-            <div class="search-bar">
-                <input type="text" id="user-search" class="form-control d-inline-block w-75" placeholder="Search by email..." onkeyup="searchUsers()">
-                <button class="btn btn-primary ms-2" onclick="searchUsers()">Search</button>
-            </div>
-            <div class="recent-chats">
-                <h3>Recent Chats</h3>
-                <div class="list-group" id="recent-chat-list">
-                    <!-- Recent chats loaded via JS -->
-                </div>
-            </div>
-            <a href="{% url 'communication:friend_list' %}" class="btn btn-primary friends-btn">Contacts</a>
-            <div class="chat-user-list list-group" id="user-list">
-                {% for user in users %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <a href="#" onclick="createOneToOneRoom('{{ user.email }}')">Chat with {{ user.email }}</a>
-                        <span>
-                            <span class="badge bg-danger rounded-pill unread-count" data-email="{{ user.email }}"></span>
-                            <button class="btn btn-sm btn-outline-primary ms-2" onclick="sendFriendRequest('{{ user.email }}'); event.stopPropagation();">Add Friend</button>
-                        </span>
-                    </div>
-                {% empty %}
-                    <div class="list-group-item">No other users available.</div>
+                
+                {% for num in users.paginator.page_range %}
+                    <li class="page-item {% if users.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
                 {% endfor %}
-            </div>
-            {% if users.has_other_pages %}
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        {% if users.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1">« First</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ users.previous_page_number }}">Previous</a>
-                            </li>
-                        {% endif %}
-                        {% for num in users.paginator.page_range %}
-                            <li class="page-item {% if users.number == num %}active{% endif %}">
-                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                            </li>
-                        {% endfor %}
-                        {% if users.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ users.next_page_number }}">Next</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ users.paginator.num_pages }}">Last »</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            {% endif %}
-            <a href="{% url 'communication:message_selection' %}" class="btn btn-secondary mt-3">Back to Messages</a>
-        </div>
-    </div>
+                
+                {% if users.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ users.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ users.paginator.num_pages }}">Last »</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+    
+    <a href="{% url 'communication:message_selection' %}" class="btn btn-secondary mt-3">Back to Messages</a>
+</div>
+{% endblock %}
 
-    <div class="footer">
-        © 2025 Shallion
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+{% block script %}
+<script>
+    // CSRF 令牌
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
             }
-            return cookieValue;
         }
-        const csrftoken = getCookie('csrftoken');
-        console.log('CSRF Token:', csrftoken);
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+    console.log('CSRF Token:', csrftoken); // 调试输出
 
-        function createOneToOneRoom(user2Email) {
-            console.log('Creating room for:', user2Email);
-            if (!csrftoken) {
-                console.error('CSRF token not found');
-                alert('CSRF token missing. Please reload the page.');
-                return;
+    function createOneToOneRoom(user2Email) {
+        if (!csrftoken) {
+            console.error('CSRF token not found');
+            alert('CSRF token missing. Please reload the page.');
+            return;
+        }
+
+        const url = '/communication/create-1v1-room/';
+        const params = new URLSearchParams({
+            'user2_email': user2Email
+        }).toString();
+
+        console.log('Fetch URL:', url);
+        console.log('Fetch Params:', params);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken,
+            },
+            credentials: 'same-origin', // 确保携带认证 Cookie
+            body: params
+        })
+        .then(response => {
+            console.log('Fetch response status:', response.status);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Fetch response data:', data);
+            if (data.room_name) {
+                window.location.href = data.url;
+            } else {
+                alert(data.error || 'Failed to create room');
             }
-            const url = '{% url "communication:create_one_to_one_room" %}';
-            const params = new URLSearchParams({ 'user2_email': user2Email }).toString();
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrftoken,
-                },
-                credentials: 'same-origin',
-                body: params
-            })
-            .then(response => {
-                console.log('Create room response:', response.status);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Create room data:', data);
-                if (data.room_name) {
-                    window.location.href = data.url;
-                } else {
-                    alert(data.error || 'Failed to create room');
-                }
-            })
-            .catch(error => {
-                console.error('Error creating room:', error);
-                alert('An error occurred. Check the console for details.');
-            });
-        }
-
-        function sendFriendRequest(toEmail) {
-            console.log('Sending friend request to:', toEmail);
-            if (!csrftoken) {
-                console.error('CSRF token missing');
-                alert('CSRF token missing.');
-                return;
-            }
-            const url = '{% url "communication:send_friend_request" %}';
-            const params = new URLSearchParams({ 'to_email': toEmail }).toString();
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrftoken,
-                },
-                credentials: 'same-origin',
-                body: params
-            })
-            .then(response => {
-                console.log('Friend request response:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Friend request data:', data);
-                if (data.success) {
-                    alert('Friend request sent!');
-                    // 可选：刷新用户列表
-                    location.reload();
-                } else {
-                    alert(data.error || 'Failed to send request');
-                }
-            })
-            .catch(error => {
-                console.error('Error sending friend request:', error);
-                alert('An error occurred.');
-            });
-        }
-
-        function searchUsers() {
-            console.log('Searching users...');
-            const input = document.getElementById('user-search').value.toLowerCase();
-            const userList = document.getElementById('user-list');
-            const items = userList.getElementsByClassName('list-group-item');
-            for (let i = 0; i < items.length; i++) {
-                const text = items[i].textContent.toLowerCase();
-                items[i].style.display = text.includes(input) ? '' : 'none';
-            }
-        }
-
-        const ws = new WebSocket(`${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/user/${'{{ request.user.email }}'.replace('@', '_')}/`);
-        ws.onopen = () => {
-            console.log('WebSocket opened');
-            ws.send(JSON.stringify({ type: 'auth', user_email: '{{ request.user.email }}' }));
-        };
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log('WebSocket message:', data);
-            if (data.type === 'unread_notification' && !data.is_group) {
-                updateUnreadDetails();
-            } else if (data.type === 'friend_request_notification') {
-                alert(`New friend request from ${data.from_email}`);
-            }
-        };
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-        ws.onclose = () => {
-            console.log('WebSocket closed');
-        };
-
-        function updateUnreadDetails() {
-            console.log('Updating unread details...');
-            fetch('{% url "communication:get_unread_details" %}')
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Unread details:', data);
-                    document.querySelectorAll('.unread-count').forEach(span => {
-                        span.textContent = '';
-                        const email = span.dataset.email;
-                        const unread = data.one_to_one.find(item => item.sender__email === email);
-                        if (unread && unread.count > 0) {
-                            span.textContent = unread.count;
-                        }
-                    });
-                })
-                .catch(error => console.error('Error fetching unread details:', error));
-        }
-
-        function loadRecentChats() {
-            console.log('Loading recent chats...');
-            fetch('{% url "communication:get_recent_chats" %}')
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Recent chats:', data);
-                    const recentList = document.getElementById('recent-chat-list');
-                    recentList.innerHTML = '';
-                    data.recent_chats.forEach(chat => {
-                        const item = document.createElement('a');
-                        item.href = '#';
-                        item.classList.add('list-group-item', 'list-group-item-action');
-                        item.onclick = () => createOneToOneRoom(chat.email);
-                        item.innerHTML = `Chat with ${chat.email} (Last: ${chat.last_message_time}) <span class="badge bg-danger rounded-pill">${chat.unread_count}</span>`;
-                        recentList.appendChild(item);
-                    });
-                })
-                .catch(error => console.error('Error loading recent chats:', error));
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('Page loaded, initializing...');
-            loadRecentChats();
-            updateUnreadDetails();
+        })
+        .catch(error => {
+            console.error('Error creating room:', error);
+            alert('An error occurred. Check the console for details.');
         });
-    </script>
-</body>
-</html>
+    }
+
+    // 搜索功能
+    function searchUsers() {
+        const input = document.getElementById('user-search').value.toLowerCase();
+        const userList = document.getElementById('user-list');
+        const items = userList.getElementsByTagName('a');
+
+        for (let i = 0; i < items.length; i++) {
+            const text = items[i].textContent.toLowerCase();
+            items[i].style.display = text.includes(input) ? '' : 'none';
+        }
+    }
+</script>
+{% endblock %}

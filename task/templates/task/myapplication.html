@@ -2,35 +2,239 @@
 
 {% block title %}My Application{% endblock %}
 
+{% block style %}
+<style>
+    .application-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .application-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .application-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .quick-action {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+        text-align: center;
+        border-left: 4px solid #30574e;
+    }
+    .quick-action a {
+        background: #30574e;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    .quick-action a:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+        text-decoration: none;
+    }
+    .section-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #333;
+        margin: 30px 0 20px 0;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #30574e;
+    }
+    .applications-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+    .application-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .application-card.active {
+        border-left: 4px solid #30574e;
+    }
+    .application-card.active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #30574e;
+    }
+    .application-card.closed {
+        border-left: 4px solid #6c757d;
+        opacity: 0.8;
+    }
+    .application-card.closed::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #30574e;
+    }
+    .application-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .application-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        text-decoration: none;
+    }
+    .application-title:hover {
+        color: #30574e;
+        text-decoration: none;
+    }
+    .application-info {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .application-info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #495057;
+    }
+    .application-info-icon {
+        width: 20px;
+        height: 20px;
+        background: #30574e;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    .status-approved {
+        background: #d4edda;
+        color: #155724;
+    }
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    .status-cancelled {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+    .no-applications {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .no-applications p {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style='margin:50px;'>
-        <p><a href="{% url 'task:tasklist' %}">Go to the task list to find a new task</a></p>
-        {% if applications %}
-            <h3>Active Applications</h3>
-            {% for application in applications %}
-                {% if application.is_active %} 
-                    <div style="margin-bottom: 1em;">
-                        <a href="{% url 'task:task_detail' application.task.id %}">{{ application.task.title }}</a><br>
-                        — Time: {{ application.task.start_time }} to {{ application.task.end_time }}<br>
-                        — Status: {{ application.status }}<br>
-                        — Applied at: {{ application.applied_at }}<br>
-                    </div> 
-                {% endif %}
-            {% endfor %}
-            <h3>Closed Applications</h3>
-            {% for application in applications %}
-                {% if application.is_closed %}
-                    <div style="margin-bottom: 1em;">
-                        <a href="{% url 'task:task_detail' application.task.id %}">{{ application.task.title }}</a><br>
-                        — Status: {{ application.status }}<br>
-                        — Applied at: {{ application.applied_at }}<br> 
-                        {% comment %} 之后可以改成关闭时间 {% endcomment %}
-                    </div> 
-                {% endif %}
-            {% endfor %}
-        {% else %}
-            <p>There is no any applications</p>
-        {% endif %}
+    <div class="application-container">
+        <div class="application-header">
+            <h1>My Applications</h1>
+        </div>
         
+        <div class="quick-action">
+            <a href="{% url 'task:tasklist' %}">Go to the task list to find a new task</a>
+        </div>
+        
+        {% if applications %}
+            <h2 class="section-title">Active Applications</h2>
+            <div class="applications-grid">
+                {% for application in applications %}
+                    {% if application.is_active %} 
+                        <div class="application-card active">
+                            <a href="{% url 'task:task_detail' application.task.id %}" class="application-title">{{ application.task.title }}</a>
+                            <div class="application-info">
+                                <div class="application-info-item">
+                                    <div class="application-info-icon">🕒</div>
+                                    <span><strong>Time:</strong> {{ application.task.start_time }} to {{ application.task.end_time }}</span>
+                                </div>
+                                <div class="application-info-item">
+                                    <div class="application-info-icon">📋</div>
+                                    <span><strong>Status:</strong> <span class="status-badge status-{{ application.status|lower }}">{{ application.status }}</span></span>
+                                </div>
+                                <div class="application-info-item">
+                                    <div class="application-info-icon">📅</div>
+                                    <span><strong>Applied at:</strong> {{ application.applied_at|date:"M d, Y H:i" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <h2 class="section-title">Closed Applications</h2>
+            <div class="applications-grid">
+                {% for application in applications %}
+                    {% if application.is_closed %}
+                        <div class="application-card closed">
+                            <a href="{% url 'task:task_detail' application.task.id %}" class="application-title">{{ application.task.title }}</a>
+                            <div class="application-info">
+                                <div class="application-info-item">
+                                    <div class="application-info-icon">📋</div>
+                                    <span><strong>Status:</strong> <span class="status-badge status-{{ application.status|lower }}">{{ application.status }}</span></span>
+                                </div>
+                                <div class="application-info-item">
+                                    <div class="application-info-icon">📅</div>
+                                    <span><strong>Applied at:</strong> {{ application.applied_at|date:"M d, Y H:i" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-applications">
+                <p>You haven't submitted any applications yet.</p>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}

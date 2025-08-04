@@ -3,32 +3,183 @@
 
 {% block title %}Admin Homepage{% endblock %}
 
+{% block style %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .dashboard-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .dashboard-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .information-title, .record-title {
+        text-align: center;
+        background: #dde1e0ff;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .information-board {
+        display: flex;
+        justify-content: space-around;
+        gap: 40px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+    .information-card {
+        padding: 20px;
+        border-radius: 8px;
+        width: 250px;
+        text-align: center;
+    }
+    .information-card p {
+        font-size: 2em;
+        font-weight: bold;
+        margin-top: 20px;
+    }
+    #one {
+        background-color: #f0f8ff;
+    }
+    #two {
+        background-color: #ffe4e1;
+    }
+    #three {
+        background-color: #fff9e1ff;
+    }
+    #four {
+        background-color: #e1fff0ff;
+    }
+    .quick-action {
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .quick-action a {
+        background: #30574e;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    .quick-action a:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+        text-decoration: none;
+    }
+    .record-background {
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    .record-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1rem;
+        color: #333;
+    }
+    .record-table thead {
+        background: #30574e;
+        color: white;
+    }
+    .record-table th,
+    .record-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .record-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .record-table th:first-child,
+    .record-table td:first-child {
+        border-top-left-radius: 8px;
+    }
+    .record-table th:last-child,
+    .record-table td:last-child {
+        border-top-right-radius: 8px;
+    }
+    .record-table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+    }
+    .record-table td {
+        font-size: 0.95rem;
+    }
+    .record-table td a {
+        color: #30574e;
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px dashed #30574e;
+        transition: all 0.3s ease;
+    }
+    .record-table td a:hover {
+        color: white;
+        background: #30574e;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style="margin: 50px;">
-        <h1>Admin Control Panel</h1>
-        <hr>
-        <div style="display: flex; gap: 40px; margin-top: 30px;">
-            <div style="background-color: #f0f8ff; padding: 20px; border-radius: 8px; width: 200px; text-align: center;">
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h2>Admin Control Panel</h2>
+        </div>
+
+        <div class="information-title">
+            <h3>Basic Information</h3>
+        </div>
+
+        <div class="information-board">
+            <div class="information-card" id="one">
                 <h3>Client</h3>
-                <p style="font-size: 2em; font-weight: bold;">{{ client_count }}</p>
+                <p>{{ client_count }}</p>
             </div>
-            <div style="background-color: #ffe4e1; padding: 20px; border-radius: 8px; width: 200px; text-align: center;">
+            <div class="information-card" id="two">
                 <h3>Volunteer</h3>
-                <p style="font-size: 2em; font-weight: bold;">{{ volunteer_count }}</p>
+                <p>{{ volunteer_count }}</p>
             </div>
-            <div style="background-color: #fff9e1ff; padding: 20px; border-radius: 8px; width: 200px; text-align: center;">
+            <div class="information-card" id="three">
                 <h3>Task</h3>
-                <p style="font-size: 2em; font-weight: bold;">{{ task_count }}</p>
+                <p>{{ task_count }}</p>
             </div>
-            <div style="background-color: #e1fff0ff; padding: 20px; border-radius: 8px; width: 200px; text-align: center;">
+            <div class="information-card" id="four">
                 <h3>Today's new task</h3>
-                <p style="font-size: 2em; font-weight: bold;">{{ today_task_count }}</p>
+                <p>{{ today_task_count }}</p>
             </div>
         </div>
-        <div>
-            <h2>Record of recent operations</h2>
-            <a href="{% url 'adminpanel:records' %}">See all records</a><br>
-            <table>
+
+        <div class="record-title">
+            <h3>Record of recent operations</h3>  
+        </div>
+        <div class="record-background">
+            <table class="record-table">
                 <thead>
                     <tr>
                     <th>Time</th>
@@ -46,6 +197,9 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        <div class="quick-action">
+            <a href="{% url 'adminpanel:records' %}">See all records</a>
         </div>
     </div>
 {% endblock %}

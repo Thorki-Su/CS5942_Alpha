@@ -2,13 +2,113 @@
 
 {% block title %}Join Shift{% endblock %}
 
+{% block style %}
+<style>
+    .shift-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .shift-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .shift-header h2 {
+        margin: 0;
+        font-size: 2.2rem;
+        font-weight: 500;
+    }
+    .shift-form {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border-left: 4px solid #30574e;
+    }
+    .shift-form p {
+        margin-bottom: 20px;
+    }
+    .shift-form label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #495057;
+        font-size: 1.1rem;
+    }
+    .shift-form input, .shift-form select, .shift-form textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+    .shift-form input:focus, .shift-form select:focus, .shift-form textarea:focus {
+        outline: none;
+        border-color: #30574e;
+        box-shadow: 0 0 0 3px rgba(48, 87, 78, 0.1);
+    }
+    .shift-form input[type="checkbox"] {
+        width: auto;
+        margin-right: 8px;
+        transform: scale(1.2);
+    }
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .checkbox-group label {
+        margin-bottom: 0;
+        margin-left: 8px;
+        font-weight: 500;
+    }
+    .submit-btn {
+        background: #30574e;
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 20px;
+    }
+    .submit-btn:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+    }
+    .form-help-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 5px;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div style='margin:50px;'>
-        <h2>Setting Scheduling Intentions</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Saving settings</button>
-        </form>
+    <div class="shift-container">
+        <div class="shift-header">
+            <h2>Setting Scheduling Intentions</h2>
+        </div>
+        <div class="shift-form">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="submit-btn">Save Settings</button>
+            </form>
+        </div>
     </div>
 {% endblock %}

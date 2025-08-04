@@ -1,72 +1,316 @@
 {% extends "base.html" %}
 
-{% block title %}Client Registeration{% endblock %}
+{% block title %}Client Registration{% endblock %}
+
+{% block style %}
+<style>
+    .register-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .register-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .register-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .back-link {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-block;
+        margin-top: 15px;
+    }
+    .back-link:hover {
+        background: rgba(255,255,255,0.3);
+        color: white;
+        text-decoration: none;
+    }
+    .register-form {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border-left: 4px solid #30574e;
+    }
+    .form-group {
+        margin-bottom: 25px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #495057;
+        font-size: 1.1rem;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        outline: none;
+        border-color: #30574e;
+        box-shadow: 0 0 0 3px rgba(48, 87, 78, 0.1);
+    }
+    .form-group input[type="checkbox"] {
+        width: auto;
+        margin-right: 8px;
+        transform: scale(1.2);
+    }
+    .checkbox-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .checkbox-group label {
+        margin-bottom: 0;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+    .password-rules {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+        border-left: 4px solid #ffc107;
+    }
+    .password-rules ul {
+        margin: 10px 0 0 0;
+        padding-left: 20px;
+    }
+    .password-rules li {
+        margin-bottom: 5px;
+        color: #495057;
+    }
+    .location-group {
+        position: relative;
+    }
+    .location-btn {
+        background: #30574e;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+    .location-btn:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 3px 10px rgba(48, 87, 78, 0.3);
+    }
+    .location-message {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 10px;
+        font-style: italic;
+    }
+    #address-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    #address-suggestions .list-group-item {
+        border: none;
+        padding: 12px 15px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    #address-suggestions .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+    .submit-btn {
+        background: #30574e;
+        color: white;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 30px;
+    }
+    .submit-btn:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+    }
+    .error-message {
+        color: #dc3545;
+        font-size: 0.9rem;
+        margin-top: 5px;
+        display: block;
+    }
+    .help-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 5px;
+        font-style: italic;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+        background: white;
+        margin: 10% auto;
+        padding: 20px;
+        width: 60%;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .close-btn {
+        float: right;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-    <div style='margin:50px;margin-left:200px;'>
-        <h2>Register as a Client</h2>
-        <p><a href="{% url 'user:choose_role' %}">Go Back</a></p>
+    <div class="register-container">
+        <div class="register-header">
+            <h2>Register as a Client</h2>
+            <p><a href="{% url 'user:choose_role' %}" class="back-link">← Go Back</a></p>
+        </div>
 
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" class="register-form">
             {% csrf_token %}
             
-            <label for="id_email"><strong>1. Please enter your email:</strong></label><br>
-            {{ form.email }}<br>
-            {{ form.email.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_email"><strong>1. Please enter your email:</strong></label><br>
+                {{ form.email }}<br>
+                {{ form.email.errors }}<br><br>
+            </div>
 
-            <label for="id_first_name"><strong>2. Please enter your first name:</strong></label><br>
-            {{ form.first_name }}<br>
-            {{ form.first_name.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_first_name"><strong>2. Please enter your first name:</strong></label><br>
+                {{ form.first_name }}<br>
+                {{ form.first_name.errors }}<br><br>
+            </div>
 
-            <label for="id_last_name"><strong>3. Please enter your last name:</strong></label><br>
-            {{ form.last_name }}<br>
-            {{ form.last_name.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_last_name"><strong>3. Please enter your last name:</strong></label><br>
+                {{ form.last_name }}<br>
+                {{ form.last_name.errors }}<br><br>
+            </div>
 
-            <label for="id_password1"><strong>4. Please set your password:</strong></label><br>
-            {{ form.password1 }}<br><br>
-            <span>Please note that passwords should follow the rules below:</span><br>
-            <ul>
-                <li>The password should be at least eight digits.</li>
-                <li>The password should not be too similar to your other information.</li>
-                <li>The password should not be all numbers.</li>
-                <li>The password should not be too simple.</li>
-            </ul>
-            {{ form.password1.errors }}<br>
+            <div class="form-group">
+                <label for="id_password1"><strong>4. Please set your password:</strong></label><br>
+                {{ form.password1 }}<br><br>
+                <div class="password-rules">
+                    <span>Please note that passwords should follow the rules below:</span><br>
+                    <ul>
+                        <li>The password should be at least eight digits.</li>
+                        <li>The password should not be too similar to your other information.</li>
+                        <li>The password should not be all numbers.</li>
+                        <li>The password should not be too simple.</li>
+                    </ul>
+                </div>
+                {{ form.password1.errors }}<br>
+            </div>
 
-            <label for="id_password2"><strong>5. Please confirm your password:</strong></label><br>
-            {{ form.password2 }}<br>
-            <span>Please make sure you enter the same password twice.</span><br>
-            {{ form.password2.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_password2"><strong>5. Please confirm your password:</strong></label><br>
+                {{ form.password2 }}<br>
+                <span class="help-text">Please make sure you enter the same password twice.</span><br>
+                {{ form.password2.errors }}<br><br>
+            </div>
 
-            <label for="id_phone_number"><strong>6. Please enter your phone number:</strong></label><br>
-            {{ form.phone_number }}<br>
-            {{ form.phone_number.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_phone_number"><strong>6. Please enter your phone number:</strong></label><br>
+                {{ form.phone_number }}<br>
+                {{ form.phone_number.errors }}<br><br>
+            </div>
 
-            <label for="id_contact_method"><strong>7. Which contact method do you prefer:</strong></label><br>
-            {{ form.contact_method }}<br>
-            {{ form.contact_method.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_contact_method"><strong>7. Which contact method do you prefer:</strong></label><br>
+                {{ form.contact_method }}<br>
+                {{ form.contact_method.errors }}<br><br>
+            </div>
 
-            <label for="id_location"><strong>8. Please enter your postcode:</strong></label><br>
-            <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="autoFillLocation()">📍 Use My Location</button>
-            <small id="location-message" class="text-muted d-block mt-1"></small>
-            <input id="id_location" name="location" type="text" class="form-control" placeholder="Start typing address or postcode" autocomplete="off" style='width: 200px;'>
-            <ul id="address-suggestions" class="list-group" style='z-index: 1000;width: 100%;'></ul>
-            {{ form.location.errors }}<br>
+            <div class="form-group location-group">
+                <label for="id_location"><strong>8. Please enter your postcode:</strong></label><br>
+                <button type="button" class="location-btn" onclick="autoFillLocation()">📍 Use My Location</button>
+                <div class="location-message" id="location-message"></div>
+                {% comment %} <small id="location-message" class="text-muted d-block mt-1"></small> {% endcomment %}
+                <input id="id_location" name="location" type="text" class="form-control" placeholder="Start typing address or postcode" autocomplete="off">
+                <ul id="address-suggestions" class="list-group"></ul>
+                {{ form.location.errors }}<br>
+            </div>
 
-            <label for="id_certifications"><strong>9. Please choose the certifications you have:</strong></label><br>
-            {{ form.certifications }}<br>
-            {{ form.certifications.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_certifications"><strong>9. Please choose the certifications you have:</strong></label><br>
+                {{ form.certifications }}<br>
+                {{ form.certifications.errors }}<br><br>
+            </div>
 
-            <strong>{{form.consent_safeguard.label_tag}}</strong>{{ form.consent_safeguard }}<br><br>
+            {% comment %} <div class="checkbox-group">
+                {{ form.consent_safeguard }}
+                <label for="id_consent_safeguard">{{ form.consent_safeguard.label }}</label>
+            </div> {% endcomment %}
+            <div class="form-group">
+                <div class="checkbox-group">
+                    {{ form.consent_safeguard }}
+                    <label for="id_consent_safeguard">
+                        I agree to the <a href="#" id="show-agreement">agreement</a>
+                    </label>
+                </div>
+                {% if form.consent_safeguard.errors %}
+                    {% for error in form.consent_safeguard.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
 
-            <input type="submit" value="Register">
+            <button type="submit" class="submit-btn">Register</button>
         </form>
-        
-        {% comment %} <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <input type="submit" value="Register">
-        </form> {% endcomment %}
+        <div id="agreement-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <h2>Agreement</h2>
+                <p>这里写协议内容，比如使用条款、隐私政策等。</p>
+            </div>
+        </div>
 
     </div>
 
@@ -171,6 +415,21 @@
                 msg.innerText = 'Location access denied or unavailable.';
             }
         }
+    
+        document.getElementById("show-agreement").addEventListener("click", function(e) {
+            e.preventDefault();
+            document.getElementById("agreement-modal").style.display = "block";
+        });
+
+        document.querySelector(".close-btn").addEventListener("click", function() {
+            document.getElementById("agreement-modal").style.display = "none";
+        });
+
+        window.addEventListener("click", function(e) {
+            if (e.target.classList.contains("modal")) {
+                document.getElementById("agreement-modal").style.display = "none";
+            }
+        });
     </script>
 
 {% endblock %}

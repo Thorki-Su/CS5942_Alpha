@@ -1,34 +1,193 @@
 {% extends 'base.html' %}
+
+{% block title %}Ongoing Tasks{% endblock %}
+
+{% block style %}
+<style>
+    .ongoing-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .ongoing-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .ongoing-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .tasks-table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        overflow: hidden;
+        border-left: 4px solid #30574e;
+    }
+    .table {
+        margin: 0;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table thead {
+        background: #30574e;
+        color: white;
+    }
+    .table thead th {
+        padding: 20px 15px;
+        font-weight: 600;
+        text-align: left;
+        border: none;
+        font-size: 1.1rem;
+    }
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+    }
+    .table tbody tr:last-child {
+        border-bottom: none;
+    }
+    .table tbody td {
+        padding: 20px 15px;
+        vertical-align: middle;
+        border: none;
+        color: #495057;
+    }
+    .task-title {
+        font-weight: 600;
+        color: #333;
+        font-size: 1.1rem;
+    }
+    .task-time {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .status-ongoing {
+        background: #30574e;
+        color: white;
+    }
+    .status-pending {
+        background: #30574e;
+        color: white;
+    }
+    .status-completed {
+        background: #30574e;
+        color: white;
+    }
+    .btn-view {
+        background: #30574e;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-view:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+        text-decoration: none;
+    }
+    .no-tasks {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .no-tasks p {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin: 0;
+    }
+    @media (max-width: 768px) {
+        .table thead {
+            display: none;
+        }
+        .table tbody tr {
+            display: block;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+        .table tbody td {
+            display: block;
+            padding: 8px 0;
+            border: none;
+        }
+        .table tbody td:before {
+            content: attr(data-label) ": ";
+            font-weight: 600;
+            color: #30574e;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-  <div style='margin:50px;'>
-    <h2>Ongoing Tasks</h2>
-    {% if tasks_with_status %}
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Start Time</th>
-            <th>End Time</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in tasks_with_status %}
-            <tr>
-              <td>{{ item.task.title }}</td>
-              <td>{{ item.task.start_time|date:"Y-m-d H:i" }}</td>
-              <td>{{ item.task.end_time|date:"Y-m-d H:i" }}</td>
-              <td>{{ item.task.get_status_display }}</td>
-              <td>
-                <a href="{% url 'task:task_detail' item.task.id %}" class="btn btn-info">View Details</a>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-  </div>
-  {% else %}
-    <p>No ongoing tasks found</p>
-  {% endif %}
+    <div class="ongoing-container">
+        <div class="ongoing-header">
+            <h2>Ongoing Tasks</h2>
+        </div>
+        
+        {% if tasks_with_status %}
+            <div class="tasks-table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in tasks_with_status %}
+                            <tr>
+                                <td data-label="Title" class="task-title">{{ item.task.title }}</td>
+                                <td data-label="Start Time" class="task-time">{{ item.task.start_time|date:"M d, Y H:i" }}</td>
+                                <td data-label="End Time" class="task-time">{{ item.task.end_time|date:"M d, Y H:i" }}</td>
+                                <td data-label="Status">
+                                    <span class="status-badge status-{{ item.task.status|lower }}">{{ item.task.get_status_display }}</span>
+                                </td>
+                                <td data-label="Actions">
+                                    <a href="{% url 'task:task_detail' item.task.id %}" class="btn-view">View Details</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="no-tasks">
+                <p>No ongoing tasks found</p>
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}

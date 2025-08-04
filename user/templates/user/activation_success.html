@@ -2,8 +2,20 @@
 
 {% block title %}Activation Success{% endblock %}
 
+{% block style %}
+<style>
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <h2>Your account has been activated.</h2>
-    <p>Thank you for choosing Shallion Support.<p>
-    <a href="{% url 'user:login' %}">Click here to login</a>
+    <div class="container">
+        <h2>Your account has been activated.</h2>
+        <p>Thank you for choosing Shallion Support.<p>
+        <a href="{% url 'user:login' %}">Click here to login</a>
+    </div>
 {% endblock %}

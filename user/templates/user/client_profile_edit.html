@@ -2,108 +2,295 @@
 
 {% block title %}Information Edit{% endblock %}
 
-{% block content %}
-    <div style='margin:50px;'>
-        <h2>Edit Your Information</h2>
+{% block style %}
+<style>
+    .information-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .information-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .information-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 500;
+    }
+    .information-form {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border-left: 4px solid #30574e;
+    }
+    .form-group {
+        margin-bottom: 25px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #495057;
+        font-size: 1.1rem;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        outline: none;
+        border-color: #30574e;
+        box-shadow: 0 0 0 3px rgba(48, 87, 78, 0.1);
+    }
+    .form-group input[type="checkbox"] {
+        width: auto;
+        margin-right: 8px;
+        transform: scale(1.2);
+    }
+    .form-group textarea {
+        resize: none;
+    }
+    .location-group {
+        position: relative;
+    }
+    .location-btn {
+        background: #30574e;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+    .location-btn:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 3px 10px rgba(48, 87, 78, 0.3);
+    }
+    .location-message {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 10px;
+        font-style: italic;
+    }
+    #address-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    #address-suggestions .list-group-item {
+        border: none;
+        padding: 12px 15px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    #address-suggestions .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+    .submit-btn {
+        background: #30574e;
+        color: white;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 30px;
+    }
+    .submit-btn:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+    }
+    .error-message {
+        color: #dc3545;
+        font-size: 0.9rem;
+        margin-top: 5px;
+        display: block;
+    }
+    .help-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 5px;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
 
-        <form method="post" enctype="multipart/form-data">
+{% block content %}
+    <div class="information-container">
+        <div class="information-header">
+            <h2>Edit Your Information</h2>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="information-form">
             {% csrf_token %}
 
-            <label for="id_first_name"><strong>{{ form.first_name.label_tag }}</strong></label><br>
-            {{ form.first_name }}<br>
-            {{ form.first_name.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_first_name"><strong>{{ form.first_name.label_tag }}</strong></label><br>
+                {{ form.first_name }}<br>
+                {{ form.first_name.errors }}<br><br>
+            </div>
 
-            <label for="id_last_name"><strong>{{ form.last_name.label_tag }}</strong></label><br>
-            {{ form.last_name }}<br>
-            {{ form.last_name.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_last_name"><strong>{{ form.last_name.label_tag }}</strong></label><br>
+                {{ form.last_name }}<br>
+                {{ form.last_name.errors }}<br><br>
+            </div>
 
-            <label for="id_phone_number"><strong>{{ form.phone_number.label_tag }}</strong></label><br>
-            {{ form.phone_number }}<br>
-            {{ form.phone_number.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_phone_number"><strong>{{ form.phone_number.label_tag }}</strong></label><br>
+                {{ form.phone_number }}<br>
+                {{ form.phone_number.errors }}<br><br>
+            </div>
 
-            <label for="id_location"><strong>Please enter your postcode:</strong></label><br>
-            <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="autoFillLocation()">📍 Use My Location</button>
-            <small id="location-message" class="text-muted d-block mt-1"></small>
-            <input id="id_location" name="location" type="text" class="form-control" placeholder="Start typing address or postcode" autocomplete="off" style='width: 200px;'>
-            <ul id="address-suggestions" class="list-group" style='z-index: 1000;width: 100%;'></ul>
-            {{ form.location.errors }}<br>
+            <div class="form-group location-group">
+                <label for="id_location"><strong>Please enter your postcode:</strong></label><br>
+                <button type="button" class="location-btn" onclick="autoFillLocation()">📍 Use My Location</button>
+                <div class="location-message" id="location-message"></div>
+                {% comment %} <small id="location-message" class="text-muted d-block mt-1"></small> {% endcomment %}
+                <input id="id_location" name="location" type="text" class="form-control" placeholder="Start typing address or postcode" autocomplete="off">
+                <ul id="address-suggestions" class="list-group"></ul>
+                {{ form.location.errors }}<br>
+            </div>
 
-            <label for="id_age"><strong>{{ form.age.label_tag }}</strong></label><br>
-            {{ form.age }}<br>
-            {{ form.age.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_age"><strong>{{ form.age.label_tag }}</strong></label><br>
+                {{ form.age }}<br>
+                {{ form.age.errors }}<br><br>
+            </div>
 
-            <label for="id_gender"><strong>{{ form.gender.label_tag }}</strong></label><br>
-            {{ form.gender }}<br>
-            {{ form.gender.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_gender"><strong>{{ form.gender.label_tag }}</strong></label><br>
+                {{ form.gender }}<br>
+                {{ form.gender.errors }}<br><br>
+            </div>
 
-            <label for="id_emergency_contact"><strong>Please enter your emergency contact(name and contact method):</strong></label><br>
-            {{ form.emergency_contact }}<br>
-            {{ form.emergency_contact.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_emergency_contact"><strong>Please enter your emergency contact(name and contact method):</strong></label><br>
+                {{ form.emergency_contact }}<br>
+                {{ form.emergency_contact.errors }}<br><br>
+            </div>
 
 
-            {% if form.pip_certificate %}
-                <label for="id_pip_certificate"><strong>{{ form.pip_certificate.label_tag }}</strong></label><br>
-                {{ form.pip_certificate }}<br>
-                {{ form.pip_certificate.errors }}<br><br>
-            {% endif %}
+            <div class="form-group">
+                {% if form.pip_certificate %}
+                    <label for="id_pip_certificate"><strong>{{ form.pip_certificate.label_tag }}</strong></label><br>
+                    {{ form.pip_certificate }}<br>
+                    {{ form.pip_certificate.errors }}<br><br>
+                {% endif %}
+            </div>
 
-            {% if form.adp_certificate %}
-                <label for="id_adp_certificate"><strong>{{ form.adp_certificate.label_tag }}</strong></label><br>
-                {{ form.adp_certificate }}<br>
-                {{ form.adp_certificate.errors }}<br><br>
-            {% endif %}
+            <div class="form-group">
+                {% if form.adp_certificate %}
+                    <label for="id_adp_certificate"><strong>{{ form.adp_certificate.label_tag }}</strong></label><br>
+                    {{ form.adp_certificate }}<br>
+                    {{ form.adp_certificate.errors }}<br><br>
+                {% endif %}
+            </div>
 
-            {% if form.lwc_certificate %}
-                <label for="id_lwc_certificate"><strong>{{ form.lwc_certificate.label_tag }}</strong></label><br>
-                {{ form.lwc_certificate }}<br>
-                {{ form.lwc_certificate.errors }}<br><br>
-            {% endif %}
+            <div class="form-group">
+                {% if form.lwc_certificate %}
+                    <label for="id_lwc_certificate"><strong>{{ form.lwc_certificate.label_tag }}</strong></label><br>
+                    {{ form.lwc_certificate }}<br>
+                    {{ form.lwc_certificate.errors }}<br><br>
+                {% endif %}
+            </div>
 
-            {% if form.nhs_certificate %}
-                <label for="id_nhs_certificate"><strong>{{ form.nhs_certificate.label_tag }}</strong></label><br>
-                {{ form.nhs_certificate }}<br>
-                {{ form.nhs_certificate.errors }}<br><br>
-            {% endif %}
+            <div class="form-group">
+                {% if form.nhs_certificate %}
+                    <label for="id_nhs_certificate"><strong>{{ form.nhs_certificate.label_tag }}</strong></label><br>
+                    {{ form.nhs_certificate }}<br>
+                    {{ form.nhs_certificate.errors }}<br><br>
+                {% endif %}
+            </div>
 
-            {% if form.diagnosis %}
-                <label for="id_diagnosis"><strong>{{ form.diagnosis.label_tag }}</strong></label><br>
-                {{ form.diagnosis }}<br>
-                {{ form.diagnosis.errors }}<br><br>
-            {% endif %}
+            <div class="form-group">
+                {% if form.diagnosis %}
+                    <label for="id_diagnosis"><strong>{{ form.diagnosis.label_tag }}</strong></label><br>
+                    {{ form.diagnosis }}<br>
+                    {{ form.diagnosis.errors }}<br><br>
+                {% endif %}
+            </div>
 
-            <label for="id_conditions"><strong>{{ form.conditions.label_tag }}</strong></label><br>
-            {{ form.conditions }}<br>
-            {{ form.conditions.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_conditions"><strong>{{ form.conditions.label_tag }}</strong></label><br>
+                {{ form.conditions }}<br>
+                {{ form.conditions.errors }}<br><br>
+            </div>
 
-            <label for="id_other_conditions"><strong>{{ form.other_conditions.label_tag }}</strong></label><br>
-            {{ form.other_conditions }}<br>
-            {{ form.other_conditions.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_other_conditions"><strong>{{ form.other_conditions.label_tag }}</strong></label><br>
+                {{ form.other_conditions }}<br>
+                {{ form.other_conditions.errors }}<br><br>
+            </div>
 
-            <label for="id_support_areas"><strong>{{ form.support_areas.label_tag }}</strong></label><br>
-            {{ form.support_areas }}<br>
-            {{ form.support_areas.errors }}<br><br>
+            {% comment %} <div class="form-group">
+                <label for="id_support_areas"><strong>{{ form.support_areas.label_tag }}</strong></label><br>
+                {{ form.support_areas }}<br>
+                {{ form.support_areas.errors }}<br><br>
+            </div>
 
-            <label for="id_other_support"><strong>{{ form.other_support.label_tag }}</strong></label><br>
-            {{ form.other_support }}<br>
-            {{ form.other_support.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_other_support"><strong>{{ form.other_support.label_tag }}</strong></label><br>
+                {{ form.other_support }}<br>
+                {{ form.other_support.errors }}<br><br>
+            </div> {% endcomment %}
 
-            <label for="id_allergies"><strong>{{ form.allergies.label_tag }}</strong></label><br>
-            {{ form.allergies }}<br>
-            {{ form.allergies.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_allergies"><strong>{{ form.allergies.label_tag }}</strong></label><br>
+                {{ form.allergies }}<br>
+                {{ form.allergies.errors }}<br><br>
+            </div>
 
-            <label for="id_dietary_needs"><strong>{{ form.dietary_needs.label_tag }}</strong></label><br>
-            {{ form.dietary_needs }}<br>
-            {{ form.dietary_needs.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_dietary_needs"><strong>{{ form.dietary_needs.label_tag }}</strong></label><br>
+                {{ form.dietary_needs }}<br>
+                {{ form.dietary_needs.errors }}<br><br>
+            </div>
 
-            <label for="id_has_pets"><strong>{{ form.has_pets.label_tag }}</strong></label><br>
-            {{ form.has_pets }}<br>
-            {{ form.has_pets.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_has_pets"><strong>{{ form.has_pets.label_tag }}</strong></label><br>
+                {{ form.has_pets }}<br>
+                {{ form.has_pets.errors }}<br><br>
+            </div>
 
-            <label for="id_pets_type"><strong>{{ form.pets_type.label_tag }}</strong></label><br>
-            {{ form.pets_type }}<br>
-            {{ form.pets_type.errors }}<br><br>
+            <div class="form-group">
+                <label for="id_pets_type"><strong>{{ form.pets_type.label_tag }}</strong></label><br>
+                {{ form.pets_type }}<br>
+                {{ form.pets_type.errors }}<br><br>
+            </div>
 
-            <input type="submit" value="Save">
+            <input type="submit" value="Save" class="submit-btn">
         </form> 
         
         {% comment %}
