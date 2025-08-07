@@ -45,6 +45,7 @@ ALLOWED_HOSTS = [
     'cs5942-alpha.onrender.com',
     'cs5942-alpha-test.onrender.com',
     '*.onrender.com',
+    'cs5942-alpha-test-comm.onrender.com',
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
