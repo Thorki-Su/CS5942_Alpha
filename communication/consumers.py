@@ -161,7 +161,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             logger.error(f"Unexpected error in receive for room {getattr(self, 'room_name', 'unknown')}: {e}")
             await self.close()
+    
+    # Add new handler methods
+    async def call_request(self, event):
+        await self.send(text_data=json.dumps({
+        'type': 'call_request',
+        'sender': event['sender'],
+        'to': event.get('to')
+    }))
 
+    async def call_accept(self, event):
+        await self.send(text_data=json.dumps({
+        'type': 'call_accept',
+        'sender': event['sender'],
+        'to': event.get('to')
+    }))
+
+    async def call_decline(self, event):
+        await self.send(text_data=json.dumps({
+        'type': 'call_decline',
+        'sender': event['sender'],
+        'to': event.get('to')
+    }))
+    async def call_cancel(self, event):
+        await self.send(text_data=json.dumps({
+        'type': 'call_cancel',
+        'sender': event['sender'],
+        'to': event.get('to')
+    }))
+    
     @database_sync_to_async
     def save_message(self, sender_email, receiver_email, message, is_group):
         try:

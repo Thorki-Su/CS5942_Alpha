@@ -79,6 +79,30 @@
     .header, .footer {
         display: none !important;
     }
+    #call-incoming {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        z-index: 100;
+    }
+    #call-pending {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        z-index: 100;
+    }
 </style>
 {% endblock %}
 
@@ -106,6 +130,19 @@
             <audio id="localAudio" autoplay playsinline muted hidden></audio>
             <div id="remoteAudios" hidden></div>
         </div>
+    </div>
+
+    <!-- Incoming call UI -->
+    <div id="call-incoming">
+        <p id="call-sender"></p>
+        <button onclick="acceptCall()" class="bg-green-500 text-white p-2">Accept</button>
+        <button onclick="declineCall()" class="bg-red-500 text-white p-2">Decline</button>
+    </div>
+
+    <!-- Pending call UI for initiator -->
+    <div id="call-pending">
+        <p>Video call requested. Waiting for response...</p>
+        <button onclick="cancelCall()" class="bg-red-500 text-white p-2">Cancel</button>
     </div>
 
     {{ participants|json_script:"participants-data" }}
@@ -140,6 +177,8 @@
         let ignoreOffer = false;
         let polite = false;
         let lastMessageTimestamp = null;  // Track last message time to avoid duplicates
+        let incomingCallSender = null;  // Store sender for incoming call
+        let callPending = false;  // Track if call request is pending
 
         if (participants.length > 0) {
             polite = userEmail < participants[0];
@@ -211,10 +250,19 @@
                     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                     document.getElementById('localVideo').srcObject = localStream;
                     document.getElementById('video-container').style.display = 'flex';
-                    console.log('Local stream acquired automatically on receiving offer');
+                    console.log('Local stream acquired (video + audio)');
                 } catch (err) {
-                    console.error('Failed to get local stream:', err);
-                    alert('Unable to access camera/microphone. Please grant permissions.');
+                    console.error('Video + audio failed:', err);
+                    // Fallback to audio-only
+                    try {
+                        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        console.log('Fallback to audio-only stream');
+                        alert('视频权限被拒，已切换到仅音频模式。请检查系统设置授予摄像头权限。');
+                    } catch (audioErr) {
+                        console.error('Audio fallback failed:', audioErr);
+                        alert('权限被拒，无法访问摄像头/麦克风。请在系统/浏览器设置中授予权限，否则视频通话无法进行。');
+                        return null;
+                    }
                 }
             }
             return localStream;
@@ -251,11 +299,48 @@
                     const audio = new Audio(URL.createObjectURL(audioBlob));
                     audio.play();
                 }
+                if (data.type === 'call_request' && data.to === userEmail) {
+                    incomingCallSender = data.sender;
+                    document.getElementById('call-sender').textContent = `Incoming video call from ${data.sender}`;
+                    document.getElementById('call-incoming').style.display = 'block';
+                    console.log('Received call request from ' + data.sender);
+                    return;
+                }
+                if (data.type === 'call_accept' && data.to === userEmail) {
+                    // Hide pending UI if initiator
+                    document.getElementById('call-pending').style.display = 'none';
+                    callPending = false;
+                    // Start SDP exchange after accept
+                    const stream = await getLocalStream();
+                    if (!stream) return;
+                    const pc = peerConnections[data.sender] || createPeerConnection(data.sender, stream);
+                    // Trigger negotiation if not already
+                    if (pc.signalingState === 'stable') {
+                        pc.onnegotiationneeded();
+                    }
+                    console.log('Call accepted by ' + data.sender + ', starting connection');
+                    return;
+                }
+                if (data.type === 'call_decline' && data.to === userEmail) {
+                    document.getElementById('call-pending').style.display = 'none';
+                    callPending = false;
+                    alert(`Call declined by ${data.sender}`);
+                    endCall();
+                    return;
+                }
+                if (data.type === 'call_cancel' && data.to === userEmail) {
+                    document.getElementById('call-incoming').style.display = 'none';
+                    alert(`Call cancelled by ${data.sender}`);
+                    incomingCallSender = null;
+                    return;
+                }
                 if (data.signal && data.sender !== userEmail && data.to === userEmail) {
                     // Ensure localStream is available before creating PC
                     const stream = await getLocalStream();
                     if (!stream) {
                         console.error('Could not get local stream for signal handling');
+                        // Continue with no stream (text chat only)
+                        addMessage('system', '权限问题，无法启动视频。请手动授予权限。', new Date().toISOString());
                         return;
                     }
                     let pc = peerConnections[data.sender];
@@ -341,10 +426,43 @@
         function toggleVideoCall() {
             const videoContainer = document.getElementById('video-container');
             if (videoContainer.style.display === 'none') {
-                startVideoCall();
+                if (callPending) {
+                    // If already pending, do nothing or show message
+                    alert('Call request already sent. Waiting for response.');
+                    return;
+                }
+                // Send call request
+                ws.send(JSON.stringify({ type: 'call_request', to: participants[0] }));
+                addMessage('system', 'Video call requested. Waiting for acceptance...', new Date().toISOString());
+                document.getElementById('call-pending').style.display = 'block';
+                callPending = true;
             } else {
                 endCall();
             }
+        }
+
+        async function acceptCall() {
+            document.getElementById('call-incoming').style.display = 'none';
+            ws.send(JSON.stringify({ type: 'call_accept', to: incomingCallSender }));
+            const stream = await getLocalStream();
+            if (!stream) return;
+            const pc = createPeerConnection(incomingCallSender, stream);
+            // Trigger negotiation
+            pc.onnegotiationneeded();
+            incomingCallSender = null;
+        }
+
+        function declineCall() {
+            document.getElementById('call-incoming').style.display = 'none';
+            ws.send(JSON.stringify({ type: 'call_decline', to: incomingCallSender }));
+            incomingCallSender = null;
+        }
+
+        function cancelCall() {
+            document.getElementById('call-pending').style.display = 'none';
+            ws.send(JSON.stringify({ type: 'call_cancel', to: participants[0] }));
+            addMessage('system', 'Video call request cancelled.', new Date().toISOString());
+            callPending = false;
         }
 
         async function startVideoCall() {
@@ -388,15 +506,19 @@
             }
 
             pc.ontrack = (event) => {
-                const remoteVideo = document.createElement('video');
-                remoteVideo.id = `remote_${peerEmail}`;
-                remoteVideo.srcObject = event.streams[0];
-                remoteVideo.autoplay = true;
-                remoteVideo.playsInline = true;
-                remoteVideo.muted = false; // 确保不静音
-                remoteVideo.play().catch(e => console.error('Remote play error:', e));
-                document.getElementById('remoteVideos').appendChild(remoteVideo);
-                console.log(`Remote stream added for ${peerEmail}`);
+                if (event.track.kind === 'video') { // Only create for video track to avoid duplicates
+                    const remoteVideos = document.getElementById('remoteVideos');
+                    if (remoteVideos.querySelector(`#remote_${peerEmail}`)) return; // Avoid duplicate elements
+                    const remoteVideo = document.createElement('video');
+                    remoteVideo.id = `remote_${peerEmail}`;
+                    remoteVideo.srcObject = event.streams[0];
+                    remoteVideo.autoplay = true;
+                    remoteVideo.playsInline = true;
+                    remoteVideo.muted = false;
+                    remoteVideo.play().catch(e => console.error('Remote play error:', e));
+                    remoteVideos.appendChild(remoteVideo);
+                    console.log(`Remote video stream added for ${peerEmail}`);
+                }
             };
 
             pc.onicecandidate = (event) => {
@@ -443,6 +565,10 @@
             document.getElementById('video-container').style.display = 'none';
             document.getElementById('localVideo').srcObject = null;
             document.getElementById('remoteVideos').innerHTML = '';
+            document.getElementById('call-pending').style.display = 'none';
+            document.getElementById('call-incoming').style.display = 'none';
+            callPending = false;
+            incomingCallSender = null;
             console.log('Video call ended');
         }
 
