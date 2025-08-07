@@ -254,6 +254,7 @@
                             const answer = await pc.createAnswer();
                             await pc.setLocalDescription(answer);
                             ws.send(JSON.stringify({ signal: pc.localDescription, to: data.sender }));
+                            console.log(`Sent answer to ${data.sender}`);
                         }
                     } catch (err) {
                         console.error('SDP error:', err);
@@ -262,6 +263,7 @@
                     const pc = peerConnections[data.sender];
                     if (pc && !ignoreOffer) {
                         pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(err => console.error('ICE error:', err));
+                        console.log(`Added ICE candidate from ${data.sender}`);
                     }
                 }
             };
@@ -311,6 +313,7 @@
                     document.getElementById('localVideo').srcObject = stream;
                     participants.forEach(peerEmail => createPeerConnection(peerEmail, stream));
                     document.getElementById('video-container').style.display = 'flex';
+                    console.log('Video call started, local stream set');
                 })
                 .catch(err => console.error('Media access error:', err));
         }
@@ -319,7 +322,22 @@
             const pc = new RTCPeerConnection({
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' }
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    {
+                        urls: 'turn:openrelay.metered.ca:80',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject'
+                    },
+                    {
+                        urls: 'turn:openrelay.metered.ca:443',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject'
+                    },
+                    {
+                        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject'
+                    }
                 ]
             });
             peerConnections[peerEmail] = pc;
@@ -331,14 +349,28 @@
                 remoteVideo.srcObject = event.streams[0];
                 remoteVideo.autoplay = true;
                 remoteVideo.playsInline = true;
+                remoteVideo.muted = false; // 确保不静音
                 remoteVideo.play().catch(e => console.error('Remote play error:', e));
                 document.getElementById('remoteVideos').appendChild(remoteVideo);
+                console.log(`Remote stream added for ${peerEmail}`);
             };
 
             pc.onicecandidate = (event) => {
                 if (event.candidate) {
                     ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate, to: peerEmail }));
+                    console.log(`Sent ICE candidate to ${peerEmail}:`, event.candidate);
                 }
+            };
+
+            pc.oniceconnectionstatechange = () => {
+                console.log(`ICE connection state for ${peerEmail}: ${pc.iceConnectionState}`);
+                if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+                    console.error(`ICE failed for ${peerEmail} - check network or TURN`);
+                }
+            };
+
+            pc.onconnectionstatechange = () => {
+                console.log(`Connection state for ${peerEmail}: ${pc.connectionState}`);
             };
 
             pc.onnegotiationneeded = async () => {
@@ -347,6 +379,7 @@
                     const offer = await pc.createOffer();
                     await pc.setLocalDescription(offer);
                     ws.send(JSON.stringify({ signal: pc.localDescription, to: peerEmail }));
+                    console.log(`Sent offer to ${peerEmail}`);
                 } catch (err) {
                     console.error('Negotiation needed error:', err);
                 } finally {
@@ -364,6 +397,7 @@
             document.getElementById('video-container').style.display = 'none';
             document.getElementById('localVideo').srcObject = null;
             document.getElementById('remoteVideos').innerHTML = '';
+            console.log('Video call ended');
         }
 
         function toggleAudio() {
