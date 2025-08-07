@@ -215,7 +215,7 @@
                 loadHistory();
             };
 
-            ws.onmessage = (event) => {
+            ws.onmessage = async(event) => {
                 console.log('Raw message:', event.data);
                 const data = JSON.parse(event.data);
                 if (data.type === 'auth_ack') {
@@ -245,14 +245,14 @@
                         }
 
                         if (offerCollision && polite) {
-                            awaitpc.setRemoteDescription({ type: 'rollback' });
+                            await pc.setRemoteDescription({ type: 'rollback' });
                         }
 
-                        awaitpc.setRemoteDescription(new RTCSessionDescription(data.signal));
+                        await pc.setRemoteDescription(new RTCSessionDescription(data.signal));
 
                         if (data.signal.type === 'offer') {
                             const answer = awaitpc.createAnswer();
-                            awaitpc.setLocalDescription(answer);
+                            await pc.setLocalDescription(answer);
                             ws.send(JSON.stringify({ signal: pc.localDescription, to: data.sender }));
                         }
                     } catch (err) {
