@@ -138,6 +138,7 @@
         let makingOffer = false;
         let ignoreOffer = false;
         let polite = false;
+        let lastMessageTimestamp = null;  // Track last message time to avoid duplicates
 
         if (participants.length > 0) {
             polite = userEmail < participants[0];
@@ -148,27 +149,45 @@
         }
 
         function loadHistory() {
-            fetch(`/communication/one-to-one/${roomName}/`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
+            let url = `/communication/one-to-one/${roomName}/`;
+            if (roomName.startsWith('chat_task_')) {
+                const taskId = roomName.split('_')[2];
+                url = `/communication/task/${taskId}/history/`;
+            }
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(response => response.json())
                 .then(data => {
                     const messageList = document.getElementById('message-list');
-                    messageList.innerHTML = '';
+                    messageList.innerHTML = '';  // Clear once
                     if (data.messages.length === 0) {
                         document.getElementById('no-messages').style.display = 'block';
                     } else {
                         document.getElementById('no-messages').style.display = 'none';
                         data.messages.forEach(msg => {
-                            const messageElement = document.createElement('div');
-                            messageElement.classList.add('message', msg.sender === userEmail ? 'sent' : 'received');
-                            messageElement.innerHTML = `<p>${msg.content}</p><div class="message-time">${formatTimestamp(msg.timestamp)}</div>`;
-                            messageList.appendChild(messageElement);
+                            if (!lastMessageTimestamp || new Date(msg.timestamp) > new Date(lastMessageTimestamp)) {
+                                addMessage(msg.sender, msg.content, msg.timestamp);
+                            }
                         });
-                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                        if (data.messages.length > 0) {
+                            lastMessageTimestamp = data.messages[data.messages.length - 1].timestamp;
+                        }
                     }
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
                 })
                 .catch(err => console.error('Failed to load history:', err));
+        }
+
+        function addMessage(sender, content, timestamp) {
+            const messageList = document.getElementById('message-list');
+            const existingMsgs = Array.from(messageList.children).map(el => el.innerHTML);
+            const msgHTML = `<p>${content}</p><div class="message-time">${formatTimestamp(timestamp)}</div>`;
+            if (!existingMsgs.includes(msgHTML)) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', sender === userEmail ? 'sent' : 'received');
+                messageElement.innerHTML = msgHTML;
+                messageList.appendChild(messageElement);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
         }
 
         function reconnect() {
@@ -209,12 +228,7 @@
                     return;
                 }
                 if (data.message) {
-                    const messageList = document.getElementById('message-list');
-                    const messageElement = document.createElement('div');
-                    messageElement.classList.add('message', data.sender === userEmail ? 'sent' : 'received');
-                    messageElement.innerHTML = `<p>${data.message}</p><div class="message-time">${formatTimestamp(data.timestamp)}</div>`;
-                    messageList.appendChild(messageElement);
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    addMessage(data.sender, data.message, data.timestamp);
                 }
                 if (data.audio_data) {
                     const audioBlob = new Blob([base64ToArrayBuffer(data.audio_data)], { type: 'audio/webm' });
@@ -237,7 +251,8 @@
                         awaitpc.setRemoteDescription(new RTCSessionDescription(data.signal));
 
                         if (data.signal.type === 'offer') {
-                            awaitpc.setLocalDescription();
+                            const answer = awaitpc.createAnswer();
+                            awaitpc.setLocalDescription(answer);
                             ws.send(JSON.stringify({ signal: pc.localDescription, to: data.sender }));
                         }
                     } catch (err) {
@@ -267,11 +282,13 @@
             const messageInput = document.getElementById('message-input');
             const message = messageInput.value.trim();
             if (message && ws.readyState === WebSocket.OPEN) {
-                const data = { 'message': message, 'timestamp': new Date().toISOString() };
+                const timestamp = new Date().toISOString();
+                const data = { 'message': message, 'timestamp': timestamp };
                 if (roomName.startsWith('1v1_')) {
                     data['receiver'] = participants[0];
                 }
                 ws.send(JSON.stringify(data));
+                addMessage(userEmail, message, timestamp);  // Local add immediately
                 messageInput.value = '';
             } else if (ws.readyState !== WebSocket.OPEN) {
                 alert('WebSocket not connected. Wait for reconnection.');
@@ -299,7 +316,12 @@
         }
 
         function createPeerConnection(peerEmail, stream) {
-            const pc = new RTCPeerConnection();
+            const pc = new RTCPeerConnection({
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' }
+                ]
+            });
             peerConnections[peerEmail] = pc;
             stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
@@ -309,7 +331,7 @@
                 remoteVideo.srcObject = event.streams[0];
                 remoteVideo.autoplay = true;
                 remoteVideo.playsInline = true;
-                remoteVideo.onunmute = () => {};
+                remoteVideo.play().catch(e => console.error('Remote play error:', e));
                 document.getElementById('remoteVideos').appendChild(remoteVideo);
             };
 

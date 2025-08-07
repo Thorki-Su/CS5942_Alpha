@@ -9,7 +9,7 @@ from .models import OneToOneChatSession, ChatMessage, FriendRelation
 from asgiref.sync import sync_to_async, async_to_sync
 from django.urls import reverse
 from django.core.paginator import Paginator
-from django.db.models import Q, Count, Max, Case, When, F, CharField  # 修正导入
+from django.db.models import Q, Count, Max, Case, When, F, CharField
 import asyncio
 import logging
 from channels.layers import get_channel_layer
@@ -102,8 +102,14 @@ def task_communication_view(request, task_id):
             logger.warning(f"Task {task_id} is {task.status}")
             return redirect('user:home')
         room_name = f"chat_task_{task_id}"
-        participants = [task.client.email] + list(TaskApplication.objects.filter(
-            task=task, status='accepted').values_list('volunteer__email', flat=True))
+        # 创建session if not exists (假设1v1 task；如果多volunteer，注释用群模型)
+        accepted_apps = TaskApplication.objects.filter(task=task, status='accepted')
+        if accepted_apps.exists():
+            volunteer = accepted_apps.first().volunteer  # 假设单volunteer
+            async_to_sync(get_or_create_one_to_one_room)(request.user.email, volunteer.email)  # 创建session
+        participants = [task.client.email] + list(accepted_apps.values_list('volunteer__email', flat=True))
+        if not participants:
+            return JsonResponse({'error': 'No participants'}, status=400)
         messages = ChatMessage.objects.filter(task=task).order_by('timestamp')
         # Mark task messages as read
         ChatMessage.objects.filter(
@@ -119,6 +125,21 @@ def task_communication_view(request, task_id):
     except Task.DoesNotExist:
         logger.error(f"Task {task_id} not found")
         return redirect('user:home')
+
+@login_required
+def task_history(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if not (task.client == request.user or TaskApplication.objects.filter(task=task, volunteer=request.user, status='accepted').exists()):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    messages = ChatMessage.objects.filter(task=task).order_by('timestamp')
+    participants = [task.client.email] + list(TaskApplication.objects.filter(task=task, status='accepted').values_list('volunteer__email', flat=True))
+    return JsonResponse({
+        'messages': [
+            {'sender': msg.sender.email, 'content': msg.content, 'timestamp': msg.timestamp.isoformat()} for msg in messages
+        ],
+        'user2_email': 'Task Group Chat',
+        'participants': participants
+    })
 
 @login_required
 def group_chats_view(request):
@@ -165,7 +186,7 @@ def one_to_one_communication_view(request, room_name):
         })
     except OneToOneChatSession.DoesNotExist:
         logger.error(f"OneToOneChatSession {room_name} not found")
-        return redirect('communication:one_to_one_chat_selection')
+        return JsonResponse({'error': 'Session not found'}, status=404)  # JSON错误
 
 @login_required
 def create_one_to_one_room(request):
