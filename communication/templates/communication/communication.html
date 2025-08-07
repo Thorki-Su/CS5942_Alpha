@@ -135,6 +135,13 @@
         const maxReconnectAttempts = 5;
         const reconnectInterval = 2000;
         let authTimeout;
+        let makingOffer = false;
+        let ignoreOffer = false;
+        let polite = false;
+
+        if (participants.length > 0) {
+            polite = userEmail < participants[0];
+        }
 
         function formatTimestamp(isoString) {
             return new Date(isoString).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -216,18 +223,31 @@
                 }
                 if (data.signal && data.sender !== userEmail && data.to === userEmail) {
                     const pc = peerConnections[data.sender] || createPeerConnection(data.sender, localStream);
-                    pc.setRemoteDescription(new RTCSessionDescription(data.signal))
-                        .then(() => data.signal.type === 'offer' ? pc.createAnswer() : null)
-                        .then(answer => {
-                            if (answer) {
-                                pc.setLocalDescription(answer);
-                                ws.send(JSON.stringify({ signal: answer, to: data.sender }));
-                            }
-                        })
-                        .catch(err => console.error('SDP error:', err));
+                    try {
+                        const offerCollision = data.signal.type === 'offer' && (makingOffer || pc.signalingState !== 'stable');
+                        ignoreOffer = !polite && offerCollision;
+                        if (ignoreOffer) {
+                            return;
+                        }
+
+                        if (offerCollision && polite) {
+                            awaitpc.setRemoteDescription({ type: 'rollback' });
+                        }
+
+                        awaitpc.setRemoteDescription(new RTCSessionDescription(data.signal));
+
+                        if (data.signal.type === 'offer') {
+                            awaitpc.setLocalDescription();
+                            ws.send(JSON.stringify({ signal: pc.localDescription, to: data.sender }));
+                        }
+                    } catch (err) {
+                        console.error('SDP error:', err);
+                    }
                 } else if (data.type === 'candidate' && data.to === userEmail) {
                     const pc = peerConnections[data.sender];
-                    if (pc) pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(err => console.error('ICE error:', err));
+                    if (pc && !ignoreOffer) {
+                        pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(err => console.error('ICE error:', err));
+                    }
                 }
             };
 
@@ -289,6 +309,7 @@
                 remoteVideo.srcObject = event.streams[0];
                 remoteVideo.autoplay = true;
                 remoteVideo.playsInline = true;
+                remoteVideo.onunmute = () => {};
                 document.getElementById('remoteVideos').appendChild(remoteVideo);
             };
 
@@ -298,10 +319,18 @@
                 }
             };
 
-            pc.createOffer()
-                .then(offer => pc.setLocalDescription(offer))
-                .then(() => ws.send(JSON.stringify({ signal: pc.localDescription, to: peerEmail })))
-                .catch(err => console.error('Offer error:', err));
+            pc.onnegotiationneeded = async () => {
+                try {
+                    makingOffer = true;
+                    await pc.setLocalDescription();
+                    ws.send(JSON.stringify({ signal: pc.localDescription, to: peerEmail }));
+                } catch (err) {
+                    console.error('Negotiation needed error:', err);
+                } finally {
+                    makingOffer = false;
+                }
+            };
+
             return pc;
         }
 
