@@ -1,6 +1,7 @@
 from django.urls import re_path, path
 from channels.routing import URLRouter
 from . import consumers  # 如果consumers需要延迟加载，保持原样
+from .views import task_history
 from .views import (
     message_selection_view, one_to_one_chat_selection_view, task_communication_view,
     create_one_to_one_room, group_chats_view, one_to_one_communication_view,
@@ -31,4 +32,5 @@ urlpatterns = [
     path('send-friend-request/', send_friend_request, name='send_friend_request'),
     path('accept-friend-request/<int:request_id>/', accept_friend_request, name='accept_friend_request'),
     path('reject-friend-request/<int:request_id>/', reject_friend_request, name='reject_friend_request'),
+    path('task/<int:task_id>/history/', task_history, name='task_history'),
 ]
