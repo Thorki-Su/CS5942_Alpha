@@ -165,8 +165,6 @@
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
         const wsPath = `${wsScheme}://${window.location.host}/ws/chat/${roomName}/`;
         let ws = new WebSocket(wsPath);
-        let userWsPath = `${wsScheme}://${window.location.host}/ws/user/${userEmail.replace('@', '_')}/`;
-        let userWs = new WebSocket(userWsPath);  // 用户 WS 用于通知
         let peerConnections = {};
         let pendingCandidates = {}; // Per sender queue for candidates
         let localStream = null;
@@ -180,7 +178,6 @@
         let polite = false;
         let lastMessageTimestamp = null;  // Track last message time to avoid duplicates
         let incomingCallSender = null;  // Store sender for incoming call
-        let incomingRoomName = null;  // Store room for incoming call
         let callPending = false;  // Track if call request is pending
         let callInitiated = false;  // Track if this user has initiated or accepted a call
 
@@ -239,9 +236,7 @@
                 setTimeout(() => {
                     console.log(`Reconnecting (${reconnectAttempts + 1}/${maxReconnectAttempts})...`);
                     ws = new WebSocket(wsPath);
-                    userWs = new WebSocket(userWsPath);
-                    setupWebSocket(ws);
-                    setupWebSocket(userWs, true);
+                    setupWebSocket();
                     loadHistory();
                     reconnectAttempts++;
                 }, reconnectInterval);
@@ -274,18 +269,18 @@
             return localStream;
         }
 
-        function setupWebSocket(wsInstance, isUserWs = false) {
-            wsInstance.onopen = () => {
-                console.log(`${isUserWs ? 'User' : 'Chat'} WebSocket opened, sending auth...`);
-                wsInstance.send(JSON.stringify({ type: 'auth', user_email: userEmail }));
+        function setupWebSocket() {
+            ws.onopen = () => {
+                console.log('WebSocket opened, sending auth...');
+                ws.send(JSON.stringify({ type: 'auth', user_email: userEmail }));
                 authTimeout = setTimeout(() => {
                     console.error('Authentication timeout');
-                    wsInstance.close();
+                    ws.close();
                 }, 30000);
-                if (!isUserWs) loadHistory();
+                loadHistory();
             };
 
-            wsInstance.onmessage = async(event) => {
+            ws.onmessage = async(event) => {
                 console.log('Raw message:', event.data);
                 const data = JSON.parse(event.data);
                 if (data.type === 'auth_ack') {
@@ -308,19 +303,14 @@
                 if (data.type === 'call_request' && data.to === userEmail) {
                     if (callInitiated) {
                         // If this user has already initiated, auto-accept
-                        wsInstance.send(JSON.stringify({ type: 'call_accept', to: data.sender }));
+                        ws.send(JSON.stringify({ type: 'call_accept', to: data.sender }));
                         console.log('Auto-accepting call since both initiated');
                         startConnection(data.sender);
                     } else {
                         incomingCallSender = data.sender;
-                        incomingRoomName = data.room_name;
                         document.getElementById('call-sender').textContent = `Incoming video call from ${data.sender}`;
                         document.getElementById('call-incoming').style.display = 'block';
                         console.log('Received call request from ' + data.sender);
-                        // Redirect to room if not already there
-                        if (window.location.pathname !== '/communication/one-to-one/' + data.room_name + '/') {
-                            window.location.href = '/communication/one-to-one/' + data.room_name + '/';
-                        }
                     }
                     return;
                 }
@@ -350,7 +340,6 @@
                     document.getElementById('call-incoming').style.display = 'none';
                     alert(`Call cancelled by ${data.sender}`);
                     incomingCallSender = null;
-                    incomingRoomName = null;
                     return;
                 }
                 if (data.signal && data.sender !== userEmail && data.to === userEmail) {
@@ -413,21 +402,17 @@
                 }
             };
 
-            wsInstance.onerror = (error) => console.error('WebSocket error:', error);
-            wsInstance.onclose = () => reconnect();
+            ws.onerror = (error) => console.error('WebSocket error:', error);
+            ws.onclose = () => reconnect();
         }
-
-        setupWebSocket(ws);  // 房间 WS
-        setupWebSocket(userWs, true);  // 用户 WS
 
         setInterval(() => {
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ type: 'ping' }));
             }
-            if (userWs.readyState === WebSocket.OPEN) {
-                userWs.send(JSON.stringify({ type: 'ping' }));
-            }
         }, 30000);
+
+        setupWebSocket();
 
         function sendMessage() {
             const messageInput = document.getElementById('message-input');
@@ -467,26 +452,20 @@
 
         async function acceptCall() {
             document.getElementById('call-incoming').style.display = 'none';
-            userWs.send(JSON.stringify({ type: 'call_accept', to: incomingCallSender }));
+            ws.send(JSON.stringify({ type: 'call_accept', to: incomingCallSender }));
             callInitiated = true;  // Mark as accepted
-            if (window.location.pathname !== '/communication/one-to-one/' + incomingRoomName + '/') {
-                window.location.href = '/communication/one-to-one/' + incomingRoomName + '/';
-                return;
-            }
             const stream = await getLocalStream();
             if (!stream) return;
             const pc = createPeerConnection(incomingCallSender, stream);
             // Trigger negotiation
             pc.onnegotiationneeded();
             incomingCallSender = null;
-            incomingRoomName = null;
         }
 
         function declineCall() {
             document.getElementById('call-incoming').style.display = 'none';
-            userWs.send(JSON.stringify({ type: 'call_decline', to: incomingCallSender }));
+            ws.send(JSON.stringify({ type: 'call_decline', to: incomingCallSender }));
             incomingCallSender = null;
-            incomingRoomName = null;
         }
 
         function cancelCall() {
@@ -602,7 +581,6 @@
             callPending = false;
             callInitiated = false;
             incomingCallSender = null;
-            incomingRoomName = null;
             console.log('Video call ended');
         }
 
