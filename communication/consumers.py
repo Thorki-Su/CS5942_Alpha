@@ -77,31 +77,72 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.close()
                 return
 
-            message = text_data_json.get('message')
-            audio_data = text_data_json.get('audio_data')
-            signal = text_data_json.get('signal')
-            candidate = text_data_json.get('candidate')
-
-            if message:
+            message_type = text_data_json.get('type')
+            receiver = text_data_json.get('to')
+            if message_type == 'call_request':
+                if receiver:
+                    await self.channel_layer.group_send(
+                        f'user_{receiver.replace("@", "_")}',
+                        {
+                            'type': 'call_request',
+                            'sender': self.user_email,
+                            'room_name': self.room_name
+                        }
+                    )
+                    logger.debug(f"Sent call_request to user_{receiver.replace('@', '_')}")
+            elif message_type == 'call_accept':
+                if receiver:
+                    await self.channel_layer.group_send(
+                        f'user_{receiver.replace("@", "_")}',
+                        {
+                            'type': 'call_accept',
+                            'sender': self.user_email,
+                            'room_name': self.room_name
+                        }
+                    )
+                    logger.debug(f"Sent call_accept to user_{receiver.replace('@', '_')}")
+            elif message_type == 'call_decline':
+                if receiver:
+                    await self.channel_layer.group_send(
+                        f'user_{receiver.replace("@", "_")}',
+                        {
+                            'type': 'call_decline',
+                            'sender': self.user_email,
+                            'room_name': self.room_name
+                        }
+                    )
+                    logger.debug(f"Sent call_decline to user_{receiver.replace('@', '_')}")
+            elif message_type == 'call_cancel':
+                if receiver:
+                    await self.channel_layer.group_send(
+                        f'user_{receiver.replace("@", "_")}',
+                        {
+                            'type': 'call_cancel',
+                            'sender': self.user_email,
+                            'room_name': self.room_name
+                        }
+                    )
+                    logger.debug(f"Sent call_cancel to user_{receiver.replace('@', '_')}")
+            elif message_type == 'message':
                 start_time = time.time()
                 receiver = await self.get_receiver()
                 logger.debug(f"Got receiver {receiver} in {time.time() - start_time:.3f}s")
                 timestamp = timezone.now().isoformat()
                 data = {
-                    'message': message,
+                    'message': text_data_json.get('message'),
                     'sender': self.user_email,
                     'receiver': receiver,
                     'timestamp': timestamp,
                     'is_group': self.is_task_group
                 }
-                save_task = asyncio.create_task(self.save_message(self.user_email, receiver, message, self.is_task_group))
+                save_task = asyncio.create_task(self.save_message(self.user_email, receiver, text_data_json.get('message'), self.is_task_group))
                 save_task.add_done_callback(lambda t: logger.error(f"Save message task failed: {t.exception()}") if t.exception() else None)
                 try:
                     await self.send(text_data=json.dumps(data))
                     logger.debug(f"Sending group message to {self.room_group_name}")
                     await self.channel_layer.group_send(self.room_group_name, {
                         'type': 'chat_message',
-                        'message': message,
+                        'message': text_data_json.get('message'),
                         'sender': self.user_email,
                         'receiver': receiver,
                         'timestamp': timestamp,
@@ -136,23 +177,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     logger.debug(f"Group send completed in {time.time() - start_time:.3f}s")
                 except ChannelFull:
                     logger.error(f"Channel full for room {self.room_name}")
-            elif audio_data:
+            elif text_data_json.get('audio_data'):
                 await self.channel_layer.group_send(self.room_group_name, {
                     'type': 'audio_message',
-                    'audio_data': audio_data,
+                    'audio_data': text_data_json.get('audio_data'),
                     'sender': self.user_email
                 })
-            elif signal:
+            elif text_data_json.get('signal'):
                 await self.channel_layer.group_send(self.room_group_name, {
                     'type': 'video_signal',
-                    'signal': signal,
+                    'signal': text_data_json.get('signal'),
                     'sender': self.user_email,
                     'to': text_data_json.get('to')
                 })
-            elif candidate:
+            elif text_data_json.get('candidate'):
                 await self.channel_layer.group_send(self.room_group_name, {
                     'type': 'candidate',
-                    'candidate': candidate,
+                    'candidate': text_data_json.get('candidate'),
                     'sender': self.user_email,
                     'to': text_data_json.get('to')
                 })
@@ -161,35 +202,40 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             logger.error(f"Unexpected error in receive for room {getattr(self, 'room_name', 'unknown')}: {e}")
             await self.close()
-    
+
     # Add new handler methods
     async def call_request(self, event):
         await self.send(text_data=json.dumps({
-        'type': 'call_request',
-        'sender': event['sender'],
-        'to': event.get('to')
-    }))
+            'type': 'call_request',
+            'sender': event['sender'],
+            'room_name': event['room_name'],
+            'to': event.get('to')
+        }))
 
     async def call_accept(self, event):
         await self.send(text_data=json.dumps({
-        'type': 'call_accept',
-        'sender': event['sender'],
-        'to': event.get('to')
-    }))
+            'type': 'call_accept',
+            'sender': event['sender'],
+            'room_name': event['room_name'],
+            'to': event.get('to')
+        }))
 
     async def call_decline(self, event):
         await self.send(text_data=json.dumps({
-        'type': 'call_decline',
-        'sender': event['sender'],
-        'to': event.get('to')
-    }))
+            'type': 'call_decline',
+            'sender': event['sender'],
+            'room_name': event['room_name'],
+            'to': event.get('to')
+        }))
+
     async def call_cancel(self, event):
         await self.send(text_data=json.dumps({
-        'type': 'call_cancel',
-        'sender': event['sender'],
-        'to': event.get('to')
-    }))
-    
+            'type': 'call_cancel',
+            'sender': event['sender'],
+            'room_name': event['room_name'],
+            'to': event.get('to')
+        }))
+
     @database_sync_to_async
     def save_message(self, sender_email, receiver_email, message, is_group):
         try:
