@@ -251,7 +251,7 @@
                         await pc.setRemoteDescription(new RTCSessionDescription(data.signal));
 
                         if (data.signal.type === 'offer') {
-                            const answer = awaitpc.createAnswer();
+                            const answer = await pc.createAnswer();
                             await pc.setLocalDescription(answer);
                             ws.send(JSON.stringify({ signal: pc.localDescription, to: data.sender }));
                         }
@@ -344,7 +344,8 @@
             pc.onnegotiationneeded = async () => {
                 try {
                     makingOffer = true;
-                    await pc.setLocalDescription();
+                    const offer = await pc.createOffer
+                    await pc.setLocalDescription(offer);
                     ws.send(JSON.stringify({ signal: pc.localDescription, to: peerEmail }));
                 } catch (err) {
                     console.error('Negotiation needed error:', err);
