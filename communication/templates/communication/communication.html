@@ -179,6 +179,7 @@
         let lastMessageTimestamp = null;  // Track last message time to avoid duplicates
         let incomingCallSender = null;  // Store sender for incoming call
         let callPending = false;  // Track if call request is pending
+        let callInitiated = false;  // Track if this user has initiated or accepted a call
 
         if (participants.length > 0) {
             polite = userEmail < participants[0];
@@ -300,10 +301,17 @@
                     audio.play();
                 }
                 if (data.type === 'call_request' && data.to === userEmail) {
-                    incomingCallSender = data.sender;
-                    document.getElementById('call-sender').textContent = `Incoming video call from ${data.sender}`;
-                    document.getElementById('call-incoming').style.display = 'block';
-                    console.log('Received call request from ' + data.sender);
+                    if (callInitiated) {
+                        // If this user has already initiated, auto-accept
+                        ws.send(JSON.stringify({ type: 'call_accept', to: data.sender }));
+                        console.log('Auto-accepting call since both initiated');
+                        startConnection(data.sender);
+                    } else {
+                        incomingCallSender = data.sender;
+                        document.getElementById('call-sender').textContent = `Incoming video call from ${data.sender}`;
+                        document.getElementById('call-incoming').style.display = 'block';
+                        console.log('Received call request from ' + data.sender);
+                    }
                     return;
                 }
                 if (data.type === 'call_accept' && data.to === userEmail) {
@@ -436,6 +444,7 @@
                 addMessage('system', 'Video call requested. Waiting for acceptance...', new Date().toISOString());
                 document.getElementById('call-pending').style.display = 'block';
                 callPending = true;
+                callInitiated = true;  // Mark as initiated
             } else {
                 endCall();
             }
@@ -444,6 +453,7 @@
         async function acceptCall() {
             document.getElementById('call-incoming').style.display = 'none';
             ws.send(JSON.stringify({ type: 'call_accept', to: incomingCallSender }));
+            callInitiated = true;  // Mark as accepted
             const stream = await getLocalStream();
             if (!stream) return;
             const pc = createPeerConnection(incomingCallSender, stream);
@@ -463,6 +473,7 @@
             ws.send(JSON.stringify({ type: 'call_cancel', to: participants[0] }));
             addMessage('system', 'Video call request cancelled.', new Date().toISOString());
             callPending = false;
+            callInitiated = false;
         }
 
         async function startVideoCall() {
@@ -568,6 +579,7 @@
             document.getElementById('call-pending').style.display = 'none';
             document.getElementById('call-incoming').style.display = 'none';
             callPending = false;
+            callInitiated = false;
             incomingCallSender = null;
             console.log('Video call ended');
         }
@@ -610,6 +622,15 @@
                 bytes[i] = binaryString.charCodeAt(i);
             }
             return bytes.buffer;
+        }
+
+        async function startConnection(sender) {
+            const stream = await getLocalStream();
+            if (!stream) return;
+            const pc = peerConnections[sender] || createPeerConnection(sender, stream);
+            if (pc.signalingState === 'stable') {
+                pc.onnegotiationneeded();
+            }
         }
     </script>
 {% endblock %}
