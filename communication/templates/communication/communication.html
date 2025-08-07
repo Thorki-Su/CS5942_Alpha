@@ -344,7 +344,7 @@
             pc.onnegotiationneeded = async () => {
                 try {
                     makingOffer = true;
-                    const offer = await pc.createOffer
+                    const offer = await pc.createOffer();
                     await pc.setLocalDescription(offer);
                     ws.send(JSON.stringify({ signal: pc.localDescription, to: peerEmail }));
                 } catch (err) {
