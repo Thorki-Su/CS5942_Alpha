@@ -69,7 +69,7 @@ class DonationModelTests(TestCase):
     def test_donation_display_name_no_donor_name(self):
         """Test display name when donor name is empty"""
         self.donation.donor_name = ''
-        self.assertEqual(self.donation.display_name, 'John Doe')  # 从用户资料获取
+        self.assertEqual(self.donation.display_name, 'John Doe')  # Get from user profile
 
     def test_donation_display_name_no_donor_user(self):
         """Test display name when no associated user"""

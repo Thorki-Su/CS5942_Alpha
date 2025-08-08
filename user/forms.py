@@ -35,7 +35,7 @@ class ClientRegisterForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.is_active = False # 禁用账户，直到点击激活链接
+        user.is_active = False # Disable account until activation link is clicked
         user.role = 'client'
         user.username = self.cleaned_data['email']
         if commit:
@@ -107,7 +107,7 @@ class ClientProfileForm(forms.ModelForm):
             self.fields['location'].initial = user_profile.location
             self.fields['emergency_contact'].initial = user_profile.emergency_contact
         
-        # 只在认证存在时才显示这些字段
+        # Only show these fields when authentication exists
             cert_names = list(self.instance.certifications.values_list('name', flat=True))
             for cert in ['PIP', 'ADP', 'LWC', 'NHS', 'Diagnosis']:
                 field_key = cert.lower() + '_certificate' if cert != 'Diagnosis' else 'diagnosis'
@@ -160,7 +160,7 @@ class ClientProfileForm(forms.ModelForm):
         user_profile.save()
         if commit:
             instance.save()
-            # 保存上传的文件
+            # Save uploaded files
             # for field in ['pip_certificate', 'adp_certificate', 'lwc_certificate', 'nhs_certificate', 'diagnosis']:
             #     if field in self.cleaned_data:
             #         file = self.cleaned_data.get(field)
@@ -203,7 +203,7 @@ class VolunteerRegisterForm(UserCreationForm):
     
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.is_active = False # 禁用账户，直到点击激活链接
+        user.is_active = False # Disable account until activation link is clicked
         user.role = 'volunteer'
         user.username = self.cleaned_data['email']
         if commit:

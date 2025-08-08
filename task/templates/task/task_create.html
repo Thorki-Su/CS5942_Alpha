@@ -121,7 +121,7 @@
                 {{ form.title }}<br><br>
             </div>
 
-            <!-- 图像模板展示区 插在标题下方 -->
+            <!-- Image template display area inserted below title -->
             <div class="taskcreate-template">
                 {% for template in templates %}
                 <div class="template-card"
@@ -179,18 +179,18 @@
 
         document.querySelectorAll('.template-card').forEach(card => {
             card.addEventListener('click', function () {
-                // 设置边框高亮
+                // Set border highlight
                 document.querySelectorAll('.template-card img').forEach(img => img.style.border = '2px solid transparent');
                 this.querySelector('img').style.border = '2px solid #007bff';
 
-                // 自动填充字段
+                // Auto-fill fields
                 titleInput.value = this.dataset.title || '';
                 descInput.value = this.dataset.description || '';
 
-                // 取消选择所有work_area
+                // Deselect all work_area
                 document.querySelectorAll('input[name="work_area"]').forEach(cb => cb.checked = false);
 
-                // 勾选模板包含的work_area
+                // Check work_area included in template
                 const workAreaIds = (this.dataset.workareas || '').split(',');
                 document.querySelectorAll('input[name="work_area"]').forEach(cb => {
                     if (workAreaIds.includes(cb.value)) {

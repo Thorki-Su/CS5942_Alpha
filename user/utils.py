@@ -11,7 +11,7 @@ from django.conf import settings
 
 def normalize_uk_postcode(postcode):
     postcode = postcode.upper().strip().replace(' ', '')
-    # 插入空格到标准格式，例如 AB253DD -> AB25 3DD
+    # Insert space to standard format, e.g. AB253DD -> AB25 3DD
     return re.sub(r'([A-Z]{1,2}\d{1,2})(\d[A-Z]{2})', r'\1 \2', postcode)
 
 def is_valid_aberdeen_postcode(postcode):
@@ -34,13 +34,13 @@ def is_valid_aberdeen_postcode(postcode):
     return False
 
 def geocode_address(address):
-    # 若地址中包含 null 等无效片段，先过滤掉
+    # Filter out invalid segments like null in address first
     clean_parts = [part.strip() for part in str(address).split(',') if part and part.lower() != 'null']
     
-    # 为保险起见加上国家
+    # Add country for safety
     cleaned_address = ', '.join(clean_parts + ['UK'])
 
-    # print(f"尝试解析地址：{cleaned_address}")
+    # print(f"Attempting to parse address: {cleaned_address}")
 
     url = f"https://nominatim.openstreetmap.org/search"
     params = {
@@ -59,7 +59,7 @@ def geocode_address(address):
             lon = float(data[0]['lon'])
             return lat, lon
     except Exception as e:
-        print(f"[Geocode ERROR] 地址解析失败：{cleaned_address} → {e}")
+        print(f"[Geocode ERROR] Address parsing failed: {cleaned_address} → {e}")
     return None, None
 
 def send_activation_email(user, request):

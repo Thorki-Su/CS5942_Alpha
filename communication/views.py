@@ -70,7 +70,7 @@ def one_to_one_chat_selection_view(request):
     start_time = time.time()
     search_query = request.GET.get('q', '').strip()
     users = User.objects.exclude(email=request.user.email).filter(is_active=True).order_by('id')
-    # 排除已添加好友
+    # Exclude already added friends
     friends = FriendRelation.objects.filter(
         Q(from_user=request.user, status='accepted') | Q(to_user=request.user, status='accepted')
     )
@@ -102,11 +102,11 @@ def task_communication_view(request, task_id):
             logger.warning(f"Task {task_id} is {task.status}")
             return redirect('user:home')
         room_name = f"chat_task_{task_id}"
-        # 创建session if not exists (假设1v1 task；如果多volunteer，注释用群模型)
+        # Create session if not exists (assuming 1v1 task; if multi-volunteer, use group model)
         accepted_apps = TaskApplication.objects.filter(task=task, status='accepted')
         if accepted_apps.exists():
-            volunteer = accepted_apps.first().volunteer  # 假设单volunteer
-            async_to_sync(get_or_create_one_to_one_room)(request.user.email, volunteer.email)  # 创建session
+            volunteer = accepted_apps.first().volunteer  # Assuming single volunteer
+            async_to_sync(get_or_create_one_to_one_room)(request.user.email, volunteer.email)  # Create session
         participants = [task.client.email] + list(accepted_apps.values_list('volunteer__email', flat=True))
         if not participants:
             return JsonResponse({'error': 'No participants'}, status=400)
@@ -186,7 +186,7 @@ def one_to_one_communication_view(request, room_name):
         })
     except OneToOneChatSession.DoesNotExist:
         logger.error(f"OneToOneChatSession {room_name} not found")
-        return JsonResponse({'error': 'Session not found'}, status=404)  # JSON错误
+        return JsonResponse({'error': 'Session not found'}, status=404)  # JSON error
 
 @login_required
 def create_one_to_one_room(request):
@@ -232,7 +232,7 @@ def get_unread_details(request):
 @login_required
 def get_recent_chats(request):
     user = request.user
-    # 获取最近聊天的房间（基于消息时间）
+    # Get recent chat rooms (based on message time)
     recent_messages = ChatMessage.objects.filter(
         Q(sender=user) | Q(receiver=user),
         is_group=False
@@ -263,7 +263,7 @@ def get_recent_chats(request):
 @login_required
 def friend_list(request):
     user = request.user
-    # 已接受的好友
+    # Accepted friends
     friends = FriendRelation.objects.filter(
         Q(from_user=user, status='accepted') | Q(to_user=user, status='accepted')
     )
@@ -272,7 +272,7 @@ def friend_list(request):
         friend = rel.to_user if rel.from_user == user else rel.from_user
         friend_users.append(friend)
 
-    # 待处理请求
+    # Pending requests
     pending_requests = FriendRelation.objects.filter(to_user=user, status='pending')
 
     context = {
@@ -291,7 +291,7 @@ def send_friend_request(request):
             return JsonResponse({'error': 'Request already sent'}, status=400)
         friend_request = FriendRelation.objects.create(from_user=request.user, to_user=to_user)
         
-        # 发送实时通知
+        # Send real-time notification
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f'user_{to_user.email.replace("@", "_")}',
@@ -312,10 +312,10 @@ def accept_friend_request(request, request_id):
     friend_request = get_object_or_404(FriendRelation, id=request_id, to_user=request.user, status='pending')
     friend_request.status = 'accepted'
     friend_request.save()
-    # 创建1v1房间
+    # Create 1v1 room
     room_name = async_to_sync(get_or_create_one_to_one_room)(request.user.email, friend_request.from_user.email)
     
-    # 发送实时更新通知给发送者
+    # Send real-time update notification to sender
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f'user_{friend_request.from_user.email.replace("@", "_")}',
@@ -335,7 +335,7 @@ def reject_friend_request(request, request_id):
     friend_request.status = 'rejected'
     friend_request.save()
     
-    # 发送实时更新通知给发送者
+    # Send real-time update notification to sender
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f'user_{friend_request.from_user.email.replace("@", "_")}',

@@ -114,7 +114,7 @@ class TaskApplication(models.Model):
     is_auto_matched = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('task', 'volunteer') # 每个志愿者只能申请一次
+        unique_together = ('task', 'volunteer') # Each volunteer can only apply once
 
     def __str__(self):
         return f"{self.volunteer.email} applies for {self.task.title}"

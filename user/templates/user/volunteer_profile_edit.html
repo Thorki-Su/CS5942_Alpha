@@ -254,10 +254,10 @@
                     return;
                 }
 
-                // 检查是否是 UK postcode 格式
+                // Check if it's UK postcode format
                 var postcodeRegex = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}$/i;
                 if (postcodeRegex.test(query)) {
-                    // 查询 Postcodes.io
+                    // Query Postcodes.io
                     fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(query)}`)
                         .then(response => response.json())
                         .then(data => {
@@ -276,7 +276,7 @@
                             }
                         });
                 } else {
-                    // 否则走 Nominatim 查询地址
+                    // Otherwise use Nominatim to query address
                     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&countrycodes=gb&limit=5&viewbox=-2.1800,57.2000,-2.0500,57.1200&bounded=1`)
                         .then(response => response.json())
                         .then(data => {
@@ -296,7 +296,7 @@
                 }
             });
 
-            // 点击其他地方隐藏 suggestions
+            // Hide suggestions when clicking elsewhere
             document.addEventListener('click', function(e) {
                 if (!input.contains(e.target) && !suggestions.contains(e.target)) {
                     suggestions.innerHTML = '';

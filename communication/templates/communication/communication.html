@@ -393,7 +393,7 @@
                 remoteVideo.srcObject = event.streams[0];
                 remoteVideo.autoplay = true;
                 remoteVideo.playsInline = true;
-                remoteVideo.muted = false; // 确保不静音
+                remoteVideo.muted = false; // Ensure not muted
                 remoteVideo.play().catch(e => console.error('Remote play error:', e));
                 document.getElementById('remoteVideos').appendChild(remoteVideo);
                 console.log(`Remote stream added for ${peerEmail}`);
