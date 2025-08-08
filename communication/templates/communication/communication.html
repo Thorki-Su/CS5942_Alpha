@@ -132,14 +132,12 @@
         </div>
     </div>
 
-    <!-- Incoming call UI -->
     <div id="call-incoming">
         <p id="call-sender"></p>
         <button onclick="acceptCall()" class="bg-green-500 text-white p-2">Accept</button>
         <button onclick="declineCall()" class="bg-red-500 text-white p-2">Decline</button>
     </div>
 
-    <!-- Pending call UI for initiator -->
     <div id="call-pending">
         <p>Video call requested. Waiting for response...</p>
         <button onclick="cancelCall()" class="bg-red-500 text-white p-2">Cancel</button>
@@ -160,13 +158,17 @@
         }
         if (participants.length === 0 && roomName.startsWith('1v1_')) {
             console.warn('No participants found for 1v1 room, using fallback');
-            participants = ['{{ user2_email }}'];  // Fallback to template variable
+            participants = ['{{ user2_email }}'];
+            if (!participants[0]) {
+                alert('Error: No recipient found for 1v1 chat. Please refresh the page.');
+                return;
+            }
         }
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
         const wsPath = `${wsScheme}://${window.location.host}/ws/chat/${roomName}/`;
         let ws = new WebSocket(wsPath);
         let peerConnections = {};
-        let pendingCandidates = {}; // Per sender queue for candidates
+        let pendingCandidates = {};
         let localStream = null;
         let recorder = null;
         let reconnectAttempts = 0;
@@ -176,10 +178,10 @@
         let makingOffer = false;
         let ignoreOffer = false;
         let polite = false;
-        let lastMessageTimestamp = null;  // Track last message time to avoid duplicates
-        let incomingCallSender = null;  // Store sender for incoming call
-        let callPending = false;  // Track if call request is pending
-        let callInitiated = false;  // Track if this user has initiated or accepted a call
+        let lastMessageTimestamp = null;
+        let incomingCallSender = null;
+        let callPending = false;
+        let callInitiated = false;
 
         if (participants.length > 0) {
             polite = userEmail < participants[0];
@@ -196,11 +198,14 @@
                 url = `/communication/task/${taskId}/history/`;
             }
             fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+                    return response.json();
+                })
                 .then(data => {
                     const messageList = document.getElementById('message-list');
-                    messageList.innerHTML = '';  // Clear once
-                    if (data.messages.length === 0) {
+                    messageList.innerHTML = '';
+                    if (!data.messages || data.messages.length === 0) {
                         document.getElementById('no-messages').style.display = 'block';
                     } else {
                         document.getElementById('no-messages').style.display = 'none';
@@ -215,7 +220,10 @@
                     }
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                 })
-                .catch(err => console.error('Failed to load history:', err));
+                .catch(err => {
+                    console.error('Failed to load history:', err);
+                    alert('Failed to load chat history. Please try refreshing.');
+                });
         }
 
         function addMessage(sender, content, timestamp) {
@@ -254,7 +262,6 @@
                     console.log('Local stream acquired (video + audio)', localStream.getTracks());
                 } catch (err) {
                     console.error('Video + audio failed:', err);
-                    // Fallback to audio-only
                     try {
                         localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                         console.log('Fallback to audio-only stream', localStream.getTracks());
@@ -276,12 +283,12 @@
                 authTimeout = setTimeout(() => {
                     console.error('Authentication timeout');
                     ws.close();
-                }, 60000);  // 延长到60秒
+                }, 60000);
                 loadHistory();
             };
 
             ws.onmessage = async(event) => {
-                console.log('Raw message:', event.data);
+                console.log('Received:', event.data);
                 const data = JSON.parse(event.data);
                 if (data.type === 'auth_ack') {
                     if (authTimeout) clearTimeout(authTimeout);
@@ -292,17 +299,19 @@
                     console.log('Received ping');
                     return;
                 }
-                if (data.message) {
+                if (data.type === 'chat_message' && data.message) {
                     addMessage(data.sender, data.message, data.timestamp);
                 }
-                if (data.audio_data) {
+                if (data.type === 'error') {
+                    alert(`Error: ${data.message}`);
+                }
+                if (data.type === 'audio_message' && data.audio_data) {
                     const audioBlob = new Blob([base64ToArrayBuffer(data.audio_data)], { type: 'audio/webm' });
                     const audio = new Audio(URL.createObjectURL(audioBlob));
                     audio.play();
                 }
                 if (data.type === 'call_request') {
                     if (callInitiated) {
-                        // If this user has already initiated, auto-accept
                         ws.send(JSON.stringify({ type: 'call_accept', to: data.sender }));
                         console.log('Auto-accepting call since both initiated');
                         startConnection(data.sender);
@@ -315,14 +324,11 @@
                     return;
                 }
                 if (data.type === 'call_accept' && data.to === userEmail) {
-                    // Hide pending UI if initiator
                     document.getElementById('call-pending').style.display = 'none';
                     callPending = false;
-                    // Start SDP exchange after accept
                     const stream = await getLocalStream();
                     if (!stream) return;
                     const pc = peerConnections[data.sender] || createPeerConnection(data.sender, stream);
-                    // Trigger negotiation if not already
                     if (pc.signalingState === 'stable') {
                         pc.onnegotiationneeded();
                     }
@@ -342,12 +348,10 @@
                     incomingCallSender = null;
                     return;
                 }
-                if (data.signal && data.sender !== userEmail && data.to === userEmail) {
-                    // Ensure localStream is available before creating PC
+                if (data.type === 'video_signal' && data.sender !== userEmail && data.to === userEmail) {
                     const stream = await getLocalStream();
                     if (!stream) {
                         console.error('Could not get local stream for signal handling');
-                        // Continue with no stream (text chat only)
                         addMessage('system', '权限问题，无法启动视频。请手动授予权限。', new Date().toISOString());
                         return;
                     }
@@ -364,14 +368,10 @@
                             console.log('Ignoring offer due to collision');
                             return;
                         }
-
                         if (offerCollision && polite) {
                             await pc.setRemoteDescription({ type: 'rollback' });
                         }
-
                         await pc.setRemoteDescription(new RTCSessionDescription(data.signal));
-
-                        // Now add any pending candidates
                         if (pendingCandidates[data.sender]) {
                             for (const candidate of pendingCandidates[data.sender]) {
                                 await pc.addIceCandidate(new RTCIceCandidate(candidate));
@@ -379,7 +379,6 @@
                             }
                             pendingCandidates[data.sender] = [];
                         }
-
                         if (data.signal.type === 'offer') {
                             const answer = await pc.createAnswer();
                             await pc.setLocalDescription(answer);
@@ -399,7 +398,6 @@
                             console.error('ICE error:', err);
                         }
                     } else {
-                        // Queue if remote desc not set yet
                         pendingCandidates[data.sender] = pendingCandidates[data.sender] || [];
                         pendingCandidates[data.sender].push(data.candidate);
                         console.log(`Queued ICE candidate from ${data.sender} (remote desc not set yet)`);
@@ -424,12 +422,13 @@
             const message = messageInput.value.trim();
             if (message && ws.readyState === WebSocket.OPEN) {
                 const timestamp = new Date().toISOString();
-                const data = { 'message': message, 'timestamp': timestamp };
+                const data = { type: 'message', message: message, timestamp: timestamp };
                 if (roomName.startsWith('1v1_')) {
                     data['receiver'] = participants[0];
                 }
+                console.log('Sending:', JSON.stringify(data));
                 ws.send(JSON.stringify(data));
-                addMessage(userEmail, message, timestamp);  // Local add immediately
+                addMessage(userEmail, message, timestamp);
                 messageInput.value = '';
             } else if (ws.readyState !== WebSocket.OPEN) {
                 alert('WebSocket not connected. Wait for reconnection.');
@@ -440,16 +439,14 @@
             const videoContainer = document.getElementById('video-container');
             if (videoContainer.style.display === 'none') {
                 if (callPending) {
-                    // If already pending, do nothing or show message
                     alert('Call request already sent. Waiting for response.');
                     return;
                 }
-                // Send call request
                 ws.send(JSON.stringify({ type: 'call_request', to: participants[0] }));
                 addMessage('system', 'Video call requested. Waiting for acceptance...', new Date().toISOString());
                 document.getElementById('call-pending').style.display = 'block';
                 callPending = true;
-                callInitiated = true;  // Mark as initiated
+                callInitiated = true;
             } else {
                 endCall();
             }
@@ -458,11 +455,10 @@
         async function acceptCall() {
             document.getElementById('call-incoming').style.display = 'none';
             ws.send(JSON.stringify({ type: 'call_accept', to: incomingCallSender }));
-            callInitiated = true;  // Mark as accepted
+            callInitiated = true;
             const stream = await getLocalStream();
             if (!stream) return;
             const pc = createPeerConnection(incomingCallSender, stream);
-            // Trigger negotiation
             pc.onnegotiationneeded();
             incomingCallSender = null;
         }
@@ -481,19 +477,17 @@
             callInitiated = false;
         }
 
-        async function startVideoCall() {
-            const stream = await getLocalStream(); // Reuse the async function
+        async function startConnection(sender) {
+            const stream = await getLocalStream();
             if (!stream) return;
-            participants.forEach(peerEmail => {
-                if (!peerConnections[peerEmail]) {
-                    createPeerConnection(peerEmail, stream);
-                }
-            });
-            console.log('Video call started, local stream set');
+            const pc = peerConnections[sender] || createPeerConnection(sender, stream);
+            if (pc.signalingState === 'stable') {
+                pc.onnegotiationneeded();
+            }
         }
 
         function createPeerConnection(peerEmail, stream) {
-            const cleanPeerEmail = peerEmail.replace(/[@.]/g, '_'); // 清理非法字符
+            const cleanPeerEmail = peerEmail.replace(/[@.]/g, '_');
             const pc = new RTCPeerConnection({
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
@@ -506,7 +500,7 @@
                     {
                         urls: 'turn:openrelay.metered.ca:443',
                         username: 'openrelayproject',
-                        credential: 'openrelayproject'
+                        credential: 'open hazelnutproject'
                     },
                     {
                         urls: 'turn:openrelay.metered.ca:443?transport=tcp',
@@ -526,9 +520,9 @@
             }
 
             pc.ontrack = (event) => {
-                if (event.track.kind === 'video') { // Only create for video track to avoid duplicates
+                if (event.track.kind === 'video') {
                     const remoteVideos = document.getElementById('remoteVideos');
-                    if (remoteVideos.querySelector(`#remote_${cleanPeerEmail}`)) return; // Avoid duplicate elements
+                    if (remoteVideos.querySelector(`#remote_${cleanPeerEmail}`)) return;
                     const remoteVideo = document.createElement('video');
                     remoteVideo.id = `remote_${cleanPeerEmail}`;
                     remoteVideo.srcObject = event.streams[0];
@@ -552,7 +546,6 @@
                 console.log(`ICE connection state for ${peerEmail}: ${pc.iceConnectionState}`);
                 if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
                     console.error(`ICE failed for ${peerEmail} - check network or TURN`);
-                    // Attempt renegotiation
                     if (pc.signalingState === 'stable') {
                         pc.onnegotiationneeded();
                     }
@@ -604,7 +597,7 @@
                         localStream = stream;
                         recorder = new MediaRecorder(stream);
                         recorder.ondataavailable = e => e.data.arrayBuffer().then(buffer => {
-                            ws.send(JSON.stringify({ audio_data: arrayBufferToBase64(buffer) }));
+                            ws.send(JSON.stringify({ type: 'audio_message', audio_data: arrayBufferToBase64(buffer) }));
                         });
                         recorder.start(500);
                         document.getElementById('audio-btn').textContent = 'Stop Audio';
@@ -635,15 +628,6 @@
                 bytes[i] = binaryString.charCodeAt(i);
             }
             return bytes.buffer;
-        }
-
-        async function startConnection(sender) {
-            const stream = await getLocalStream();
-            if (!stream) return;
-            const pc = peerConnections[sender] || createPeerConnection(sender, stream);
-            if (pc.signalingState === 'stable') {
-                pc.onnegotiationneeded();
-            }
         }
     </script>
 {% endblock %}
