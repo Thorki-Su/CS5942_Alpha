@@ -9,31 +9,31 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'final_project.settings')
 
 logger = logging.getLogger(__name__)
 
-# 延迟导入 websocket 路由，确保返回列表
+# Lazy import websocket routes, ensure returning list
 def get_websocket_urlpatterns():
     try:
         from communication.routing import get_websocket_urlpatterns as comm_get_patterns
-        return comm_get_patterns()  # 假设routing.py的get_websocket_urlpatterns返回列表
+        return comm_get_patterns()  # Assume routing.py's get_websocket_urlpatterns returns list
     except ImportError as e:
         logger.error(f"Error loading websocket_urlpatterns: {e}")
         raise
 
-# 主 ASGI 应用
+# Main ASGI application
 base_application = ProtocolTypeRouter({
     "http": get_asgi_application(),
-    "websocket": AllowedHostsOriginValidator(  # 新增：安全验证
+    "websocket": AllowedHostsOriginValidator(  # New: Security validation
         AuthMiddlewareStack(
-            URLRouter(get_websocket_urlpatterns())  # URLRouter包装列表
+            URLRouter(get_websocket_urlpatterns())  # URLRouter wraps list
         )
     ),
 })
 
-# 包装带日志的错误处理
+# Wrap with logged error handling
 async def application(scope, receive, send):
     try:
         await base_application(scope, receive, send)
     except Exception as e:
         logger.error(f"[ASGI ERROR] Scope: {scope.get('type')} - {e}", exc_info=True)
         if scope['type'] == 'websocket':
-            await send({'type': 'websocket.close', 'code': 1011})  # 关闭WS连接
+            await send({'type': 'websocket.close', 'code': 1011})  # Close WS connection
         raise

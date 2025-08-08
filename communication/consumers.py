@@ -204,8 +204,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 except OneToOneChatSession.DoesNotExist:
                     logger.error(f"OneToOneChatSession {self.room_name} not found")
                     return False
-            elif self.scope['path'].startswith('/ws/user/'):  # 用户通知路径，无需房间认证
-                return True  # 只需auth user_email
+            elif self.scope['path'].startswith('/ws/user/'):  # User notification path, no room authentication required
+                return True  # Only need to auth user_email
             return False
         except (ValueError, ObjectDoesNotExist) as e:
             logger.error(f"Authentication error in room {getattr(self, 'room_name', 'unknown')}: {e}")

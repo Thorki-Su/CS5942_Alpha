@@ -84,7 +84,7 @@
             {% if user.is_authenticated %}
                 {% if user.role == 'volunteer' or user.role == 'client' %}
                         <a href="{% url 'user:profile_detail' %}">Profile</a>
-                        <a href="{% url 'communication:message_selection' %}">Message</a> <!-- 合并为 Message -->
+                        <a href="{% url 'communication:message_selection' %}">Message</a> <!-- Merged as Message -->
                     {% if user.role == 'volunteer' %}
                         <a href="{% url 'matching:shift' %}">Join Shift</a>
                         <a href="{% url 'task:tasklist' %}">Task List</a>

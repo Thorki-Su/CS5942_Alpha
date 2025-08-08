@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from .utils import geocode_address
 
-#用于自定义CustomUser（不使用username而是email
+# For custom CustomUser (use email instead of username)
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -25,18 +25,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('volunteer', 'Volunteer'),
         ('admin', 'Admin'),
     ])
-    is_active = models.BooleanField(default=False) #控制账户是否激活（考虑是否需要）
-    is_staff = models.BooleanField(default=False) #控制账号访问管理后台的权限
+    is_active = models.BooleanField(default=False) # Control whether account is activated (consider if needed)
+    is_staff = models.BooleanField(default=False) # Control account access to admin backend
 
-    USERNAME_FIELD = 'email'                      #指定email为登录的标识（取代username）
-    REQUIRED_FIELDS = []                          #创建用户时必须提供的字段
+    USERNAME_FIELD = 'email'                      # Specify email as login identifier (replace username)
+    REQUIRED_FIELDS = []                          # Fields required when creating user
 
-    objects = CustomUserManager()                 #将CustomUserManager绑定为此模型的管理器
+    objects = CustomUserManager()                 # Bind CustomUserManager as manager for this model
 
     def __str__(self):
         return self.email
     
-    def whether_in_task(self, task_id):           #判断这个用户有没有在指定任务中
+    def whether_in_task(self, task_id):           # Check if this user is in the specified task
         from task.models import Task, TaskApplication
         if self.role == 'client':
             return Task.objects.filter(client=self, id=task_id).exists()
@@ -47,7 +47,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 def user_directory_path(instance, filename):
     return f'profile_photos/{instance.user.email}/{filename}'
 
-#用来储存不同用户之间都有的信息
+# Used to store information common to different users
 class UserProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=100)
@@ -55,13 +55,13 @@ class UserProfile(models.Model):
     age = models.CharField(max_length=20, null=True, blank=True)
     gender = models.CharField(max_length=20, null=True, blank=True)
     phone_number = models.CharField(max_length=20)
-    location = models.CharField(max_length=255)                                             #地理位置，或邮编
-    location_lat = models.FloatField(null=True, blank=True)                                 #坐标，根据地理位置获得，无需自己填写
+    location = models.CharField(max_length=255)                                             # Geographic location or postal code
+    location_lat = models.FloatField(null=True, blank=True)                                 # Coordinates obtained from geographic location, no need to fill manually
     location_lng = models.FloatField(null=True, blank=True)
-    profile_photo = models.ImageField(upload_to=user_directory_path, null=True, blank=True) #个人照片，用作头像和匹配时的展示
-    emergency_contact = models.CharField(max_length=255, null=True, blank=True)             #紧急联系人（姓名+联系方式）
-    eligibility_confirmed = models.BooleanField(default=False)                              #审核通过后改为True
-    consent_safeguard = models.BooleanField(default=False)                                  #是否同意数据使用和安全协议（不确定是否有必要）
+    profile_photo = models.ImageField(upload_to=user_directory_path, null=True, blank=True) # Personal photo, used as avatar and display during matching
+    emergency_contact = models.CharField(max_length=255, null=True, blank=True)             # Emergency contact (name + contact info)
+    eligibility_confirmed = models.BooleanField(default=False)                              # Changed to True after approval
+    consent_safeguard = models.BooleanField(default=False)                                  # Whether to agree to data use and security protocol (uncertain if necessary)
 
     def __str__(self):
         return f"{self.get_full_name} [{self.user.email}]"
@@ -75,32 +75,32 @@ class UserProfile(models.Model):
         super().save(*args, **kwargs)
     
     @property
-    def get_full_name(self): #获取全名
+    def get_full_name(self): # Get full name
         return f"{self.first_name} {self.last_name}"
 
-#储存福利认证的东西
+# Store welfare certification information
 class CertificationType(models.Model):
     name = models.CharField(max_length=100)
     def __str__(self):
         return self.name
 
-#患病情况
+# Medical condition
 class ConditionType(models.Model):
     name = models.CharField(max_length=100)
     def __str__(self):
         return self.name
 
-#支持领域 
+# Support area
 class SupportType(models.Model):
     name = models.CharField(max_length=255)
     def __str__(self):
         return self.name
 
-#储存Client独有的信息
+# Store Client-specific information
 class ClientProfile(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    certifications = models.ManyToManyField(CertificationType)                               #是否有PIP、ADP、LWC等认证(多对多)
-    pip_certificate = models.FileField(upload_to='certificates/pip/', null=True, blank=True) #如果有认证，客户需将之上传
+    certifications = models.ManyToManyField(CertificationType)                               # Whether has PIP, ADP, LWC certifications (many-to-many)
+    pip_certificate = models.FileField(upload_to='certificates/pip/', null=True, blank=True) # If certified, client needs to upload
     adp_certificate = models.FileField(upload_to='certificates/adp/', null=True, blank=True)
     lwc_certificate = models.FileField(upload_to='certificates/lwc/', null=True, blank=True)
     nhs_certificate = models.FileField(upload_to='certificates/nhs/', null=True, blank=True)
@@ -108,39 +108,39 @@ class ClientProfile(models.Model):
     preferred_contact_method = models.CharField(max_length=20, choices=[('phone', 'Phone'), ('email', 'Email')])
     conditions = models.ManyToManyField(ConditionType, blank=True)
     other_conditions = models.CharField(max_length=255, null=True, blank=True)
-    allergies = models.TextField(null=True, blank=True)                 #过敏源
-    dietary_needs = models.TextField(null=True, blank=True)             #饮食需求（素食之类的？）
-    has_pets = models.BooleanField(default=False)                       #是否有宠物
-    pets_type = models.CharField(max_length=100, null=True, blank=True) #有的话宠物类型
+    allergies = models.TextField(null=True, blank=True)                 # Allergens
+    dietary_needs = models.TextField(null=True, blank=True)             # Dietary requirements (vegetarian, etc.?)
+    has_pets = models.BooleanField(default=False)                       # Whether has pets
+    pets_type = models.CharField(max_length=100, null=True, blank=True) # Pet type if any
 
     def __str__(self):
         return f"{self.user_profile.get_full_name} [{self.user_profile.user.email}]"
 
-#Volunteer独有的信息
+# Volunteer-specific information
 class VolunteerProfile(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    university_course = models.CharField(max_length=255, null=True, blank=True) #就读（曾就读）于哪所大学、专业
-    profession = models.CharField(max_length=255, null=True, blank=True)        #职业
-    is_for_credit = models.BooleanField(default=False)                          #是否为了学分而做志愿（为什么？）
-    skills = models.TextField(null=True, blank=True)                            #技能
-    interests = models.TextField(null=True, blank=True)                         #兴趣
+    university_course = models.CharField(max_length=255, null=True, blank=True) # Which university and major (currently or previously attended)
+    profession = models.CharField(max_length=255, null=True, blank=True)        # Profession
+    is_for_credit = models.BooleanField(default=False)                          # Whether volunteering for credit (why?)
+    skills = models.TextField(null=True, blank=True)                            # Skills
+    interests = models.TextField(null=True, blank=True)                         # Interests
     pvg_level = models.CharField(max_length=50, null=True, blank=True, choices=[
         ('verified', 'Verified'),
         ('processing', 'Processing'),
         ('pending', 'Pending'),
         ('do_not_have', 'I do not have a PVG yet'),
-    ]) #PVG等级
+    ]) # PVG level
     pvg_file = models.FileField(upload_to='certificates/pvg/', null=True, blank=True)
-    motivation = models.TextField(null=True, blank=True)              #加入的动机
-    preferred_tasks = models.ManyToManyField(SupportType, blank=True) #意向任务内容
-    is_scheduled = models.BooleanField(default=False)                 #是否排班（用于匹配）
-    available_days = models.JSONField(default=list, blank=True)       #意向日期
-    available_start_time = models.TimeField(null=True, blank=True)    #意向时间
+    motivation = models.TextField(null=True, blank=True)              # Motivation for joining
+    preferred_tasks = models.ManyToManyField(SupportType, blank=True) # Preferred task content
+    is_scheduled = models.BooleanField(default=False)                 # Whether scheduled (for matching)
+    available_days = models.JSONField(default=list, blank=True)       # Preferred dates
+    available_start_time = models.TimeField(null=True, blank=True)    # Preferred time
     available_end_time = models.TimeField(null=True, blank=True)
-    preferred_distance_km = models.PositiveIntegerField(default=10)   #意向距离
-    accept_pets = models.BooleanField(default=True)                   #能否接受宠物
-    max_task_count = models.PositiveIntegerField(default=3)           #可接的最大任务数
-    assigned_tasks_count = models.PositiveIntegerField(default=0)     #当前已分配的任务数
+    preferred_distance_km = models.PositiveIntegerField(default=10)   # Preferred distance
+    accept_pets = models.BooleanField(default=True)                   # Whether can accept pets
+    max_task_count = models.PositiveIntegerField(default=3)           # Maximum number of tasks can take
+    assigned_tasks_count = models.PositiveIntegerField(default=0)     # Current number of assigned tasks
     
     def __str__(self):
         return f"{self.user_profile.get_full_name} [{self.user_profile.user.email}]"

@@ -62,7 +62,7 @@ def task_create(request):
                 action=f'User created a new task: <a href="{url}">Task #{task.id}</a>'
             )
 
-            # 调用自动匹配逻辑
+            # Call automatic matching logic
             matched_count = match_volunteers_for_task(task)
             print(f"Manual matching complete: {matched_count} volunteers matched.")
 
@@ -154,9 +154,9 @@ def tasklist(request):
 
         if weekday != '':
             weekday_int = int(weekday)
-            # Django 中 week_day: Sunday = 1, Monday = 2, ..., Saturday = 7
-            # 而 Python datetime.weekday(): Monday = 0
-            # 所以 weekday + 2，再 % 7，然后处理 Sunday = 7
+            # Django week_day: Sunday = 1, Monday = 2, ..., Saturday = 7
+            # While Python datetime.weekday(): Monday = 0
+            # So weekday + 2, then % 7, then handle Sunday = 7
             django_weekday = (weekday_int + 2) % 7 or 7
             tasks = tasks.filter(start_time__week_day=django_weekday)
 
@@ -222,7 +222,7 @@ def task_apply(request, task_id):
     task.update_status_by_time()
     user = request.user
 
-    buffer = timedelta(hours=1)  # 任务前后一小时不能有其他任务，不确定，可以再改
+    buffer = timedelta(hours=1)  # No other tasks one hour before and after task, uncertain, can be changed
     task_start = task.start_time - buffer
     task_end = task.end_time + buffer
 
@@ -379,12 +379,12 @@ def task_feedback(request, task_id, to_user_id):
     to_user = get_object_or_404(CustomUser, id=to_user_id)
     from_user = request.user
 
-    # 确认 from_user 和 to_user 都在任务中
+    # Confirm both from_user and to_user are in the task
     if not from_user.whether_in_task(task_id) or not to_user.whether_in_task(task_id):
         messages.error(request, "You are not allowed to provide feedback for this user.")
         return redirect('task:task_detail', task_id=task_id)
 
-    # 检查是否已经反馈过
+    # Check if feedback has already been given
     if Feedback.objects.filter(task=task, from_user=from_user, to_user=to_user).exists():
         messages.info(request, "You have already submitted feedback for this user.")
         return redirect('task:task_detail', task_id=task_id)
