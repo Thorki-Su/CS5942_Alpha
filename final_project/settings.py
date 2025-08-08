@@ -45,6 +45,7 @@ ALLOWED_HOSTS = [
     'cs5942-alpha.onrender.com',
     'cs5942-alpha-test.onrender.com',
     '*.onrender.com',
+    'cs5942-alpha-test-comm.onrender.com',
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
@@ -54,6 +55,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1',
     'http://127.0.0.1:8000',
+    'https://cs5942-alpha-test-comm.onrender.com',
 ]
 
 # Application definition
