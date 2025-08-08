@@ -1,3 +1,4 @@
+import csv
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
@@ -9,6 +10,9 @@ from django.views.decorators.http import require_POST
 from django.db.models import Q
 from .models import OperationLog
 from payment.models import Donation
+from datetime import datetime, timedelta
+from django.http import HttpResponse
+
 
 User = get_user_model()
 
@@ -122,3 +126,47 @@ def records(request):
 def donations(request):
     donations = Donation.objects.filter(status='completed')
     return render(request, 'adminpanel/donations.html', {'donations':donations})
+
+@staff_required
+def export_donations_csv(request):
+    """Export donation records as CSV"""
+    start_date = request.GET.get('start')
+    end_date = request.GET.get('end')
+
+    donations = Donation.objects.all().order_by('-created_at')
+    if start_date:
+        try:
+            start = datetime.strptime(start_date, '%Y-%m-%d')
+            donations = donations.filter(created_at__gte=start)
+        except ValueError:
+            pass
+    if end_date:
+        try:
+            end = datetime.strptime(end_date, '%Y-%m-%d')
+            donations = donations.filter(created_at__lte=end)
+        except ValueError:
+            pass
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=\"donations.csv\"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Name', 'Email', 'Amount (GBP)', 'Message', 'Status',
+        'Completed At', 'Anonymous', 'Receipt Sent'
+    ])
+
+    for donation in donations:
+        writer.writerow([
+            donation.id,
+            donation.donor_name,
+            donation.donor_email,
+            donation.amount,
+            donation.message or '',
+            donation.status,
+            donation.completed_at.strftime('%Y-%m-%d %H:%M') if donation.completed_at else '',
+            'Yes' if donation.is_anonymous else 'No',
+            'Yes' if donation.receipt_sent else 'No',
+        ])
+
+    return response
