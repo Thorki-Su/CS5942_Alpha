@@ -251,13 +251,13 @@
                     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                     document.getElementById('localVideo').srcObject = localStream;
                     document.getElementById('video-container').style.display = 'flex';
-                    console.log('Local stream acquired (video + audio)');
+                    console.log('Local stream acquired (video + audio)', localStream.getTracks());
                 } catch (err) {
                     console.error('Video + audio failed:', err);
                     // Fallback to audio-only
                     try {
                         localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        console.log('Fallback to audio-only stream');
+                        console.log('Fallback to audio-only stream', localStream.getTracks());
                         alert('视频权限被拒，已切换到仅音频模式。请检查系统设置授予摄像头权限。');
                     } catch (audioErr) {
                         console.error('Audio fallback failed:', audioErr);
@@ -361,6 +361,7 @@
                         const offerCollision = data.signal.type === 'offer' && (makingOffer || pc.signalingState !== 'stable');
                         ignoreOffer = !polite && offerCollision;
                         if (ignoreOffer) {
+                            console.log('Ignoring offer due to collision');
                             return;
                         }
 
@@ -391,8 +392,12 @@
                 } else if (data.type === 'candidate' && data.to === userEmail) {
                     const pc = peerConnections[data.sender];
                     if (pc && pc.remoteDescription && pc.remoteDescription.type) {
-                        pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(err => console.error('ICE error:', err));
-                        console.log(`Added ICE candidate from ${data.sender}`);
+                        try {
+                            await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                            console.log(`Added ICE candidate from ${data.sender}`, data.candidate);
+                        } catch (err) {
+                            console.error('ICE error:', err);
+                        }
                     } else {
                         // Queue if remote desc not set yet
                         pendingCandidates[data.sender] = pendingCandidates[data.sender] || [];
@@ -488,13 +493,11 @@
         }
 
         function createPeerConnection(peerEmail, stream) {
+            const cleanPeerEmail = peerEmail.replace(/[@.]/g, '_'); // 清理非法字符
             const pc = new RTCPeerConnection({
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
                     { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' },
-                    { urls: 'stun:stun4.l.google.com:19302' },
                     {
                         urls: 'turn:openrelay.metered.ca:80',
                         username: 'openrelayproject',
@@ -509,17 +512,15 @@
                         urls: 'turn:openrelay.metered.ca:443?transport=tcp',
                         username: 'openrelayproject',
                         credential: 'openrelayproject'
-                    },
-                    {
-                        urls: 'turn:relay1.expressturn.com:3478',
-                        username: 'ef1L0W9Q9Z9Z9Z9Z',
-                        credential: 'Z9Z9Z9Z9'
                     }
                 ]
             });
             peerConnections[peerEmail] = pc;
             if (stream) {
-                stream.getTracks().forEach(track => pc.addTrack(track, stream));
+                stream.getTracks().forEach(track => {
+                    pc.addTrack(track, stream);
+                    console.log(`Added track ${track.kind} to ${peerEmail}`);
+                });
             } else {
                 console.warn('No stream available when creating PeerConnection');
             }
@@ -527,10 +528,9 @@
             pc.ontrack = (event) => {
                 if (event.track.kind === 'video') { // Only create for video track to avoid duplicates
                     const remoteVideos = document.getElementById('remoteVideos');
-                    const safeEmail = peerEmail.replace(/[@.]/g, '_');  // Replace @ and . for valid ID
-                    if (remoteVideos.querySelector(`#remote_${safeEmail}`)) return; // Avoid duplicate elements
+                    if (remoteVideos.querySelector(`#remote_${cleanPeerEmail}`)) return; // Avoid duplicate elements
                     const remoteVideo = document.createElement('video');
-                    remoteVideo.id = `remote_${safeEmail}`;
+                    remoteVideo.id = `remote_${cleanPeerEmail}`;
                     remoteVideo.srcObject = event.streams[0];
                     remoteVideo.autoplay = true;
                     remoteVideo.playsInline = true;
@@ -548,14 +548,14 @@
                 }
             };
 
-            pc.onicecandidateerror = (event) => {
-                console.error(`ICE candidate error for ${peerEmail}:`, event);
-            };
-
             pc.oniceconnectionstatechange = () => {
                 console.log(`ICE connection state for ${peerEmail}: ${pc.iceConnectionState}`);
                 if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
                     console.error(`ICE failed for ${peerEmail} - check network or TURN`);
+                    // Attempt renegotiation
+                    if (pc.signalingState === 'stable') {
+                        pc.onnegotiationneeded();
+                    }
                 }
             };
 
