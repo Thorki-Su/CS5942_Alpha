@@ -492,6 +492,9 @@
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
                     { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' },
+                    { urls: 'stun:stun4.l.google.com:19302' },
                     {
                         urls: 'turn:openrelay.metered.ca:80',
                         username: 'openrelayproject',
@@ -506,6 +509,11 @@
                         urls: 'turn:openrelay.metered.ca:443?transport=tcp',
                         username: 'openrelayproject',
                         credential: 'openrelayproject'
+                    },
+                    {
+                        urls: 'turn:relay1.expressturn.com:3478',
+                        username: 'ef1L0W9Q9Z9Z9Z9Z',
+                        credential: 'Z9Z9Z9Z9'
                     }
                 ]
             });
@@ -519,9 +527,10 @@
             pc.ontrack = (event) => {
                 if (event.track.kind === 'video') { // Only create for video track to avoid duplicates
                     const remoteVideos = document.getElementById('remoteVideos');
-                    if (remoteVideos.querySelector(`#remote_${peerEmail}`)) return; // Avoid duplicate elements
+                    const safeEmail = peerEmail.replace(/[@.]/g, '_');  // Replace @ and . for valid ID
+                    if (remoteVideos.querySelector(`#remote_${safeEmail}`)) return; // Avoid duplicate elements
                     const remoteVideo = document.createElement('video');
-                    remoteVideo.id = `remote_${peerEmail}`;
+                    remoteVideo.id = `remote_${safeEmail}`;
                     remoteVideo.srcObject = event.streams[0];
                     remoteVideo.autoplay = true;
                     remoteVideo.playsInline = true;
@@ -537,6 +546,10 @@
                     ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate, to: peerEmail }));
                     console.log(`Sent ICE candidate to ${peerEmail}:`, event.candidate);
                 }
+            };
+
+            pc.onicecandidateerror = (event) => {
+                console.error(`ICE candidate error for ${peerEmail}:`, event);
             };
 
             pc.oniceconnectionstatechange = () => {
