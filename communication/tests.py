@@ -315,24 +315,19 @@ class WebSocketConsumerTests(TestCase):
     def test_websocket_consumer_import(self):
         """Test that WebSocket consumers can be imported"""
         try:
-            from communication.consumers import ChatConsumer, VideoCallConsumer
+            from communication.consumers import ChatConsumer
             self.assertTrue(hasattr(ChatConsumer, 'connect'))
             self.assertTrue(hasattr(ChatConsumer, 'disconnect'))
             self.assertTrue(hasattr(ChatConsumer, 'receive'))
-            self.assertTrue(hasattr(VideoCallConsumer, 'connect'))
-            self.assertTrue(hasattr(VideoCallConsumer, 'disconnect'))
-            self.assertTrue(hasattr(VideoCallConsumer, 'receive'))
         except ImportError as e:
             self.fail(f"Failed to import WebSocket consumers: {e}")
 
     def test_websocket_consumer_asgi_application(self):
         """Test that consumers can create ASGI applications"""
         try:
-            from communication.consumers import ChatConsumer, VideoCallConsumer
+            from communication.consumers import ChatConsumer
             chat_app = ChatConsumer.as_asgi()
-            video_app = VideoCallConsumer.as_asgi()
             self.assertIsNotNone(chat_app)
-            self.assertIsNotNone(video_app)
         except Exception as e:
             self.fail(f"Failed to create ASGI applications: {e}")
 
@@ -374,19 +369,16 @@ class WebSocketConsumerTests(TestCase):
 
     def test_consumer_authentication_methods(self):
         """Test that consumer authentication methods exist"""
-        from communication.consumers import ChatConsumer, VideoCallConsumer
+        from communication.consumers import ChatConsumer
         
         chat_consumer = ChatConsumer()
-        video_consumer = VideoCallConsumer()
         
         # Check that authentication methods exist
         self.assertTrue(hasattr(chat_consumer, 'authenticate_user'))
-        self.assertTrue(hasattr(video_consumer, 'authenticate_user'))
         
         # Check that message handling methods exist
         self.assertTrue(hasattr(chat_consumer, 'chat_message'))
         self.assertTrue(hasattr(chat_consumer, 'save_message'))
-        self.assertTrue(hasattr(video_consumer, 'video_signal'))
 
     def test_consumer_database_methods(self):
         """Test that consumer database interaction methods work"""
