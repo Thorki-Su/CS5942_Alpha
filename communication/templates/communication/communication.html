@@ -132,12 +132,14 @@
         </div>
     </div>
 
+    <!-- Incoming call UI -->
     <div id="call-incoming">
         <p id="call-sender"></p>
         <button onclick="acceptCall()" class="bg-green-500 text-white p-2">Accept</button>
         <button onclick="declineCall()" class="bg-red-500 text-white p-2">Decline</button>
     </div>
 
+    <!-- Pending call UI for initiator -->
     <div id="call-pending">
         <p>Video call requested. Waiting for response...</p>
         <button onclick="cancelCall()" class="bg-red-500 text-white p-2">Cancel</button>
@@ -161,7 +163,8 @@
             participants = ['{{ user2_email }}'];
             if (!participants[0]) {
                 alert('Error: No recipient found for 1v1 chat. Please refresh the page.');
-                return;
+                document.getElementById('message-input').disabled = true; // Disable input to prevent sending
+                document.querySelector('button[onclick="sendMessage()"]').disabled = true; // Disable send button
             }
         }
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
@@ -368,10 +371,13 @@
                             console.log('Ignoring offer due to collision');
                             return;
                         }
+
                         if (offerCollision && polite) {
                             await pc.setRemoteDescription({ type: 'rollback' });
                         }
+
                         await pc.setRemoteDescription(new RTCSessionDescription(data.signal));
+
                         if (pendingCandidates[data.sender]) {
                             for (const candidate of pendingCandidates[data.sender]) {
                                 await pc.addIceCandidate(new RTCIceCandidate(candidate));
@@ -379,10 +385,11 @@
                             }
                             pendingCandidates[data.sender] = [];
                         }
+
                         if (data.signal.type === 'offer') {
                             const answer = await pc.createAnswer();
                             await pc.setLocalDescription(answer);
-                            ws.send(JSON.stringify({ signal: pc.localDescription, to: data.sender }));
+                            ws.send(JSON.stringify({ type: 'video_signal', signal: pc.localDescription, to: data.sender }));
                             console.log(`Sent answer to ${data.sender}`);
                         }
                     } catch (err) {
@@ -477,15 +484,6 @@
             callInitiated = false;
         }
 
-        async function startConnection(sender) {
-            const stream = await getLocalStream();
-            if (!stream) return;
-            const pc = peerConnections[sender] || createPeerConnection(sender, stream);
-            if (pc.signalingState === 'stable') {
-                pc.onnegotiationneeded();
-            }
-        }
-
         function createPeerConnection(peerEmail, stream) {
             const cleanPeerEmail = peerEmail.replace(/[@.]/g, '_');
             const pc = new RTCPeerConnection({
@@ -500,7 +498,7 @@
                     {
                         urls: 'turn:openrelay.metered.ca:443',
                         username: 'openrelayproject',
-                        credential: 'open hazelnutproject'
+                        credential: 'openrelayproject'
                     },
                     {
                         urls: 'turn:openrelay.metered.ca:443?transport=tcp',
@@ -561,7 +559,7 @@
                     makingOffer = true;
                     const offer = await pc.createOffer();
                     await pc.setLocalDescription(offer);
-                    ws.send(JSON.stringify({ signal: pc.localDescription, to: peerEmail }));
+                    ws.send(JSON.stringify({ type: 'video_signal', signal: pc.localDescription, to: peerEmail }));
                     console.log(`Sent offer to ${peerEmail}`);
                 } catch (err) {
                     console.error('Negotiation needed error:', err);
