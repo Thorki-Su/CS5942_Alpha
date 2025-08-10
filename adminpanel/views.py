@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 from django.db.models import Q
 from .models import OperationLog
 from payment.models import Donation
+from .forms import AdminCreationForm
 
 User = get_user_model()
 
@@ -122,3 +123,18 @@ def records(request):
 def donations(request):
     donations = Donation.objects.filter(status='completed')
     return render(request, 'adminpanel/donations.html', {'donations':donations})
+
+@staff_required
+def help(request):
+    return render(request, 'adminpanel/help.html')
+
+@staff_required
+def create_admin_view(request):
+    if request.method == 'POST':
+        form = AdminCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('adminpanel:dashboard')
+    else:
+        form = AdminCreationForm()
+    return render(request, 'adminpanel/create_admin.html', {'form': form})

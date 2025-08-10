@@ -1,0 +1,70 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Admin Create{% endblock %}
+
+{% block style %}
+<style>
+    .create-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .create-header {
+        background: #30574e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .create-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 500;
+    }
+    .create-form {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border-left: 4px solid #30574e;
+    }
+    .submit-btn {
+        background: #30574e;
+        color: white;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 30px;
+    }
+    .submit-btn:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class='create-container'>
+        <div class="create-header">
+            <h2>Please enter the email and password</h2>
+        </div>
+        <div class="create-form">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="submit-btn">Create</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
