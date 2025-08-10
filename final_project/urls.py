@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from adminpanel.views import export_donations_csv
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,6 +15,8 @@ urlpatterns = [
     path('adminpanel/', include(('adminpanel.urls', 'adminpanel'), namespace='adminpanel')),
     path('volunteer/', include(('volunteer.urls', 'volunteer'), namespace='volunteer')),
     path('payment/', include(('payment.urls', 'payment'), namespace='payment')),
+    path('adminpanel/donations/export/', export_donations_csv, name='export_donations_csv'),
+
 ]
 
 if settings.DEBUG:
