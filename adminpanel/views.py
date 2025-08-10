@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 from django.db.models import Q
 from .models import OperationLog
 from payment.models import Donation
+from .forms import AdminCreationForm
 from datetime import datetime, timedelta
 from django.http import HttpResponse
 
@@ -128,6 +129,21 @@ def donations(request):
     return render(request, 'adminpanel/donations.html', {'donations':donations})
 
 @staff_required
+def help(request):
+    return render(request, 'adminpanel/help.html')
+
+@staff_required
+def create_admin_view(request):
+    if request.method == 'POST':
+        form = AdminCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('adminpanel:dashboard')
+    else:
+        form = AdminCreationForm()
+    return render(request, 'adminpanel/create_admin.html', {'form': form})
+
+@staff_required
 def export_donations_csv(request):
     """Export donation records as CSV"""
     start_date = request.GET.get('start')
@@ -170,3 +186,4 @@ def export_donations_csv(request):
         ])
 
     return response
+

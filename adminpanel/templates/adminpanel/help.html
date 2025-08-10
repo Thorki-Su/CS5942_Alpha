@@ -1,0 +1,164 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Admin Manual{% endblock %}
+
+{% block style %}
+<style>
+    .help-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .help-header {
+        text-align: center;
+        background: #30574e;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    h2 {
+        color: white !important;
+        font-weight: 500 !important;
+    }
+    a {
+        background: #30574e;
+        color: white !important;
+        padding: 12px 25px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    a:hover {
+        background: white;
+        color: #30574e !important;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.4);
+        text-decoration: none;
+    }
+    .faq-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+    }
+    .faq-container h2 {
+        color: #30574e;
+        font-size: 2rem;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .faq-item {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+    .faq-question {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        background: #f5f5f5;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+    .faq-number {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        margin-right: 10px;
+        background: #ccc;
+        color: white;
+        text-align: center;
+        line-height: 30px;
+        font-weight: bold;
+        border-radius: 50%;
+        transition: background 0.3s ease;
+    }
+    .faq-question:hover .faq-number {
+        background: #30574e;
+    }
+    .faq-text {
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    .faq-answer {
+        display: none;
+        padding: 15px;
+        background: white;
+        border-top: 1px solid #ddd;
+        animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .faq-item.active .faq-answer {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class='help-container'>
+        <div class='help-header'>
+            <h2>Help Manual</h2>
+            <a href="{% url 'adminpanel:admin_create' %}">Admin Add</a>
+        </div>
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question">
+                <span class="faq-number">01</span>
+                <span class="faq-text">What data can I see on the administrator page?</span>
+                </div>
+                <div class="faq-answer">
+                <p>Almost all. You can see some basic data on the home page, such as the number of users and the number of tasks. The navigation bar lists the entry of detailed information: user information, task information, operation record and donation record.</p>
+                </div>
+            </div>
+        </div>
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question">
+                <span class="faq-number">02</span>
+                <span class="faq-text">What is the operation record?</span>
+                </div>
+                <div class="faq-answer">
+                <p>The operation record is a tool that we prepare for administrators to quickly grasp what users have done. It records the user's operations, such as account activation, personal information modification, task creation, etc. You can see the latest 20 entries on the home page and all on the 'Operation Record' page.</p>
+                </div>
+            </div>
+        </div>
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question">
+                <span class="faq-number">03</span>
+                <span class="faq-text">What should I do through the administrator page?</span>
+                </div>
+                <div class="faq-answer">
+                <p>As an administrator, your most important task is to approve user accounts. You can see all the information of the user in 'User Control' - 'see details', click the link 'User's file' to browse all the uploaded files, and select whether they passed or failed the review. The audit status can be changed at any time. It is used to restrict users' use of website functions.</p>
+                </div>
+            </div>
+        </div>
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question">
+                <span class="faq-number">04</span>
+                <span class="faq-text">How can I add a new admin?</span>
+                </div>
+                <div class="faq-answer">
+                <p>First, this requires an existing administrator account. Then enter the 'Admin Manual' page (that is, this page). There is a 'Add Admin' link at the top of the page. Click it and enter the email address and password.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+            const item = question.parentElement;
+            item.classList.toggle('active');
+            });
+        });
+    </script>
+{% endblock %}
