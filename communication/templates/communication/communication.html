@@ -129,39 +129,66 @@
         const wsPath = `${wsScheme}://${window.location.host}/ws/chat/${roomName}/`;
         let ws = new WebSocket(wsPath);
         let peerConnections = {};
+        let pendingCandidates = {}; // Per sender queue for candidates
         let localStream = null;
         let recorder = null;
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
         const reconnectInterval = 2000;
         let authTimeout;
+        let makingOffer = false;
+        let ignoreOffer = false;
+        let polite = false;
+        let lastMessageTimestamp = null;  // Track last message time to avoid duplicates
+
+        if (participants.length > 0) {
+            polite = userEmail < participants[0];
+        }
 
         function formatTimestamp(isoString) {
             return new Date(isoString).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
         }
 
         function loadHistory() {
-            fetch(`/communication/one-to-one/${roomName}/`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
+            let url = `/communication/one-to-one/${roomName}/`;
+            if (roomName.startsWith('chat_task_')) {
+                const taskId = roomName.split('_')[2];
+                url = `/communication/task/${taskId}/history/`;
+            }
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(response => response.json())
                 .then(data => {
                     const messageList = document.getElementById('message-list');
-                    messageList.innerHTML = '';
+                    messageList.innerHTML = '';  // Clear once
                     if (data.messages.length === 0) {
                         document.getElementById('no-messages').style.display = 'block';
                     } else {
                         document.getElementById('no-messages').style.display = 'none';
                         data.messages.forEach(msg => {
-                            const messageElement = document.createElement('div');
-                            messageElement.classList.add('message', msg.sender === userEmail ? 'sent' : 'received');
-                            messageElement.innerHTML = `<p>${msg.content}</p><div class="message-time">${formatTimestamp(msg.timestamp)}</div>`;
-                            messageList.appendChild(messageElement);
+                            if (!lastMessageTimestamp || new Date(msg.timestamp) > new Date(lastMessageTimestamp)) {
+                                addMessage(msg.sender, msg.content, msg.timestamp);
+                            }
                         });
-                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                        if (data.messages.length > 0) {
+                            lastMessageTimestamp = data.messages[data.messages.length - 1].timestamp;
+                        }
                     }
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
                 })
                 .catch(err => console.error('Failed to load history:', err));
+        }
+
+        function addMessage(sender, content, timestamp) {
+            const messageList = document.getElementById('message-list');
+            const existingMsgs = Array.from(messageList.children).map(el => el.innerHTML);
+            const msgHTML = `<p>${content}</p><div class="message-time">${formatTimestamp(timestamp)}</div>`;
+            if (!existingMsgs.includes(msgHTML)) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', sender === userEmail ? 'sent' : 'received');
+                messageElement.innerHTML = msgHTML;
+                messageList.appendChild(messageElement);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
         }
 
         function reconnect() {
@@ -178,6 +205,21 @@
             }
         }
 
+        async function getLocalStream() {
+            if (!localStream) {
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    document.getElementById('localVideo').srcObject = localStream;
+                    document.getElementById('video-container').style.display = 'flex';
+                    console.log('Local stream acquired automatically on receiving offer');
+                } catch (err) {
+                    console.error('Failed to get local stream:', err);
+                    alert('Unable to access camera/microphone. Please grant permissions.');
+                }
+            }
+            return localStream;
+        }
+
         function setupWebSocket() {
             ws.onopen = () => {
                 console.log('WebSocket opened, sending auth...');
@@ -189,7 +231,7 @@
                 loadHistory();
             };
 
-            ws.onmessage = (event) => {
+            ws.onmessage = async(event) => {
                 console.log('Raw message:', event.data);
                 const data = JSON.parse(event.data);
                 if (data.type === 'auth_ack') {
@@ -202,12 +244,7 @@
                     return;
                 }
                 if (data.message) {
-                    const messageList = document.getElementById('message-list');
-                    const messageElement = document.createElement('div');
-                    messageElement.classList.add('message', data.sender === userEmail ? 'sent' : 'received');
-                    messageElement.innerHTML = `<p>${data.message}</p><div class="message-time">${formatTimestamp(data.timestamp)}</div>`;
-                    messageList.appendChild(messageElement);
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    addMessage(data.sender, data.message, data.timestamp);
                 }
                 if (data.audio_data) {
                     const audioBlob = new Blob([base64ToArrayBuffer(data.audio_data)], { type: 'audio/webm' });
@@ -215,19 +252,60 @@
                     audio.play();
                 }
                 if (data.signal && data.sender !== userEmail && data.to === userEmail) {
-                    const pc = peerConnections[data.sender] || createPeerConnection(data.sender, localStream);
-                    pc.setRemoteDescription(new RTCSessionDescription(data.signal))
-                        .then(() => data.signal.type === 'offer' ? pc.createAnswer() : null)
-                        .then(answer => {
-                            if (answer) {
-                                pc.setLocalDescription(answer);
-                                ws.send(JSON.stringify({ signal: answer, to: data.sender }));
+                    // Ensure localStream is available before creating PC
+                    const stream = await getLocalStream();
+                    if (!stream) {
+                        console.error('Could not get local stream for signal handling');
+                        return;
+                    }
+                    let pc = peerConnections[data.sender];
+                    if (!pc) {
+                        pc = createPeerConnection(data.sender, stream);
+                        peerConnections[data.sender] = pc;
+                        pendingCandidates[data.sender] = pendingCandidates[data.sender] || [];
+                    }
+                    try {
+                        const offerCollision = data.signal.type === 'offer' && (makingOffer || pc.signalingState !== 'stable');
+                        ignoreOffer = !polite && offerCollision;
+                        if (ignoreOffer) {
+                            return;
+                        }
+
+                        if (offerCollision && polite) {
+                            await pc.setRemoteDescription({ type: 'rollback' });
+                        }
+
+                        await pc.setRemoteDescription(new RTCSessionDescription(data.signal));
+
+                        // Now add any pending candidates
+                        if (pendingCandidates[data.sender]) {
+                            for (const candidate of pendingCandidates[data.sender]) {
+                                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                                console.log(`Added pending ICE candidate from ${data.sender}`);
                             }
-                        })
-                        .catch(err => console.error('SDP error:', err));
+                            pendingCandidates[data.sender] = [];
+                        }
+
+                        if (data.signal.type === 'offer') {
+                            const answer = await pc.createAnswer();
+                            await pc.setLocalDescription(answer);
+                            ws.send(JSON.stringify({ signal: pc.localDescription, to: data.sender }));
+                            console.log(`Sent answer to ${data.sender}`);
+                        }
+                    } catch (err) {
+                        console.error('SDP error:', err);
+                    }
                 } else if (data.type === 'candidate' && data.to === userEmail) {
                     const pc = peerConnections[data.sender];
-                    if (pc) pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(err => console.error('ICE error:', err));
+                    if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+                        pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(err => console.error('ICE error:', err));
+                        console.log(`Added ICE candidate from ${data.sender}`);
+                    } else {
+                        // Queue if remote desc not set yet
+                        pendingCandidates[data.sender] = pendingCandidates[data.sender] || [];
+                        pendingCandidates[data.sender].push(data.candidate);
+                        console.log(`Queued ICE candidate from ${data.sender} (remote desc not set yet)`);
+                    }
                 }
             };
 
@@ -247,11 +325,13 @@
             const messageInput = document.getElementById('message-input');
             const message = messageInput.value.trim();
             if (message && ws.readyState === WebSocket.OPEN) {
-                const data = { 'message': message, 'timestamp': new Date().toISOString() };
+                const timestamp = new Date().toISOString();
+                const data = { 'message': message, 'timestamp': timestamp };
                 if (roomName.startsWith('1v1_')) {
                     data['receiver'] = participants[0];
                 }
                 ws.send(JSON.stringify(data));
+                addMessage(userEmail, message, timestamp);  // Local add immediately
                 messageInput.value = '';
             } else if (ws.readyState !== WebSocket.OPEN) {
                 alert('WebSocket not connected. Wait for reconnection.');
@@ -267,21 +347,45 @@
             }
         }
 
-        function startVideoCall() {
-            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                .then(stream => {
-                    localStream = stream;
-                    document.getElementById('localVideo').srcObject = stream;
-                    participants.forEach(peerEmail => createPeerConnection(peerEmail, stream));
-                    document.getElementById('video-container').style.display = 'flex';
-                })
-                .catch(err => console.error('Media access error:', err));
+        async function startVideoCall() {
+            const stream = await getLocalStream(); // Reuse the async function
+            if (!stream) return;
+            participants.forEach(peerEmail => {
+                if (!peerConnections[peerEmail]) {
+                    createPeerConnection(peerEmail, stream);
+                }
+            });
+            console.log('Video call started, local stream set');
         }
 
         function createPeerConnection(peerEmail, stream) {
-            const pc = new RTCPeerConnection();
+            const pc = new RTCPeerConnection({
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    {
+                        urls: 'turn:openrelay.metered.ca:80',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject'
+                    },
+                    {
+                        urls: 'turn:openrelay.metered.ca:443',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject'
+                    },
+                    {
+                        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject'
+                    }
+                ]
+            });
             peerConnections[peerEmail] = pc;
-            stream.getTracks().forEach(track => pc.addTrack(track, stream));
+            if (stream) {
+                stream.getTracks().forEach(track => pc.addTrack(track, stream));
+            } else {
+                console.warn('No stream available when creating PeerConnection');
+            }
 
             pc.ontrack = (event) => {
                 const remoteVideo = document.createElement('video');
@@ -289,29 +393,57 @@
                 remoteVideo.srcObject = event.streams[0];
                 remoteVideo.autoplay = true;
                 remoteVideo.playsInline = true;
+                remoteVideo.muted = false; // Ensure not muted
+                remoteVideo.play().catch(e => console.error('Remote play error:', e));
                 document.getElementById('remoteVideos').appendChild(remoteVideo);
+                console.log(`Remote stream added for ${peerEmail}`);
             };
 
             pc.onicecandidate = (event) => {
                 if (event.candidate) {
                     ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate, to: peerEmail }));
+                    console.log(`Sent ICE candidate to ${peerEmail}:`, event.candidate);
                 }
             };
 
-            pc.createOffer()
-                .then(offer => pc.setLocalDescription(offer))
-                .then(() => ws.send(JSON.stringify({ signal: pc.localDescription, to: peerEmail })))
-                .catch(err => console.error('Offer error:', err));
+            pc.oniceconnectionstatechange = () => {
+                console.log(`ICE connection state for ${peerEmail}: ${pc.iceConnectionState}`);
+                if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+                    console.error(`ICE failed for ${peerEmail} - check network or TURN`);
+                }
+            };
+
+            pc.onconnectionstatechange = () => {
+                console.log(`Connection state for ${peerEmail}: ${pc.connectionState}`);
+            };
+
+            pc.onnegotiationneeded = async () => {
+                try {
+                    makingOffer = true;
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
+                    ws.send(JSON.stringify({ signal: pc.localDescription, to: peerEmail }));
+                    console.log(`Sent offer to ${peerEmail}`);
+                } catch (err) {
+                    console.error('Negotiation needed error:', err);
+                } finally {
+                    makingOffer = false;
+                }
+            };
+
             return pc;
         }
 
         function endCall() {
             Object.values(peerConnections).forEach(pc => pc.close());
             peerConnections = {};
+            pendingCandidates = {};
             if (localStream) localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
             document.getElementById('video-container').style.display = 'none';
             document.getElementById('localVideo').srcObject = null;
             document.getElementById('remoteVideos').innerHTML = '';
+            console.log('Video call ended');
         }
 
         function toggleAudio() {

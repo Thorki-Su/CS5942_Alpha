@@ -45,6 +45,7 @@ ALLOWED_HOSTS = [
     'cs5942-alpha.onrender.com',
     'cs5942-alpha-test.onrender.com',
     '*.onrender.com',
+    'cs5942-alpha-test-comm.onrender.com',
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://cs5942-alpha.onrender.com',
@@ -54,6 +55,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1',
     'http://127.0.0.1:8000',
+    'https://cs5942-alpha-test-comm.onrender.com',
 ]
 
 # Application definition
@@ -135,7 +137,7 @@ AUTH_USER_MODEL = 'user.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise 中间件
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -205,7 +207,7 @@ LOGIN_URL = '/login/'
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # 使用 WhiteNoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # Use WhiteNoise
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

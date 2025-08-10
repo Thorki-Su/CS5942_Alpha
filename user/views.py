@@ -46,11 +46,11 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            # print("登录成功，用户 role 是：", user.role)
+            # print("Login successful, user role is:", user.role)
             if user.role == 'admin':
-                # print("管理员身份，准备跳转后台")
+                # print("Admin identity, preparing to redirect to backend")
                 return redirect('adminpanel:dashboard')
-            # print("普通用户身份，准备跳转 user:home")
+            # print("Regular user identity, preparing to redirect to user:home")
             return redirect('user:home')
         else:
             messages.error(request, "Wrong email or password.")
@@ -292,8 +292,8 @@ def photo_edit(request):
             filename = s3_storage.save(f'profile_photos/{request.user.email}/{img_data.name}', img_data)
             user_profile.profile_photo.name = filename
             user_profile.save()
-            # print("保存路径：", user_profile.profile_photo.name)
-            # print("完整 URL：", user_profile.profile_photo.url)
+            # print("Save path:", user_profile.profile_photo.name)
+            # print("Complete URL:", user_profile.profile_photo.url)
             return redirect('user:profile_detail')
         elif form.is_valid():
             if 'profile_photo' in request.FILES:

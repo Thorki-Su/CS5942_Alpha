@@ -1,6 +1,7 @@
 from django.urls import re_path, path
 from channels.routing import URLRouter
-from . import consumers  # 如果consumers需要延迟加载，保持原样
+from . import consumers  # Keep as is if consumers need lazy loading
+from .views import task_history
 from .views import (
     message_selection_view, one_to_one_chat_selection_view, task_communication_view,
     create_one_to_one_room, group_chats_view, one_to_one_communication_view,
@@ -8,13 +9,12 @@ from .views import (
     accept_friend_request, reject_friend_request
 )
 
-# 延迟加载 consumers
+# Lazy load consumers
 def get_websocket_urlpatterns():
-    from .consumers import ChatConsumer, VideoCallConsumer
+    from .consumers import ChatConsumer  # Only import ChatConsumer (video signaling merged)
     return [
-        re_path(r'ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),
-        re_path(r'ws/video/(?P<room_name>\w+)/$', VideoCallConsumer.as_asgi()),
-        re_path(r'ws/user/(?P<user_email>[\w.@+-]+)/$', ChatConsumer.as_asgi()),  # 修改正则表达式，允许 @ 和 .
+        re_path(r'ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),  # Unified path handling for chat/video/audio
+        re_path(r'ws/user/(?P<user_email>[\w.@+-]+)/$', ChatConsumer.as_asgi()),  # Modified regex to allow @ and .
     ]
 
 websocket_urlpatterns = URLRouter(get_websocket_urlpatterns())
@@ -32,4 +32,5 @@ urlpatterns = [
     path('send-friend-request/', send_friend_request, name='send_friend_request'),
     path('accept-friend-request/<int:request_id>/', accept_friend_request, name='accept_friend_request'),
     path('reject-friend-request/<int:request_id>/', reject_friend_request, name='reject_friend_request'),
+    path('task/<int:task_id>/history/', task_history, name='task_history'),
 ]

@@ -22,7 +22,7 @@ services:
       - key: DJANGO_SETTINGS_MODULE
         value: final_project.settings
       - key: REDIS_URL
-        sync: true  # 从 Dashboard 同步
+        sync: true  # Sync from Dashboard
       - key: AWS_ACCESS_KEY_ID
         sync: true
       - key: AWS_SECRET_ACCESS_KEY
