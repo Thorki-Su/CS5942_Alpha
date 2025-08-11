@@ -87,6 +87,7 @@
         <div class="p-4 border-b flex justify-between items-center">
             <h2 class="text-xl font-bold">Chat with {{ user2_email }}</h2>
             <span class="text-gray-600">You: {{ request.user.email }}</span>
+            <a href="{% url 'communication:one_to_one_chat_selection' %}">Back</a>
         </div>
         <div class="chat-container" id="chat-container">
             <div id="message-list"></div>
@@ -467,15 +468,19 @@
                 console.warn('No stream available when creating PeerConnection');
             }
 
+
             pc.ontrack = (event) => {
-                const remoteVideo = document.createElement('video');
-                remoteVideo.id = `remote_${peerEmail}`;
+                let remoteVideo = document.getElementById(`remote_${peerEmail}`);
+                if (!remoteVideo) {
+                    remoteVideo = document.createElement('video');
+                    remoteVideo.id = `remote_${peerEmail}`;
+                    remoteVideo.autoplay = true;
+                    remoteVideo.playsInline = true;
+                    remoteVideo.muted = false;
+                    document.getElementById('remoteVideos').appendChild(remoteVideo);
+                }
                 remoteVideo.srcObject = event.streams[0];
-                remoteVideo.autoplay = true;
-                remoteVideo.playsInline = true;
-                remoteVideo.muted = false; // 确保不静音
                 remoteVideo.play().catch(e => console.error('Remote play error:', e));
-                document.getElementById('remoteVideos').appendChild(remoteVideo);
                 console.log(`Remote stream added for ${peerEmail}`);
             };
 
