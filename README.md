@@ -1,68 +1,106 @@
-# CS5942: MSC PROJECT IN INFORMATION TECHNOLOGY
-# Team Alpha
-In this file we will introduce each parts in the project.
-Our application has been deployed on Render: https://cs5942-alpha.onrender.com
+# Shallion Support: Client - Volunteer Matching System 
+CS5942: MSC PROJECT IN INFORMATION TECHNOLOGY  
+Team Alpha
 
-# How to run(local)
-use this code:
+
+## 1. Introduction
+This system is designed to help Shallion Support manage the task allocation, communication and donation processes between volunteers and customers more efficiently, and ensure information security and user experience.
+
+
+## 2. Tech Stack
+Backend: Django  
+Frontend: HTML, CSS, JavaScript  
+Database: PostgreSQL, SQLite  
+Cloud Services: AWS S3, SendGrid, Stripe  
+
+
+## 3. Features
+User registration and login (User selectable roles)  
+User email authentication  
+Task posting and undertaking
+Real-time text, voice and video calls  
+Donation System  
+Upload files and pictures  
+User information review  
+
+
+## 4. Getting Started
+### 1) Cloning this project
+
+You can clone the project from our Github repository:
 ```bash
-$env:DJANGO_DEVELOPMENT=1
+git clone https://github.com/Thorki-Su/CS5942_Alpha.git
+cd CS5942_Alpha
+```
+
+### 2) Create a virtual environment and install dependencies
+```bash
+python -m venv venv
+source venv/bin/activate  # macOS/Linux
+venv\Scripts\activate     # Windows
+pip install -r requirements.txt
+```
+
+### 3) Copy the environment variable template
+
+The project file contains the *.env.example* file, which serves as a template for environment variables. The following command will copy it and name it *.env*.
+```bash
+cp .env.example .env
+```
+
+### 4) Configure the .env file (for details, see Environment Variables)
+### 5) Run the migration and start the project
+```bash
+python manage.py migrate
 python manage.py runserver
 ```
 
-# Project Structure
-Our project's name is '**final_project**'.  
-There are **7** apps in the project. They are **adminpanel**, **communication**, **matching**, **payment**, **task**, **user** and **volunteer**.  
-We use env file to store some keys. You can see the load method in settings.py.  
 
-## user
-This app is about users' registeration and logging-in.
+## 5. Environment Variables
+In *.env* file, we store the API keys for tools we use, such as AWS, postsql, SendGrid and Stripe. Getting a new key is necessary if you want to run the local version. 
 
-### models.py
-**CustomUserManager**: Since we plan not to use usernames, but rather email addresses for logins, we use this to make changes to the default user model.
+Please note:
+1. You need to register an account on the respective service platform, create a project or application, and get the corresponding keys.
 
-**CustomUser**: Changed user model with email, password and user type.
+2. Fill these keys into the local *.env* file to ensure that the project can call the relevant APIs properly.
 
-**user_directory_path**: The function used to generate the file storage path.
+3. Do not submit the *.env* file containing the real keys to the public codebase. This could trigger a serious security alert.
 
-**UserProfile**: Used to store information that is shared between different types of user.
+4. Please refer to the *.env.example* file for the specific key name and follow the instructions to get it from the corresponding platform.
 
-**CertificationType**: Used to store the certification types.
 
-**ConditionType**: Used to store the condition types.
+## 6. Branch Protection Policy
+To ensure the stability of the code base, we have implemented strict protection policies for the main branch:
+1. Direct Push to the main branch is prohibited. All modifications must be made through Pull Request (PR).
+2. PR can only be merged after being reviewed and approved by at least one team member other than the initiator to ensure code quality and security.
+3. Make sure to merge only after passing the automated test (CI/CD) to prevent error code from entering the main branch.
+4. Prohibit force push or deletion of the main branch to avoid data loss.
 
-**SupportType**: Used to store the support types.
+This strategy helps us prevent unreviewed code from directly affecting the production environment and ensures that each launch is fully verified. Subsequently, the development team can refer to and adjust this protection strategy based on the actual situation to ensure the standardization and security of code management.
 
-**ClientProfile**: Used to store information unique to the client.
 
-**VolunteerProfile**: Used to store information unique to the volunteer.
+## 7. Testing
+Run unit tests:
+```bash
+python manage.py test
+```
+Add the module name at the end to run the test of a certain module independently.
 
-**AdminProfile**: Used to store information unique to the admin.
 
-### forms.py
-**ClientRegisterForm**, **VolunteerRegisterForm**: Two register forms.
+## 8. Deployment
+We used the Render platform for deployment. You can visit the deploy version through https://cs5942-alpha.onrender.com/  
+We have applied for a dedicated account for this project:
+| Username              | Password                 |
+|---------------------|----------------------|
+|    shallion9527@gmail.com       | Shallionsupport9527!         |
 
-**ClientProfileForm**, **VolunteerProfileForm**: Two forms used to change profile information.
 
-**ProfilePhotoForm**: The form used to change profile photo.
+## 9. Accounts
+During the development and testing process, we created some accounts:
+| Username              | Password                 | Role                  |
+|---------------------|----------------------|-------------------------|
+| shallion9527@gmail.com          | Shallionsupport9527!          | admin    |
+| Applejuice@gmail.com          | Test123456          | client    |
+| Bananamilk@gmail.com          | Test123456          | volunteer    |
 
-### utils.py
-**normalize_uk_postcode**: Normalize the user input postcode.
 
-**is_valid_aberdeen_postcode**: Check the user input postcode is in Aberdeen or not.
-
-**geocode_address**: Use the user input postcode to get the coordinate.
-
-**send_activation_email**: To send a check email to user.
-
-## task
-
-## communication
-
-## matching
-
-## adminpanel
-
-## volunteer
-
-## payment

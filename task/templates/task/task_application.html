@@ -92,6 +92,28 @@
         color: #6c757d;
         margin: 0;
     }
+    .manual-match-btn {
+        background-color: #30574e;
+        color: white;
+        border: none;
+        padding: 12px 40px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(48, 87, 78, 0.5);
+        transition: all 0.3s ease;
+        margin-top: 15px;
+        min-width: 180px;
+    }
+
+    .manual-match-btn:hover {
+        background-color: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(48, 87, 78, 0.7);
+    }
 </style>
 {% endblock %}
 
@@ -100,6 +122,10 @@
         <div class="application-header">
             <h2>Applications</h2>
             <p>Needed Volunteer Number: {{ task.vol_number }}</p>
+            <form method="post" action="{% url 'task:manual_match' task.id %}" style="margin-top: 15px;">
+                {% csrf_token %}
+                <button type="submit" class="manual-match-btn">Matching volunteers</button>
+            </form>
         </div>
         {% if applications %} 
             <div class="volunteer-grid">
