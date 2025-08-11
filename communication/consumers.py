@@ -156,6 +156,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'sender': self.user_email,
                     'to': text_data_json.get('to')
                 })
+            # 新增: 处理视频邀请相关信号
+            elif text_data_json.get('type') == 'video_invite':
+                await self.channel_layer.group_send(self.room_group_name, {
+                    'type': 'video_invite',
+                    'sender': self.user_email,
+                    'to': text_data_json.get('to')
+                })
+            elif text_data_json.get('type') == 'video_accept':
+                await self.channel_layer.group_send(self.room_group_name, {
+                    'type': 'video_accept',
+                    'sender': self.user_email,
+                    'to': text_data_json.get('to')
+                })
+            elif text_data_json.get('type') == 'video_reject':
+                await self.channel_layer.group_send(self.room_group_name, {
+                    'type': 'video_reject',
+                    'sender': self.user_email,
+                    'to': text_data_json.get('to')
+                })
+            elif text_data_json.get('type') == 'video_cancel':
+                await self.channel_layer.group_send(self.room_group_name, {
+                    'type': 'video_cancel',
+                    'sender': self.user_email,
+                    'to': text_data_json.get('to')
+                })
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding JSON: {e}")
         except Exception as e:
@@ -328,3 +353,55 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }))
         except Exception as e:
             logger.error(f"Error in friend_update_notification: {e}")
+
+    # 新增: 处理视频邀请信号
+    async def video_invite(self, event):
+        try:
+            sender = event['sender']
+            to = event.get('to')
+            await self.send(text_data=json.dumps({
+                'type': 'video_invite',
+                'sender': sender,
+                'to': to
+            }))
+        except Exception as e:
+            logger.error(f"Error in video_invite: {e}")
+
+    # 新增: 处理视频接受信号
+    async def video_accept(self, event):
+        try:
+            sender = event['sender']
+            to = event.get('to')
+            await self.send(text_data=json.dumps({
+                'type': 'video_accept',
+                'sender': sender,
+                'to': to
+            }))
+        except Exception as e:
+            logger.error(f"Error in video_accept: {e}")
+
+    # 新增: 处理视频拒绝信号
+    async def video_reject(self, event):
+        try:
+            sender = event['sender']
+            to = event.get('to')
+            await self.send(text_data=json.dumps({
+                'type': 'video_reject',
+                'sender': sender,
+                'to': to
+            }))
+        except Exception as e:
+            logger.error(f"Error in video_reject: {e}")
+
+    # 新增: 处理视频取消信号
+    async def video_cancel(self, event):
+        try:
+            sender = event['sender']
+            to = event.get('to')
+            await self.send(text_data=json.dumps({
+                'type': 'video_cancel',
+                'sender': sender,
+                'to': to
+            }))
+        except Exception as e:
+            logger.error(f"Error in video_cancel: {e}")

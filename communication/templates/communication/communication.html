@@ -97,7 +97,9 @@
             <button type="button" onclick="sendMessage()" class="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600">Send</button>
         </div>
         <div class="p-4 border-t flex justify-end">
-            <button onclick="toggleVideoCall()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 mr-2">Start/Stop Video Call</button>
+            <button onclick="toggleVideoCall()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 mr-2" id="video-btn">Start/Stop Video Call</button>
+            <button onclick="cancelVideoInvite()" class="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600" id="cancel-video-btn" style="display: none;">Cancel Invite</button>
+            <div id="invite-status" class="text-gray-600 ml-2" style="display: none;"></div>
             <button onclick="toggleAudio()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600" id="audio-btn">Start/Stop Audio</button>
         </div>
         <div class="video-container" id="video-container" style="display: none;">
@@ -140,6 +142,8 @@
         let ignoreOffer = false;
         let polite = false;
         let lastMessageTimestamp = null;  // Track last message time to avoid duplicates
+        let isInviting = false;  // 新增: 是否正在邀请中
+        let inviteTimer = null;  // 新增: 邀请超时计时器
 
         if (participants.length > 0) {
             polite = userEmail < participants[0];
@@ -306,6 +310,33 @@
                         pendingCandidates[data.sender].push(data.candidate);
                         console.log(`Queued ICE candidate from ${data.sender} (remote desc not set yet)`);
                     }
+                } else if (data.type === 'video_invite' && data.to === userEmail) {
+                    // 新增: 接收到邀请，弹出弹窗
+                    if (confirm(`User ${data.sender} wants to start a video call. Accept?`)) {
+                        ws.send(JSON.stringify({
+                            type: 'video_accept',
+                            to: data.sender
+                        }));
+                        // 接受后启动视频通话
+                        startVideoCall();
+                    } else {
+                        ws.send(JSON.stringify({
+                            type: 'video_reject',
+                            to: data.sender
+                        }));
+                    }
+                } else if (data.type === 'video_accept' && data.to === userEmail) {
+                    // 新增: 发起方收到接受
+                    alert('Video call accepted!');
+                    resetInviteState();
+                    startVideoCall();
+                } else if (data.type === 'video_reject' && data.to === userEmail) {
+                    // 新增: 发起方收到拒绝
+                    alert('Video call rejected by the other party.');
+                    resetInviteState();
+                } else if (data.type === 'video_cancel' && data.to === userEmail) {
+                    // 新增: 接收方收到取消
+                    alert('Video call invite cancelled by the sender.');
                 }
             };
 
@@ -340,11 +371,60 @@
 
         function toggleVideoCall() {
             const videoContainer = document.getElementById('video-container');
+            const videoBtn = document.getElementById('video-btn');
+            const cancelBtn = document.getElementById('cancel-video-btn');
+            const statusDiv = document.getElementById('invite-status');
+
             if (videoContainer.style.display === 'none') {
-                startVideoCall();
+                if (isInviting) {
+                    // 如果已经在邀请中，不重复发送
+                    return;
+                }
+                // 新增: 发送邀请而不是直接开始
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'video_invite',
+                        to: participants[0]  // 假设1v1，发送给对方
+                    }));
+                    isInviting = true;
+                    videoBtn.style.display = 'none';  // 隐藏start按钮
+                    cancelBtn.style.display = 'inline-block';  // 显示取消按钮
+                    statusDiv.style.display = 'inline-block';
+                    statusDiv.textContent = 'Waiting for response...';
+                    console.log('Video invite sent');
+                    // 可选: 设置超时，30秒后自动取消
+                    inviteTimer = setTimeout(() => {
+                        cancelVideoInvite();
+                        alert('Invite timed out');
+                    }, 30000);
+                } else {
+                    alert('WebSocket not connected');
+                }
             } else {
-                endCall();
+                endCall();  // 保持原有结束逻辑
+                videoBtn.textContent = 'Start/Stop Video Call';
             }
+        }
+
+        // 新增: 取消邀请函数
+        function cancelVideoInvite() {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'video_cancel',
+                    to: participants[0]
+                }));
+                resetInviteState();
+                console.log('Video invite cancelled');
+            }
+        }
+
+        // 新增: 重置邀请状态
+        function resetInviteState() {
+            isInviting = false;
+            document.getElementById('video-btn').style.display = 'inline-block';
+            document.getElementById('cancel-video-btn').style.display = 'none';
+            document.getElementById('invite-status').style.display = 'none';
+            if (inviteTimer) clearTimeout(inviteTimer);
         }
 
         async function startVideoCall() {
@@ -443,6 +523,7 @@
             document.getElementById('video-container').style.display = 'none';
             document.getElementById('localVideo').srcObject = null;
             document.getElementById('remoteVideos').innerHTML = '';
+            resetInviteState();  // 新增: 结束时重置邀请状态
             console.log('Video call ended');
         }
 
