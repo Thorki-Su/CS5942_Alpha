@@ -57,6 +57,16 @@ python manage.py runserver
 
 
 ## 5. Environment Variables
+In *.env* file, we store the API keys for tools we use, such as AWS, postsql, SendGrid and Stripe. Getting a new key is necessary if you want to run the local version. 
+
+Please note:
+1. You need to register an account on the respective service platform, create a project or application, and get the corresponding keys.
+
+2. Fill these keys into the local *.env* file to ensure that the project can call the relevant APIs properly.
+
+3. Do not submit the *.env* file containing the real keys to the public codebase. This could trigger a serious security alert.
+
+4. Please refer to the *.env.example* file for the specific key name and follow the instructions to get it from the corresponding platform.
 
 
 ## 6. Branch Protection Policy
