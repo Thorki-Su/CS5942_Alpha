@@ -14,6 +14,7 @@ from matching.utils import match_volunteers_for_task
 from django.views.decorators.csrf import csrf_exempt
 from adminpanel.models import OperationLog
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 # Create your views here.
 def client_required(view_func):
@@ -429,3 +430,16 @@ def task_feedback(request, task_id, to_user_id):
         'to_user': to_user,
         'task': task,
     })
+
+@eligibility_required
+@login_required
+@require_POST
+def manual_match_view(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if task.status == 'open':
+        matched_count = match_volunteers_for_task(task)
+        messages.success(request, f"Matched {matched_count} volunteer")
+    else:
+        messages.error(request, f"Task status is not allowed to match")
+     
+    return redirect('task:task_application', task_id=task.id)
