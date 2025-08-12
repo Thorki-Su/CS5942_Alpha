@@ -326,7 +326,7 @@ def accept_friend_request(request, request_id):
         }
     )
     
-    return JsonResponse({'success': True, 'room_name': room_name})
+    return redirect('communication:one_to_one_chat_selection')
 
 @login_required
 @require_POST

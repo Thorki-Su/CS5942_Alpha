@@ -1,3 +1,4 @@
+```html
 {% extends 'base.html' %}
 
 {% block title %}1v1 Chat Selection{% endblock %}
@@ -270,14 +271,6 @@
                 alert(data.error || 'Failed to create room');
             }
         })
-        .then(data => {
-            console.log('Create room data:', data);
-            if (data.room_name) {
-                window.location.href = data.url;
-            } else {
-                alert(data.error || 'Failed to create room');
-            }
-        })
         .catch(error => {
             console.error('Error creating room:', error);
             alert('An error occurred. Check the console for details.');
@@ -398,3 +391,4 @@
     });
 </script>
 {% endblock %}
+```
