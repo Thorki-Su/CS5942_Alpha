@@ -145,6 +145,11 @@
         background-color: #FFFFFF;
         border: 1px solid #e0e0e0;
     }
+    .mt-5 {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 40px;
+    }
 </style>
 {% endblock %}
 
@@ -270,17 +275,17 @@
                 alert(data.error || 'Failed to create room');
             }
         })
-        .then(data => {
-            console.log('Create room data:', data);
-            if (data.room_name) {
-                window.location.href = data.url;
-            } else {
-                alert(data.error || 'Failed to create room');
-            }
-        })
+        //.then(data => {
+        //    console.log('Create room data:', data);
+        //    if (data.room_name) {
+        //        window.location.href = data.url;
+        //    } else {
+        //        alert(data.error || 'Failed to create room');
+        //    }
+        //})
         .catch(error => {
             console.error('Error creating room:', error);
-            alert('An error occurred. Check the console for details.');
+            //alert('An error occurred. Check the console for details.');
         });
     }
 

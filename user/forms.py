@@ -183,8 +183,8 @@ class VolunteerRegisterForm(UserCreationForm):
     last_name = forms.CharField(max_length=100, label='Last Name')
     phone_number = forms.CharField(max_length=20, label='Phone Number')
     location = forms.CharField(max_length=255, label='Location/Postcode')
-    university_course = forms.CharField(max_length=255, label='University and Course')
-    profession = forms.CharField(max_length=255, label='Profession')
+    university_course = forms.CharField(max_length=255, label='University and Course', required=False)
+    profession = forms.CharField(max_length=255, label='Profession', required=False)
     is_for_credit = forms.ChoiceField(
         label='Are you volunteering for credit?',
         choices=true_and_false,
