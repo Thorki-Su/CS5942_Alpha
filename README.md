@@ -84,8 +84,32 @@ Run unit tests:
 ```bash
 python manage.py test
 ```
-Add the module name at the end to run the test of a certain module independently.
 
+### Multi-User Concurrent Testing (20-100 Users)
+
+
+### 1) Install Dependencies
+```bash
+pip install locust
+```
+
+### 2) Start Django Server
+```bash
+python manage.py runserver
+```
+
+### 3) Run Test
+
+```bash
+python run_multi_user_test.py
+```
+
+### 4) Remember to click the stop button on the website when you want to stop. It will keep testing if you don't do so.
+
+### Recommended Settings
+- **Number of Users**: 20-100
+- **Spawn Rate**: 5-10 users/second
+- **Test Duration**: 5-10 minutes
 
 ## 8. Deployment
 We used the Render platform for deployment. You can visit the deploy version through https://cs5942-alpha.onrender.com/  
