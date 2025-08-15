@@ -104,12 +104,12 @@ python manage.py runserver
 python run_multi_user_test.py
 ```
 
+### 4) Remember to click the stop button on the website when you want to stop. It will keep testing if you don't do so.
+
 ### Recommended Settings
 - **Number of Users**: 20-100
 - **Spawn Rate**: 5-10 users/second
 - **Test Duration**: 5-10 minutes
-
-
 
 ## 8. Deployment
 We used the Render platform for deployment. You can visit the deploy version through https://cs5942-alpha.onrender.com/  
