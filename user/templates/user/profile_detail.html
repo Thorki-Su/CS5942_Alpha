@@ -214,38 +214,68 @@
                         {% endif %}
                     {% elif key == 'pip_certificate' %}
                         {% if has_pip_cert %}
-                            <div style="grid-column: 1/-1; margin: 20px 0;">
-                                <strong style="display: block; margin-bottom: 10px; color: #495057;">{{ key|title }}:</strong>
-                                <embed src="{{ user.userprofile.clientprofile.pip_certificate.url }}" width="100%" height="500px" type="application/pdf" class="certificate-embed">
-                            </div>
+                            {% if user.userprofile.clientprofile.pip_certificate %}
+                                <div style="grid-column: 1/-1; margin: 20px 0;">
+                                    <strong style="display: block; margin-bottom: 10px; color: #495057;">{{ key|title }}:</strong>
+                                    <embed src="{{ user.userprofile.clientprofile.pip_certificate.url }}" width="100%" height="500px" type="application/pdf" class="certificate-embed">
+                                </div>
+                            {% else %}
+                                <div class="info-item">
+                                    <strong>{{ key|title }}:</strong> (No file uploaded)
+                                </div>
+                            {% endif %}
                         {% endif %}
                     {% elif key == 'adp_certificate' %}
                         {% if has_adp_cert %}
-                            <div style="grid-column: 1/-1; margin: 20px 0;">
-                                <strong style="display: block; margin-bottom: 10px; color: #495057;">{{ key|title }}:</strong>
-                                <embed src="{{ user.userprofile.clientprofile.adp_certificate.url }}" width="100%" height="500px" type="application/pdf" class="certificate-embed">
-                            </div>
+                            {% if user.userprofile.clientprofile.adp_certificate %}
+                                <div style="grid-column: 1/-1; margin: 20px 0;">
+                                    <strong style="display: block; margin-bottom: 10px; color: #495057;">{{ key|title }}:</strong>
+                                    <embed src="{{ user.userprofile.clientprofile.adp_certificate.url }}" width="100%" height="500px" type="application/pdf" class="certificate-embed">
+                                </div>
+                            {% else %}
+                                <div class="info-item">
+                                    <strong>{{ key|title }}:</strong> (No file uploaded)
+                                </div>
+                            {% endif %}
                         {% endif %}
                     {% elif key == 'lwc_certificate' %}
                         {% if has_lwc_cert %}
-                            <div style="grid-column: 1/-1; margin: 20px 0;">
-                                <strong style="display: block; margin-bottom: 10px; color: #495057;">{{ key|title }}:</strong>
-                                <embed src="{{ user.userprofile.clientprofile.lwc_certificate.url }}" width="100%" height="500px" type="application/pdf" class="certificate-embed">
-                            </div>
+                            {% if user.userprofile.clientprofile.lwc_certificate %}
+                                <div style="grid-column: 1/-1; margin: 20px 0;">
+                                    <strong style="display: block; margin-bottom: 10px; color: #495057;">{{ key|title }}:</strong>
+                                    <embed src="{{ user.userprofile.clientprofile.lwc_certificate.url }}" width="100%" height="500px" type="application/pdf" class="certificate-embed">
+                                </div>
+                            {% else %}
+                                <div class="info-item">
+                                    <strong>{{ key|title }}:</strong> (No file uploaded)
+                                </div>
+                            {% endif %}
                         {% endif %}
                     {% elif key == 'nhs_certificate' %}
                         {% if has_nhs_cert %}
-                            <div style="grid-column: 1/-1; margin: 20px 0;">
-                                <strong style="display: block; margin-bottom: 10px; color: #495057;">{{ key|title }}:</strong>
-                                <embed src="{{ user.userprofile.clientprofile.nhs_certificate.url }}" width="100%" height="500px" type="application/pdf" class="certificate-embed">
-                            </div>
+                            {% if user.userprofile.clientprofile.nhs_certificate %}
+                                <div style="grid-column: 1/-1; margin: 20px 0;">
+                                    <strong style="display: block; margin-bottom: 10px; color: #495057;">{{ key|title }}:</strong>
+                                    <embed src="{{ user.userprofile.clientprofile.nhs_certificate.url }}" width="100%" height="500px" type="application/pdf" class="certificate-embed">
+                                </div>
+                            {% else %}
+                                <div class="info-item">
+                                    <strong>{{ key|title }}:</strong> (No file uploaded)
+                                </div>
+                            {% endif %}
                         {% endif %}
                     {% elif key == 'diagnosis' %}
                         {% if has_diagnosis %}
-                            <div style="grid-column: 1/-1; margin: 20px 0;">
-                                <strong style="display: block; margin-bottom: 10px; color: #495057;">{{ key|title }}:</strong>
-                                <embed src="{{ user.userprofile.clientprofile.diagnosis.url }}" width="100%" height="500px" type="application/pdf" class="certificate-embed">
-                            </div>
+                            {% if user.userprofile.clientprofile.diagnosis %}
+                                <div style="grid-column: 1/-1; margin: 20px 0;">
+                                    <strong style="display: block; margin-bottom: 10px; color: #495057;">{{ key|title }}:</strong>
+                                    <embed src="{{ user.userprofile.clientprofile.diagnosis.url }}" width="100%" height="500px" type="application/pdf" class="certificate-embed">
+                                </div>
+                            {% else %}
+                                <div class="info-item">
+                                    <strong>{{ key|title }}:</strong> (No file uploaded)
+                                </div>
+                            {% endif %}
                         {% endif %}
                     {% elif key != 'id' and key != 'user_profile' and key != 'preferred_times' %}
                         <div class="info-item">
@@ -270,6 +300,10 @@
                         <div style="grid-column: 1/-1; margin: 20px 0;">
                             <strong style="display: block; margin-bottom: 10px; color: #495057;">{{ key|title }}:</strong>
                             <embed src="{{ user.userprofile.volunteerprofile.pvg_file.url }}" width="100%" height="500px" type="application/pdf" class="certificate-embed">
+                        </div>
+                    {% else %}
+                        <div class="info-item">
+                            <strong>{{ key|title }}:</strong> (No file uploaded)
                         </div>
                     {% endif %}
                 {% endif %}
