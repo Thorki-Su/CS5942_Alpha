@@ -2,9 +2,51 @@
 
 {% block title %}Eligibility Required{% endblock %}
 
+{% block style %}
+<style>
+    .eligibility-container {
+        max-width: 600px;
+        margin: 80px auto;
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    .eligibility-container h2 {
+        color: #30574e;
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+    .eligibility-container p {
+        font-size: 1.1rem;
+        color: #555;
+        margin-bottom: 15px;
+    }
+    .eligibility-container a {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        background: #30574e;
+        color: white;
+        border-radius: 25px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .eligibility-container a:hover {
+        background: white;
+        color: #30574e;
+        border: 2px solid #30574e;
+        box-shadow: 0 5px 15px rgba(48, 87, 78, 0.3);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <h2>Access denied</h2>
-    <p>Your account has not yet passed eligibility and you cannot access this page.</p>
-    <p>Please fill the personal information and wait for review.</p>
-    <a href="{% url 'user:home' %}">Back to home page</a>
+    <div class="eligibility-container">
+        <h2>Access Denied</h2>
+        <p>Your account has not yet passed eligibility and you cannot access this page.</p>
+        <p>Please fill the personal information and wait for review.</p>
+        <a href="{% url 'user:home' %}">Back to Home Page</a>
+    </div>
 {% endblock %}
